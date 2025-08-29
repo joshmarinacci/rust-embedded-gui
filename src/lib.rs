@@ -1,14 +1,18 @@
 pub struct Scene {
-    views:Vec<View>
+    views:Vec<View>,
+    connections: Vec<Connection>
 }
 
 impl Scene {
-    pub(crate) fn connectioncount(&self) -> i32 {
-        0
+    pub(crate) fn connectioncount(&self) -> usize {
+        self.connections.len()
     }
     pub(crate) fn has_view(&self, name: &str) -> bool {
         let view = self.views.iter().find(|v|v.name.eq(name));
         return view.is_some();
+    }
+    pub fn get_view(&self, name: &str) -> Option<&View> {
+        self.views.iter().find(|v|v.name.eq(name))
     }
     pub(crate) fn viewcount(&self) -> usize {
         self.views.len()
@@ -21,7 +25,8 @@ impl Scene {
             name:"root".to_string()
         };
         Scene {
-            views:vec![root]
+            views:vec![root],
+            connections: vec![]
         }
     }
 }
@@ -52,14 +57,22 @@ fn make_simple_view(name: &str) -> View {
     }
 }
 
-fn connect_parent_child(scene: &mut Scene, parent: &str, child: &str) {
-    todo!()
-}
-fn remove_parent_child(scene: &mut Scene, parent: &str, child: &str) {
-    todo!()
+struct Connection {
+    parent: String,
+    child: String,
 }
 
-fn pick_at(scene: &mut Scene, pt: Point) -> Vec<&View> {
+fn connect_parent_child(scene: &mut Scene, parent: &str, child: &str) {
+    scene.connections.push(Connection{parent:parent.to_string(), child:child.to_string()})
+}
+fn remove_parent_child(scene: &mut Scene, parent: &str, child: &str) -> Option<Connection> {
+    if let Some(n) = scene.connections.iter().position(|c| c.parent == parent && c.child == child) {
+        return Some(scene.connections.remove(n));
+    }
+    None
+}
+
+fn pick_at(scene: &mut Scene, pt: Point) -> Vec<&'static View> {
     todo!()
 }
 #[derive(Debug, PartialEq)]
@@ -117,7 +130,15 @@ mod tests {
     }
 
     fn get_children<'a>(scene: &'a mut Scene, name: &str) -> Vec<&'a View> {
-        todo!()
+        let mut children = vec![];
+        for con in &scene.connections {
+            if con.parent == name {
+                if let Some(view) = scene.get_view(con.child.as_str()) {
+                    children.push(view);
+                }
+            }
+        }
+        return children;
     }
 
     #[test]
