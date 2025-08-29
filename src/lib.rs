@@ -1,34 +1,34 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+pub struct Scene {
+    views:Vec<View>
 }
-
-pub struct Scene {}
 
 impl Scene {
     pub(crate) fn connectioncount(&self) -> i32 {
         0
     }
-}
-
-impl Scene {
     pub(crate) fn has_view(&self, name: &str) -> bool {
-        false
+        let view = self.views.iter().find(|v|v.name.eq(name));
+        return view.is_some();
+    }
+    pub(crate) fn viewcount(&self) -> usize {
+        self.views.len()
     }
 }
 
 impl Scene {
     pub(crate) fn new() -> Scene {
-        Scene {}
+        let root = View {
+            name:"root".to_string()
+        };
+        Scene {
+            views:vec![root]
+        }
     }
 }
 
-impl Scene {
-    pub(crate) fn viewcount(&self) -> usize {
-        0
-    }
+pub struct View {
+    name:String,
 }
-
-pub struct View {}
 
 struct Point {
     x: i32,
@@ -36,13 +36,20 @@ struct Point {
 }
 
 fn remove_view(scene: &mut Scene, name: &str) -> Option<View> {
-    return None;
+    if let Some(n) = scene.views.iter().position(|v|v.name.eq(name)) {
+        return Some(scene.views.remove(n));
+    }
+    None
 }
 
-fn add_view(scene: &mut Scene, name: View) {}
+fn add_view(scene: &mut Scene, view: View) {
+    scene.views.push(view)
+}
 
 fn make_simple_view(name: &str) -> View {
-    View {}
+    View {
+        name:name.to_string()
+    }
 }
 
 fn connect_parent_child(scene: &mut Scene, parent: &str, child: &str) {
@@ -129,12 +136,12 @@ mod tests {
 
     fn make_panel(name: &str, bounds: Bounds) -> View {
         View {
-
+            name:name.to_string()
         }
     }
     fn make_button(name: &str, bounds: Bounds) -> View {
         View {
-
+            name:name.to_string()
         }
     }
 
