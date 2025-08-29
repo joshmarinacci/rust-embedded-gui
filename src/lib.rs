@@ -1,5 +1,17 @@
+#![cfg_attr(not(test), no_std)]
+
+extern crate alloc;
+extern crate core;
+
+use alloc::string::{String, ToString};
+use alloc::vec;
+use alloc::vec::Vec;
+use hashbrown::HashMap;
+use log::info;
+
+
 pub struct Scene {
-    views:Vec<View>,
+    keys: HashMap<String, View>,
     connections: Vec<Connection>
 }
 
@@ -8,24 +20,32 @@ impl Scene {
         self.connections.len()
     }
     pub(crate) fn has_view(&self, name: &str) -> bool {
-        let view = self.views.iter().find(|v|v.name.eq(name));
-        return view.is_some();
+        self.keys.get(name).is_some()
     }
     pub fn get_view(&self, name: &str) -> Option<&View> {
-        self.views.iter().find(|v|v.name.eq(name))
+        self.keys.get(name)
+    }
+    pub fn get_view_mut(&mut self, name: &str) -> Option<&mut View> {
+        self.keys.get_mut(name)
     }
     pub(crate) fn viewcount(&self) -> usize {
-        self.views.len()
+        self.keys.len()
+    }
+    pub fn get_children(&mut self, name: &str) -> Vec<&mut View> {
+        todo!()
     }
 }
 
 impl Scene {
     pub(crate) fn new() -> Scene {
         let root = View {
-            name:"root".to_string()
+            name:"root".to_string(),
+            bounds: Bounds { x:0, y:0, w: 200, h: 200},
         };
+        let mut keys:HashMap<String, View> = HashMap::new();
+        keys.insert(String::from("root"),root);
         Scene {
-            views:vec![root],
+            keys: keys,
             connections: vec![]
         }
     }
@@ -33,28 +53,27 @@ impl Scene {
 
 pub struct View {
     name:String,
+    bounds: Bounds
 }
 
+#[derive(Debug)]
 struct Point {
     x: i32,
     y: i32,
 }
 
-fn remove_view(scene: &mut Scene, name: &str) -> Option<View> {
-    if let Some(n) = scene.views.iter().position(|v|v.name.eq(name)) {
-        return Some(scene.views.remove(n));
+impl Point {
+    pub(crate) fn new(x: i32, y: i32) -> Point {
+        Point { x, y, }
     }
-    None
+}
+
+fn remove_view(scene: &mut Scene, name: &str) -> Option<View> {
+    scene.keys.remove(name)
 }
 
 fn add_view(scene: &mut Scene, view: View) {
-    scene.views.push(view)
-}
-
-fn make_simple_view(name: &str) -> View {
-    View {
-        name:name.to_string()
-    }
+    scene.keys.insert(view.name.clone(),view);
 }
 
 struct Connection {
@@ -72,10 +91,31 @@ fn remove_parent_child(scene: &mut Scene, parent: &str, child: &str) -> Option<C
     None
 }
 
-fn pick_at(scene: &mut Scene, pt: Point) -> Vec<&'static View> {
-    todo!()
+fn pick_at(scene: &mut Scene, pt: &Point) -> Vec<String> {
+    pick_at_view(scene, pt, "root")
 }
-#[derive(Debug, PartialEq)]
+fn pick_at_view(scene: &Scene, pt: &Point, name:&str) -> Vec<String> {
+    let mut coll:Vec<String> = vec![];
+    if let Some(root) = scene.keys.get(name) {
+        // info!("picking view {} {:?} {:?} {}",name, root.bounds, pt, root.bounds.contains(pt));
+        if root.bounds.contains(pt) {
+            coll.push(root.name.clone());
+            let pt2 = Point {
+                x:pt.x-root.bounds.x,
+                y:pt.y-root.bounds.y,
+            };
+            // info!("pt2 = {:?}",pt2);
+            for con in &scene.connections {
+                if con.parent == root.name {
+                    let mut coll2 = pick_at_view(scene, &pt2, &con.child);
+                    coll.append(&mut coll2);
+                }
+            }
+        }
+    }
+    coll
+}
+#[derive(Debug, PartialEq, Copy, Clone)]
 struct Bounds {
     x: i32,
     y: i32,
@@ -83,17 +123,73 @@ struct Bounds {
     h: i32
 }
 
-fn get_bounds(scene: &Scene, name: &str) -> Bounds {
-    todo!()
+impl Bounds {
+    pub(crate) fn contains(&self, pt: &Point) -> bool {
+        if self.x <= pt.x && self.y <= pt.y {
+            if self.x + self.w > pt.x && self.y + self.h > pt.y {
+                return true;
+            }
+        }
+        false
+    }
+}
+
+fn get_bounds(scene: &Scene, name: &str) -> Option<Bounds> {
+    if let Some(view) = scene.keys.get(name) {
+        return Some(view.bounds);
+    }
+    None
 }
 
 fn layout_vbox(scene: &mut Scene, name: &str) {
-    todo!()
+    let parent = scene.keys.get_mut(name);
+    if let Some(parent) = parent {
+        let mut y = 0;
+        let bounds = parent.bounds.clone();
+        for con in &scene.connections {
+            if con.parent == name {
+                if let Some(ch) = scene.keys.get_mut(&con.child.clone()) {
+                    ch.bounds.x = 0;
+                    ch.bounds.y = y;
+                    ch.bounds.w = bounds.w;
+                    y += ch.bounds.h;
+                }
+            }
+        }
+    }
+}
+fn get_child_count(scene: &mut Scene, name: &str) -> usize {
+    let conn:Vec<&Connection> = scene.connections.iter().filter(|c|c.parent == name).collect();
+    conn.len()
 }
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Once;
+    use log::LevelFilter;
     use super::*;
+    extern crate std;
+
+    static INIT: Once = Once::new();
+
+    pub fn initialize() {
+        INIT.call_once(|| {
+            env_logger::Builder::new()
+                // .format(|f, record| {
+                //     writeln!(f,"[{}] - {}",record.level(),record.args())
+                // })
+                .target(env_logger::Target::Stdout) // <-- redirects to stdout
+                .filter(None, LevelFilter::Info)
+                .init();
+        });
+    }
+
+    #[test]
+    fn test_geometry() {
+        let bounds = Bounds { x: 0, y:0, w: 100, h:100};
+        assert_eq!(bounds.contains(&Point::new(10,10)), true);
+        assert_eq!(bounds.contains(&Point::new(-1,-1)),false);
+    }
 
     #[test]
     fn basic_add_remove() {
@@ -117,52 +213,52 @@ mod tests {
         add_view(&mut scene, make_simple_view("parent"));
         add_view(&mut scene, make_simple_view("child"));
         assert_eq!(scene.connectioncount(), 0);
-        assert_eq!(get_children(&mut scene, "parent").len(), 0);
+        assert_eq!(get_child_count(&mut scene, "parent"), 0);
         assert_eq!(scene.viewcount(), 3);
 
         connect_parent_child(&mut scene, "parent", "child");
         assert_eq!(scene.connectioncount(), 1);
-        assert_eq!(get_children(&mut scene, "parent").len(), 1);
+        assert_eq!(get_child_count(&mut scene, "parent"), 1);
 
         remove_parent_child(&mut scene, "parent", "child");
         assert_eq!(scene.connectioncount(), 0);
-        assert_eq!(get_children(&mut scene, "parent").len(), 0);
+        assert_eq!(get_child_count(&mut scene, "parent"), 0);
     }
 
-    fn get_children<'a>(scene: &'a mut Scene, name: &str) -> Vec<&'a View> {
-        let mut children = vec![];
-        for con in &scene.connections {
-            if con.parent == name {
-                if let Some(view) = scene.get_view(con.child.as_str()) {
-                    children.push(view);
-                }
-            }
-        }
-        return children;
-    }
 
     #[test]
     fn test_pick_at() {
+        initialize();
         let mut scene: Scene = Scene::new();
         // add panel
         add_view(&mut scene, make_panel("parent", Bounds { x: 10, y: 10, w: 100, h: 100}));
         // add button
-        add_view(&mut scene, make_button("child", Bounds { x: 20, y:20, w: 20, h: 20}));
+        add_view(&mut scene, make_button("child", Bounds { x: 10, y:10, w: 20, h: 20}));
         // connect
+        connect_parent_child(&mut scene, "root","parent");
         connect_parent_child(&mut scene, "parent", "child");
-        assert_eq!(pick_at(&mut scene, Point { x: 5, y: 5 }).len(),0);
-        assert_eq!(pick_at(&mut scene, Point { x: 15, y: 15 }).len(),1);
-        assert_eq!(pick_at(&mut scene, Point { x: 25, y: 25 }).len(),2);
+        assert_eq!(pick_at(&mut scene, &Point { x: 5, y: 5 }).len(),1);
+        assert_eq!(pick_at(&mut scene, &Point { x: 15, y: 15 }).len(),2);
+        assert_eq!(pick_at(&mut scene, &Point { x: 25, y: 25 }).len(),3);
+    }
+
+    fn make_simple_view(name: &str) -> View {
+        View {
+            name:name.to_string(),
+            bounds: Bounds { x: 0, y: 0, w: 10, h: 10}
+        }
     }
 
     fn make_panel(name: &str, bounds: Bounds) -> View {
         View {
-            name:name.to_string()
+            name:name.to_string(),
+            bounds
         }
     }
     fn make_button(name: &str, bounds: Bounds) -> View {
         View {
-            name:name.to_string()
+            name:name.to_string(),
+            bounds,
         }
     }
 
@@ -180,9 +276,9 @@ mod tests {
         connect_parent_child(&mut scene, "parent", "button2");
         // layout
         layout_vbox(&mut scene, "parent");
-        assert_eq!(get_bounds(&scene, "parent"), Bounds { x: 10, y: 10, w: 100, h: 100});
-        assert_eq!(get_bounds(&scene, "button1"), Bounds { x: 0, y: 0, w: 100, h: 20});
-        assert_eq!(get_bounds(&scene, "button2"), Bounds { x: 0, y: 20, w: 100, h: 20});
-        let views: Vec<&View> = pick_at(&mut scene, Point { x: 5, y: 5 });
+        assert_eq!(get_bounds(&scene, "parent"), Some(Bounds { x: 10, y: 10, w: 100, h: 100}));
+        assert_eq!(get_bounds(&scene, "button1"), Some(Bounds { x: 0, y: 0, w: 100, h: 20}));
+        assert_eq!(get_bounds(&scene, "button2"), Some(Bounds { x: 0, y: 20, w: 100, h: 20}));
+        // let views: Vec<&View> = pick_at(&mut scene, Point { x: 5, y: 5 });
     }
 }
