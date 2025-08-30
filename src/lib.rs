@@ -41,6 +41,7 @@ impl Scene {
         let root = View {
             name:"root".to_string(),
             bounds: Bounds { x:0, y:0, w: 200, h: 200},
+            visible:true,
         };
         let mut keys:HashMap<String, View> = HashMap::new();
         keys.insert(String::from("root"),root);
@@ -53,7 +54,8 @@ impl Scene {
 
 pub struct View {
     name:String,
-    bounds: Bounds
+    bounds: Bounds,
+    visible: bool,
 }
 
 #[derive(Debug)]
@@ -183,14 +185,33 @@ mod tests {
                 .init();
         });
     }
-
+    fn make_simple_view(name: &str) -> View {
+        View {
+            name:name.to_string(),
+            bounds: Bounds { x: 0, y: 0, w: 10, h: 10},
+            visible:true,
+        }
+    }
+    fn make_panel(name: &str, bounds: Bounds) -> View {
+        View {
+            name:name.to_string(),
+            bounds,
+            visible:true,
+        }
+    }
+    fn make_button(name: &str, bounds: Bounds) -> View {
+        View {
+            name:name.to_string(),
+            bounds,
+            visible:true,
+        }
+    }
     #[test]
     fn test_geometry() {
         let bounds = Bounds { x: 0, y:0, w: 100, h:100};
         assert_eq!(bounds.contains(&Point::new(10,10)), true);
         assert_eq!(bounds.contains(&Point::new(-1,-1)),false);
     }
-
     #[test]
     fn basic_add_remove() {
         let mut scene: Scene = Scene::new();
@@ -206,7 +227,6 @@ mod tests {
         let res2: Option<View> = remove_view(&mut scene, "bar");
         assert_eq!(res2.is_some(), false);
     }
-
     #[test]
     fn parent_child() {
         let mut scene: Scene = Scene::new();
@@ -224,8 +244,6 @@ mod tests {
         assert_eq!(scene.connectioncount(), 0);
         assert_eq!(get_child_count(&mut scene, "parent"), 0);
     }
-
-
     #[test]
     fn test_pick_at() {
         initialize();
@@ -241,27 +259,6 @@ mod tests {
         assert_eq!(pick_at(&mut scene, &Point { x: 15, y: 15 }).len(),2);
         assert_eq!(pick_at(&mut scene, &Point { x: 25, y: 25 }).len(),3);
     }
-
-    fn make_simple_view(name: &str) -> View {
-        View {
-            name:name.to_string(),
-            bounds: Bounds { x: 0, y: 0, w: 10, h: 10}
-        }
-    }
-
-    fn make_panel(name: &str, bounds: Bounds) -> View {
-        View {
-            name:name.to_string(),
-            bounds
-        }
-    }
-    fn make_button(name: &str, bounds: Bounds) -> View {
-        View {
-            name:name.to_string(),
-            bounds,
-        }
-    }
-
     #[test]
     fn test_layout() {
         let mut scene: Scene = Scene::new();
