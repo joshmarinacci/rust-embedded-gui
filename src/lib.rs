@@ -23,6 +23,7 @@ struct Point {
     y: i32,
 }
 
+#[derive(Debug)]
 pub struct View {
     name:String,
     title:String,
@@ -30,13 +31,23 @@ pub struct View {
     visible: bool,
 }
 
+#[derive(Debug)]
 pub struct Scene {
     keys: HashMap<String, View>,
     connections: Vec<Connection>,
     dirty: bool,
     bounds: Bounds,
     rootId:String,
-    focused:Option<String>
+    focused:Option<String>,
+}
+
+type Callback = fn(event:&mut GuiEvent);
+
+
+#[derive(Debug)]
+struct GuiEvent<'a> {
+    scene:&'a mut Scene,
+    target: &'a str,
 }
 
 impl Scene {
@@ -96,6 +107,7 @@ fn add_view(scene: &mut Scene, view: View) {
     scene.keys.insert(view.name.clone(),view);
 }
 
+#[derive(Debug)]
 struct Connection {
     parent: String,
     child: String,
@@ -111,6 +123,18 @@ fn remove_parent_child(scene: &mut Scene, parent: &str, child: &str) -> Option<C
     None
 }
 
+fn click_at(scene: &mut Scene, handlers:&Vec<Callback>, pt: Point) {
+    let targets = pick_at(scene, &pt);
+    if let Some(target) = targets.last() {
+        let mut event:GuiEvent = GuiEvent {
+            scene:scene,
+            target:target
+        };
+        for cb in handlers {
+            cb(&mut event);
+        }
+    }
+}
 fn pick_at(scene: &mut Scene, pt: &Point) -> Vec<String> {
     pick_at_view(scene, pt, &scene.rootId)
 }
@@ -181,6 +205,24 @@ fn layout_vbox(scene: &mut Scene, name: &str) {
 fn get_child_count(scene: &mut Scene, name: &str) -> usize {
     let conn:Vec<&Connection> = scene.connections.iter().filter(|c|c.parent == name).collect();
     conn.len()
+}
+
+fn repaint(scene: &mut Scene) {
+    let ctx = FakeDrawingContext{ clip: Bounds {x:0, y:0, w:200, h:200} };
+    if let Some(root) = scene.get_view(&scene.rootId) {
+        draw_view(root,&ctx);
+        let kids = get_children_for_parent(scene,&root.name);
+        for kid in kids {
+            if let Some(kid) = scene.get_view(&kid) {
+                draw_view(kid, &ctx);
+            }
+        }
+        scene.dirty = false;
+    }
+}
+
+fn draw_view(view: &View, ctx: &dyn DrawingContext) {
+    ctx.fillRect(&view.bounds,STD_BG)
 }
 
 #[cfg(test)]
@@ -315,22 +357,25 @@ mod tests {
 
     }
 
-    fn repaint(scene: &mut Scene) {
-        let ctx = FakeDrawingContext{ clip: Bounds {x:0, y:0, w:200, h:200} };
-        if let Some(root) = scene.get_view(&scene.rootId) {
-            draw_view(root,&ctx);
-            let kids = get_children_for_parent(scene,&root.name);
-            for kid in kids {
-                if let Some(kid) = scene.get_view(&kid) {
-                    draw_view(kid, &ctx);
-                }
+    #[test]
+    fn test_events() {
+        let mut scene = Scene::new();
+        let mut handlers:Vec<Callback> = vec![];
+        handlers.push((|event| {
+            info!("got an event {:?}",event);
+            if let Some(view) = event.scene.get_view_mut(event.target) {
+                view.visible = false;
             }
-            scene.dirty = false;
-        }
-    }
-
-    fn draw_view(view: &View, ctx: &dyn DrawingContext) {
-        ctx.fillRect(&view.bounds,STD_BG)
+        }));
+        handlers.push(|event| {
+            info!("got another event {:?}",event);
+            if let Some(view) = event.scene.get_view_mut(event.target) {
+                view.visible = false;
+            }
+        });
+        assert_eq!(scene.get_view("root").unwrap().visible,true);
+        click_at(&mut scene, &handlers, Point::new(5,5));
+        assert_eq!(scene.get_view("root").unwrap().visible,false);
     }
 }
 
