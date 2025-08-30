@@ -25,6 +25,7 @@ struct Point {
 
 pub struct View {
     name:String,
+    title:String,
     bounds: Bounds,
     visible: bool,
 }
@@ -63,6 +64,7 @@ impl Scene {
         };
         let root = View {
             name:"root".to_string(),
+            title:"root".to_string(),
             bounds: bounds.clone(),
             visible:true,
         };
@@ -204,6 +206,7 @@ mod tests {
     fn make_simple_view(name: &str) -> View {
         View {
             name:name.to_string(),
+            title:name.to_string(),
             bounds: Bounds { x: 0, y: 0, w: 10, h: 10},
             visible:true,
         }
@@ -211,6 +214,7 @@ mod tests {
     fn make_panel(name: &str, bounds: Bounds) -> View {
         View {
             name:name.to_string(),
+            title: name.to_string(),
             bounds,
             visible:true,
         }
@@ -218,6 +222,7 @@ mod tests {
     fn make_button(name: &str, bounds: Bounds) -> View {
         View {
             name:name.to_string(),
+            title: name.to_string(),
             bounds,
             visible:true,
         }
