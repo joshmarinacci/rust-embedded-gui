@@ -9,10 +9,33 @@ use alloc::vec::Vec;
 use hashbrown::HashMap;
 use log::info;
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+struct Bounds {
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32
+}
+
+#[derive(Debug)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub struct View {
+    name:String,
+    bounds: Bounds,
+    visible: bool,
+}
 
 pub struct Scene {
     keys: HashMap<String, View>,
-    connections: Vec<Connection>
+    connections: Vec<Connection>,
+    dirty: bool,
+    bounds: Bounds,
+    rootId:String,
+    focused:Option<String>
 }
 
 impl Scene {
@@ -31,37 +54,30 @@ impl Scene {
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
     }
-    pub fn get_children(&mut self, name: &str) -> Vec<&mut View> {
-        todo!()
-    }
 }
 
 impl Scene {
     pub(crate) fn new() -> Scene {
+        let bounds = Bounds {
+            x:0,y:0, w:200,h:200,
+        };
         let root = View {
             name:"root".to_string(),
-            bounds: Bounds { x:0, y:0, w: 200, h: 200},
+            bounds: bounds.clone(),
             visible:true,
         };
+        let rootId =String::from("root");
         let mut keys:HashMap<String, View> = HashMap::new();
-        keys.insert(String::from("root"),root);
+        keys.insert(rootId.clone(),root);
         Scene {
-            keys: keys,
-            connections: vec![]
+            bounds,
+            keys,
+            connections: vec![],
+            dirty:true,
+            rootId,
+            focused:None
         }
     }
-}
-
-pub struct View {
-    name:String,
-    bounds: Bounds,
-    visible: bool,
-}
-
-#[derive(Debug)]
-struct Point {
-    x: i32,
-    y: i32,
 }
 
 impl Point {
@@ -94,21 +110,19 @@ fn remove_parent_child(scene: &mut Scene, parent: &str, child: &str) -> Option<C
 }
 
 fn pick_at(scene: &mut Scene, pt: &Point) -> Vec<String> {
-    pick_at_view(scene, pt, "root")
+    pick_at_view(scene, pt, &scene.rootId)
 }
 fn pick_at_view(scene: &Scene, pt: &Point, name:&str) -> Vec<String> {
     let mut coll:Vec<String> = vec![];
-    if let Some(root) = scene.keys.get(name) {
-        // info!("picking view {} {:?} {:?} {}",name, root.bounds, pt, root.bounds.contains(pt));
-        if root.bounds.contains(pt) {
-            coll.push(root.name.clone());
+    if let Some(view) = scene.keys.get(name) {
+        if view.bounds.contains(pt) {
+            coll.push(view.name.clone());
             let pt2 = Point {
-                x:pt.x-root.bounds.x,
-                y:pt.y-root.bounds.y,
+                x:pt.x- view.bounds.x,
+                y:pt.y- view.bounds.y,
             };
-            // info!("pt2 = {:?}",pt2);
             for con in &scene.connections {
-                if con.parent == root.name {
+                if con.parent == view.name {
                     let mut coll2 = pick_at_view(scene, &pt2, &con.child);
                     coll.append(&mut coll2);
                 }
@@ -117,12 +131,14 @@ fn pick_at_view(scene: &Scene, pt: &Point, name:&str) -> Vec<String> {
     }
     coll
 }
-#[derive(Debug, PartialEq, Copy, Clone)]
-struct Bounds {
-    x: i32,
-    y: i32,
-    w: i32,
-    h: i32
+fn get_children_for_parent(scene: &Scene, name:&str) -> Vec<String> {
+    let mut coll:Vec<String> = vec![];
+    for con in &scene.connections {
+        if con.parent == name {
+            coll.push(con.child.clone());
+        }
+    }
+    coll
 }
 
 impl Bounds {
@@ -277,5 +293,59 @@ mod tests {
         assert_eq!(get_bounds(&scene, "button1"), Some(Bounds { x: 0, y: 0, w: 100, h: 20}));
         assert_eq!(get_bounds(&scene, "button2"), Some(Bounds { x: 0, y: 20, w: 100, h: 20}));
         // let views: Vec<&View> = pick_at(&mut scene, Point { x: 5, y: 5 });
+    }
+    #[test]
+    fn test_repaint() {
+        let mut scene: Scene = Scene::new();
+        // add panel
+        add_view(&mut scene, make_panel("parent", Bounds { x: 10, y: 10, w: 100, h: 100}));
+        // add button 1
+        add_view(&mut scene, make_button("button1", Bounds { x: 20, y: 20, w: 20, h: 20}));
+        // add button 2
+        add_view(&mut scene, make_button("button2", Bounds { x: 20, y: 20, w: 20, h: 20}));
+
+        assert_eq!(scene.dirty,true);
+        repaint(&mut scene);
+        assert_eq!(scene.dirty,false);
+
+    }
+
+    fn repaint(scene: &mut Scene) {
+        let ctx = FakeDrawingContext{ clip: Bounds {x:0, y:0, w:200, h:200} };
+        if let Some(root) = scene.get_view(&scene.rootId) {
+            draw_view(root,&ctx);
+            let kids = get_children_for_parent(scene,&root.name);
+            for kid in kids {
+                if let Some(kid) = scene.get_view(&kid) {
+                    draw_view(kid, &ctx);
+                }
+            }
+            scene.dirty = false;
+        }
+    }
+
+    fn draw_view(view: &View, ctx: &dyn DrawingContext) {
+        ctx.fillRect(&view.bounds,STD_BG)
+    }
+}
+
+const STD_BG: &str = "gray";
+trait DrawingContext {
+    fn fillRect(&self, bounds: &Bounds, color: &str);
+    fn fillText(&self, bounds: &Bounds, text: &str, color:&str);
+}
+struct FakeDrawingContext {
+    clip:Bounds,
+}
+impl DrawingContext for FakeDrawingContext {
+    fn fillRect(&self, bounds: &Bounds, color: &str) {
+        // let area = bounds.intersect(self.clip);
+        // if !area.is_empty() {
+        //
+        // }
+    }
+
+    fn fillText(&self, bounds: &Bounds, text: &str, color: &str) {
+        // todo!()
     }
 }
