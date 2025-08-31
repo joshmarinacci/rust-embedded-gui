@@ -113,7 +113,6 @@ struct Connection {
     parent: String,
     child: String,
 }
-
 fn connect_parent_child(scene: &mut Scene, parent: &str, child: &str) {
     scene.connections.push(Connection{parent:parent.to_string(), child:child.to_string()})
 }
@@ -123,7 +122,6 @@ fn remove_parent_child(scene: &mut Scene, parent: &str, child: &str) -> Option<C
     }
     None
 }
-
 fn click_at(scene: &mut Scene, handlers:&Vec<Callback>, pt: Point) {
     let targets = pick_at(scene, &pt);
     if let Some(target) = targets.last() {
@@ -148,24 +146,22 @@ fn pick_at_view(scene: &Scene, pt: &Point, name:&str) -> Vec<String> {
                 x:pt.x- view.bounds.x,
                 y:pt.y- view.bounds.y,
             };
-            for con in &scene.connections {
-                if con.parent == view.name {
-                    let mut coll2 = pick_at_view(scene, &pt2, &con.child);
-                    coll.append(&mut coll2);
-                }
+            for kid in find_children(scene, &view.name) {
+                let mut coll2 = pick_at_view(scene, &pt2, &kid);
+                coll.append(&mut coll2);
             }
         }
     }
     coll
 }
-fn get_children_for_parent(scene: &Scene, name:&str) -> Vec<String> {
-    let mut coll:Vec<String> = vec![];
+fn find_children(scene: &Scene, parent: &str) -> Vec<String> {
+    let mut out = vec![];
     for con in &scene.connections {
-        if con.parent == name {
-            coll.push(con.child.clone());
+        if con.parent == parent {
+            out.push(con.child.clone());
         }
     }
-    coll
+    out
 }
 
 impl Bounds {
@@ -181,9 +177,10 @@ impl Bounds {
 
 fn get_bounds(scene: &Scene, name: &str) -> Option<Bounds> {
     if let Some(view) = scene.keys.get(name) {
-        return Some(view.bounds);
+        Some(view.bounds)
+    } else {
+        None
     }
-    None
 }
 
 fn layout_vbox(scene: &mut Scene, name: &str) {
@@ -191,14 +188,13 @@ fn layout_vbox(scene: &mut Scene, name: &str) {
     if let Some(parent) = parent {
         let mut y = 0;
         let bounds = parent.bounds.clone();
-        for con in &scene.connections {
-            if con.parent == name {
-                if let Some(ch) = scene.keys.get_mut(&con.child.clone()) {
-                    ch.bounds.x = 0;
-                    ch.bounds.y = y;
-                    ch.bounds.w = bounds.w;
-                    y += ch.bounds.h;
-                }
+        let kids = find_children(scene,name);
+        for kid in kids {
+            if let Some(ch) = scene.keys.get_mut(&kid) {
+                ch.bounds.x = 0;
+                ch.bounds.y = y;
+                ch.bounds.w = bounds.w;
+                y += ch.bounds.h;
             }
         }
     }
@@ -212,7 +208,7 @@ fn repaint(scene: &mut Scene) {
     let ctx = FakeDrawingContext{ clip: Bounds {x:0, y:0, w:200, h:200} };
     if let Some(root) = scene.get_view(&scene.rootId) {
         draw_view(root,&ctx);
-        let kids = get_children_for_parent(scene,&root.name);
+        let kids = find_children(scene,&root.name);
         for kid in kids {
             if let Some(kid) = scene.get_view(&kid) {
                 draw_view(kid, &ctx);
@@ -357,7 +353,6 @@ mod tests {
         assert_eq!(scene.dirty,false);
 
     }
-
     #[test]
     fn test_events() {
         let mut scene = Scene::new();
