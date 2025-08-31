@@ -204,22 +204,34 @@ fn get_child_count(scene: &mut Scene, name: &str) -> usize {
     conn.len()
 }
 
+struct Theme<'a> {
+    bg:&'a str,
+    fg:&'a str,
+    panel_bg:&'a str,
+}
+
 fn repaint(scene: &mut Scene) {
+    let theme = Theme {
+        bg:"white",
+        fg:"black",
+        panel_bg:"grey"
+    };
+
     let ctx = FakeDrawingContext{ clip: Bounds {x:0, y:0, w:200, h:200} };
     if let Some(root) = scene.get_view(&scene.rootId) {
-        draw_view(root,&ctx);
+        draw_view(root,&ctx, &theme);
         let kids = find_children(scene,&root.name);
         for kid in kids {
             if let Some(kid) = scene.get_view(&kid) {
-                draw_view(kid, &ctx);
+                draw_view(kid, &ctx, &theme);
             }
         }
         scene.dirty = false;
     }
 }
 
-fn draw_view(view: &View, ctx: &dyn DrawingContext) {
-    ctx.fillRect(&view.bounds,STD_BG)
+fn draw_view(view: &View, ctx: &dyn DrawingContext, theme:&Theme) {
+    ctx.fillRect(&view.bounds,theme.bg)
 }
 
 #[cfg(test)]
