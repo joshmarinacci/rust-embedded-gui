@@ -44,6 +44,11 @@ pub struct Scene {
 type Callback = fn(event:&mut GuiEvent);
 
 
+trait DrawingContext {
+    fn fillRect(&self, bounds: &Bounds, color: &str);
+    fn fillText(&self, bounds: &Bounds, text: &str, color:&str);
+}
+
 #[derive(Debug)]
 struct GuiEvent<'a> {
     scene:&'a mut Scene,
@@ -66,9 +71,9 @@ impl Scene {
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
     }
-}
-
-impl Scene {
+    pub fn remove_view(&mut self, name: &str) -> Option<View> {
+        self.keys.remove(name)
+    }
     pub(crate) fn new() -> Scene {
         let bounds = Bounds {
             x:0,y:0, w:200,h:200,
@@ -91,6 +96,9 @@ impl Scene {
             focused:None
         }
     }
+    pub fn add_view(&mut self, view: View) {
+        self.keys.insert(view.name.clone(),view);
+    }
 }
 
 impl Point {
@@ -99,13 +107,6 @@ impl Point {
     }
 }
 
-fn remove_view(scene: &mut Scene, name: &str) -> Option<View> {
-    scene.keys.remove(name)
-}
-
-fn add_view(scene: &mut Scene, view: View) {
-    scene.keys.insert(view.name.clone(),view);
-}
 
 #[derive(Debug)]
 struct Connection {
@@ -281,20 +282,20 @@ mod tests {
         assert_eq!(scene.viewcount(), 1);
         let view: View = make_simple_view("foo");
         assert_eq!(scene.viewcount(), 1);
-        add_view(&mut scene, view);
+        scene.add_view(view);
         assert_eq!(scene.viewcount(), 2);
         assert_eq!(scene.has_view("foo"), true);
-        let res: Option<View> = remove_view(&mut scene, "foo");
+        let res: Option<View> = scene.remove_view("foo");
         assert_eq!(res.is_some(), true);
         assert_eq!(scene.viewcount(), 1);
-        let res2: Option<View> = remove_view(&mut scene, "bar");
+        let res2: Option<View> = scene.remove_view( "bar");
         assert_eq!(res2.is_some(), false);
     }
     #[test]
     fn parent_child() {
         let mut scene: Scene = Scene::new();
-        add_view(&mut scene, make_simple_view("parent"));
-        add_view(&mut scene, make_simple_view("child"));
+        scene.add_view(make_simple_view("parent"));
+        scene.add_view(make_simple_view("child"));
         assert_eq!(scene.connectioncount(), 0);
         assert_eq!(get_child_count(&mut scene, "parent"), 0);
         assert_eq!(scene.viewcount(), 3);
@@ -312,9 +313,9 @@ mod tests {
         initialize();
         let mut scene: Scene = Scene::new();
         // add panel
-        add_view(&mut scene, make_panel("parent", Bounds { x: 10, y: 10, w: 100, h: 100}));
+        scene.add_view(make_panel("parent", Bounds { x: 10, y: 10, w: 100, h: 100}));
         // add button
-        add_view(&mut scene, make_button("child", Bounds { x: 10, y:10, w: 20, h: 20}));
+        scene.add_view(make_button("child", Bounds { x: 10, y:10, w: 20, h: 20}));
         // connect
         connect_parent_child(&mut scene, "root","parent");
         connect_parent_child(&mut scene, "parent", "child");
@@ -326,11 +327,11 @@ mod tests {
     fn test_layout() {
         let mut scene: Scene = Scene::new();
         // add panel
-        add_view(&mut scene, make_panel("parent", Bounds { x: 10, y: 10, w: 100, h: 100}));
+        scene.add_view(make_panel("parent", Bounds { x: 10, y: 10, w: 100, h: 100}));
         // add button 1
-        add_view(&mut scene, make_button("button1", Bounds { x: 20, y: 20, w: 20, h: 20}));
+        scene.add_view(make_button("button1", Bounds { x: 20, y: 20, w: 20, h: 20}));
         // add button 2
-        add_view(&mut scene, make_button("button2", Bounds { x: 20, y: 20, w: 20, h: 20}));
+        scene.add_view(make_button("button2", Bounds { x: 20, y: 20, w: 20, h: 20}));
         // connect
         connect_parent_child(&mut scene, "parent", "button1");
         connect_parent_child(&mut scene, "parent", "button2");
@@ -345,11 +346,11 @@ mod tests {
     fn test_repaint() {
         let mut scene: Scene = Scene::new();
         // add panel
-        add_view(&mut scene, make_panel("parent", Bounds { x: 10, y: 10, w: 100, h: 100}));
+        scene.add_view(make_panel("parent", Bounds { x: 10, y: 10, w: 100, h: 100}));
         // add button 1
-        add_view(&mut scene, make_button("button1", Bounds { x: 20, y: 20, w: 20, h: 20}));
+        scene.add_view(make_button("button1", Bounds { x: 20, y: 20, w: 20, h: 20}));
         // add button 2
-        add_view(&mut scene, make_button("button2", Bounds { x: 20, y: 20, w: 20, h: 20}));
+        scene.add_view(make_button("button2", Bounds { x: 20, y: 20, w: 20, h: 20}));
 
         assert_eq!(scene.dirty,true);
         repaint(&mut scene);
@@ -382,10 +383,6 @@ mod tests {
 }
 
 const STD_BG: &str = "gray";
-trait DrawingContext {
-    fn fillRect(&self, bounds: &Bounds, color: &str);
-    fn fillText(&self, bounds: &Bounds, text: &str, color:&str);
-}
 struct FakeDrawingContext {
     clip:Bounds,
 }
