@@ -366,12 +366,14 @@ mod tests {
             if let Some(view) = event.scene.get_view_mut(event.target) {
                 view.visible = false;
             }
+            event.scene.dirty = true;
         }));
         handlers.push(|event| {
             info!("got another event {:?}",event);
             if let Some(view) = event.scene.get_view_mut(event.target) {
                 view.visible = false;
             }
+            event.scene.dirty = true;
         });
         assert_eq!(scene.get_view("root").unwrap().visible,true);
         click_at(&mut scene, &handlers, Point::new(5,5));
