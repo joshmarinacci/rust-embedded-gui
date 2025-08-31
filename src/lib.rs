@@ -3,9 +3,11 @@
 extern crate alloc;
 extern crate core;
 
+use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
+use core::any::Any;
 use hashbrown::HashMap;
 use log::info;
 
@@ -40,7 +42,7 @@ pub struct View {
     visible: bool,
     draw: Option<DrawFn>,
     input: Option<InputFn>,
-    state: Option<String>,
+    state: Option<Box<dyn Any>>,
 }
 
 #[derive(Debug)]
@@ -279,14 +281,16 @@ fn draw_button_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
 }
 fn draw_toggle_button_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
     if let Some(state) = &view.state {
-        if state == "enabled" {
-            ctx.fillRect(&view.bounds, theme.fg);
-            ctx.strokeRect(&view.bounds, theme.bg);
-            ctx.fillText(&view.bounds, &view.title, theme.bg);
-        } else {
-            ctx.fillRect(&view.bounds, theme.bg);
-            ctx.strokeRect(&view.bounds, theme.fg);
-            ctx.fillText(&view.bounds, &view.title, theme.fg);
+        if let Some(state) = state.downcast_ref::<String>() {
+            if state == "enabled" {
+                ctx.fillRect(&view.bounds, theme.fg);
+                ctx.strokeRect(&view.bounds, theme.bg);
+                ctx.fillText(&view.bounds, &view.title, theme.bg);
+            } else {
+                ctx.fillRect(&view.bounds, theme.bg);
+                ctx.strokeRect(&view.bounds, theme.fg);
+                ctx.fillText(&view.bounds, &view.title, theme.fg);
+            }
         }
     }
 }
@@ -299,7 +303,7 @@ fn draw_panel_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
 
 fn handle_toggle_button_input(view: &mut View) {
     info!("view clicked {:?}", view);
-    view.state.insert(String::from("enabled"));
+    view.state.insert(Box::new(String::from("enabled")));
 }
 #[cfg(test)]
 mod tests {
@@ -587,7 +591,7 @@ mod tests {
             draw: Some(draw_toggle_button_view),
             visible: true,
             input: Some(handle_toggle_button_input),
-            state: Some(String::from("disabled")),
+            state: Some(Box::new(String::from("disabled"))),
         };
         scene.add_view(button);
         connect_parent_child(&mut scene, "root", "toggle");
@@ -601,7 +605,7 @@ mod tests {
                 .unwrap()
                 .state
                 .as_ref()
-                .unwrap(),
+                .unwrap().downcast_ref::<String>().unwrap(),
             &"disabled"
         );
         // click at
@@ -615,7 +619,7 @@ mod tests {
                 .unwrap()
                 .state
                 .as_ref()
-                .unwrap(),
+                .unwrap().downcast_ref::<String>().unwrap(),
             &"enabled"
         );
     }
