@@ -245,6 +245,9 @@ fn draw_button_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
     ctx.strokeRect(&view.bounds, theme.fg);
     ctx.fillText(&view.bounds, &view.title, theme.fg);
 }
+fn draw_label_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
+    ctx.fillText(&view.bounds, &view.title, theme.fg);
+}
 fn draw_panel_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
     ctx.fillRect(&view.bounds, theme.panel_bg);
 }
@@ -294,6 +297,15 @@ mod tests {
             bounds,
             visible:true,
             draw: draw_button_view
+        }
+    }
+    fn make_label(name: &str, bounds: Bounds) -> View {
+        View {
+            name:name.to_string(),
+            title: name.to_string(),
+            bounds,
+            visible:true,
+            draw: draw_label_view,
         }
     }
     #[test]
@@ -357,7 +369,7 @@ mod tests {
         // add button 1
         scene.add_view(make_button("button1", Bounds { x: 20, y: 20, w: 20, h: 20}));
         // add button 2
-        scene.add_view(make_button("button2", Bounds { x: 20, y: 20, w: 20, h: 20}));
+        scene.add_view(make_label("button2", Bounds { x: 20, y: 20, w: 20, h: 20}));
         // connect
         connect_parent_child(&mut scene, "parent", "button1");
         connect_parent_child(&mut scene, "parent", "button2");
