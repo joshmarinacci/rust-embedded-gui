@@ -23,12 +23,21 @@ struct Point {
     y: i32,
 }
 
+trait DrawingContext {
+    fn fillRect(&self, bounds: &Bounds, color: &str);
+    fn strokeRect(&self, bounds: &Bounds, color: &str);
+    fn fillText(&self, bounds: &Bounds, text: &str, color:&str);
+}
+
+type DrawFn = fn(view:&View, ctx:&dyn DrawingContext, theme:&Theme);
+
 #[derive(Debug)]
 pub struct View {
     name:String,
     title:String,
     bounds: Bounds,
     visible: bool,
+    draw:DrawFn,
 }
 
 #[derive(Debug)]
@@ -42,12 +51,6 @@ pub struct Scene {
 }
 
 type Callback = fn(event:&mut GuiEvent);
-
-
-trait DrawingContext {
-    fn fillRect(&self, bounds: &Bounds, color: &str);
-    fn fillText(&self, bounds: &Bounds, text: &str, color:&str);
-}
 
 #[derive(Debug)]
 struct GuiEvent<'a> {
@@ -83,6 +86,7 @@ impl Scene {
             title:"root".to_string(),
             bounds: bounds.clone(),
             visible:true,
+            draw: draw_root_view,
         };
         let rootId =String::from("root");
         let mut keys:HashMap<String, View> = HashMap::new();
@@ -175,6 +179,13 @@ impl Bounds {
     }
 }
 
+struct Theme<'a> {
+    bg:&'a str,
+    fg:&'a str,
+    panel_bg:&'a str,
+}
+
+
 fn get_bounds(scene: &Scene, name: &str) -> Option<Bounds> {
     if let Some(view) = scene.keys.get(name) {
         Some(view.bounds)
@@ -204,12 +215,6 @@ fn get_child_count(scene: &mut Scene, name: &str) -> usize {
     conn.len()
 }
 
-struct Theme<'a> {
-    bg:&'a str,
-    fg:&'a str,
-    panel_bg:&'a str,
-}
-
 fn repaint(scene: &mut Scene) {
     let theme = Theme {
         bg:"white",
@@ -219,19 +224,29 @@ fn repaint(scene: &mut Scene) {
 
     let ctx = FakeDrawingContext{ clip: Bounds {x:0, y:0, w:200, h:200} };
     if let Some(root) = scene.get_view(&scene.rootId) {
-        draw_view(root,&ctx, &theme);
+        (root.draw)(root,&ctx,&theme);
         let kids = find_children(scene,&root.name);
         for kid in kids {
             if let Some(kid) = scene.get_view(&kid) {
-                draw_view(kid, &ctx, &theme);
+                (kid.draw)(root,&ctx,&theme);
             }
         }
         scene.dirty = false;
     }
 }
-
-fn draw_view(view: &View, ctx: &dyn DrawingContext, theme:&Theme) {
+fn draw_generic_view(view: &View, ctx: &dyn DrawingContext, theme:&Theme) {
     ctx.fillRect(&view.bounds,theme.bg)
+}
+fn draw_root_view(view: &View, ctx: &dyn DrawingContext, theme:&Theme) {
+    ctx.fillRect(&view.bounds,theme.panel_bg)
+}
+fn draw_button_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
+    ctx.fillRect(&view.bounds, theme.bg);
+    ctx.strokeRect(&view.bounds, theme.fg);
+    ctx.fillText(&view.bounds, &view.title, theme.fg);
+}
+fn draw_panel_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
+    ctx.fillRect(&view.bounds, theme.panel_bg);
 }
 
 #[cfg(test)]
@@ -260,6 +275,7 @@ mod tests {
             title:name.to_string(),
             bounds: Bounds { x: 0, y: 0, w: 10, h: 10},
             visible:true,
+            draw: draw_generic_view
         }
     }
     fn make_panel(name: &str, bounds: Bounds) -> View {
@@ -268,6 +284,7 @@ mod tests {
             title: name.to_string(),
             bounds,
             visible:true,
+            draw: draw_panel_view,
         }
     }
     fn make_button(name: &str, bounds: Bounds) -> View {
@@ -276,6 +293,7 @@ mod tests {
             title: name.to_string(),
             bounds,
             visible:true,
+            draw: draw_button_view
         }
     }
     #[test]
@@ -348,7 +366,6 @@ mod tests {
         assert_eq!(get_bounds(&scene, "parent"), Some(Bounds { x: 10, y: 10, w: 100, h: 100}));
         assert_eq!(get_bounds(&scene, "button1"), Some(Bounds { x: 0, y: 0, w: 100, h: 20}));
         assert_eq!(get_bounds(&scene, "button2"), Some(Bounds { x: 0, y: 20, w: 100, h: 20}));
-        // let views: Vec<&View> = pick_at(&mut scene, Point { x: 5, y: 5 });
     }
     #[test]
     fn test_repaint() {
@@ -389,19 +406,16 @@ mod tests {
     }
 }
 
-const STD_BG: &str = "gray";
 struct FakeDrawingContext {
     clip:Bounds,
 }
 impl DrawingContext for FakeDrawingContext {
     fn fillRect(&self, bounds: &Bounds, color: &str) {
-        // let area = bounds.intersect(self.clip);
-        // if !area.is_empty() {
-        //
-        // }
+    }
+
+    fn strokeRect(&self, bounds: &Bounds, color: &str) {
     }
 
     fn fillText(&self, bounds: &Bounds, text: &str, color: &str) {
-        // todo!()
     }
 }
