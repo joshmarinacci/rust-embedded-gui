@@ -32,6 +32,7 @@ trait DrawingContext {
 }
 
 type DrawFn = fn(view: &View, ctx: &dyn DrawingContext, theme: &Theme);
+type LayoutFn = fn(scene: &mut Scene, name: &str);
 type InputFn = fn(view: &mut View);
 
 #[derive(Debug)]
@@ -43,6 +44,7 @@ pub struct View {
     draw: Option<DrawFn>,
     input: Option<InputFn>,
     state: Option<Box<dyn Any>>,
+    layout: Option<LayoutFn>,
 }
 
 #[derive(Debug)]
@@ -97,6 +99,7 @@ impl Scene {
             draw: Some(draw_root_view),
             input: None,
             state: None,
+            layout: None,
         };
         let rootId = String::from("root");
         let mut keys: HashMap<String, View> = HashMap::new();
@@ -339,9 +342,10 @@ mod tests {
             draw: Some(draw_generic_view),
             input: None,
             state: None,
+            layout: None,
         }
     }
-    fn make_panel(name: &str, bounds: Bounds) -> View {
+    fn make_vbox(name: &str, bounds: Bounds) -> View {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -350,28 +354,41 @@ mod tests {
             draw: Some(draw_panel_view),
             input: None,
             state: None,
+            layout: Some(layout_vbox),
         }
     }
-    fn make_button(name: &str, bounds: Bounds) -> View {
+    fn make_button(name: &str) -> View {
         View {
             name: name.to_string(),
             title: name.to_string(),
-            bounds,
+            bounds: Bounds {
+                x: 0,
+                y: 0,
+                w: 20,
+                h: 20,
+            },
             visible: true,
             draw: Some(draw_button_view),
             input: None,
             state: None,
+            layout: None,
         }
     }
-    fn make_label(name: &str, bounds: Bounds) -> View {
+    fn make_label(name: &str) -> View {
         View {
             name: name.to_string(),
             title: name.to_string(),
-            bounds,
+            bounds: Bounds {
+                x: 0,
+                y: 0,
+                w: 30,
+                h: 20,
+            },
             visible: true,
             draw: Some(draw_label_view),
             input: None,
             state: None,
+            layout: None,
         }
     }
     #[test]
@@ -422,7 +439,7 @@ mod tests {
         initialize();
         let mut scene: Scene = Scene::new();
         // add panel
-        scene.add_view(make_panel(
+        scene.add_view(make_vbox(
             "parent",
             Bounds {
                 x: 10,
@@ -432,15 +449,9 @@ mod tests {
             },
         ));
         // add button
-        scene.add_view(make_button(
-            "child",
-            Bounds {
-                x: 10,
-                y: 10,
-                w: 20,
-                h: 20,
-            },
-        ));
+        let mut button = make_button("child");
+        button.bounds = Bounds { x: 10, y: 10, w: 10, h:10};
+        scene.add_view(button);
         // connect
         connect_parent_child(&mut scene, "root", "parent");
         connect_parent_child(&mut scene, "parent", "child");
@@ -452,7 +463,7 @@ mod tests {
     fn test_layout() {
         let mut scene: Scene = Scene::new();
         // add panel
-        scene.add_view(make_panel(
+        scene.add_view(make_vbox(
             "parent",
             Bounds {
                 x: 10,
@@ -462,25 +473,9 @@ mod tests {
             },
         ));
         // add button 1
-        scene.add_view(make_button(
-            "button1",
-            Bounds {
-                x: 20,
-                y: 20,
-                w: 20,
-                h: 20,
-            },
-        ));
+        scene.add_view(make_button("button1"));
         // add button 2
-        scene.add_view(make_label(
-            "button2",
-            Bounds {
-                x: 20,
-                y: 20,
-                w: 20,
-                h: 20,
-            },
-        ));
+        scene.add_view(make_label("button2"));
         // connect
         connect_parent_child(&mut scene, "parent", "button1");
         connect_parent_child(&mut scene, "parent", "button2");
@@ -518,7 +513,7 @@ mod tests {
     fn test_repaint() {
         let mut scene: Scene = Scene::new();
         // add panel
-        scene.add_view(make_panel(
+        scene.add_view(make_vbox(
             "parent",
             Bounds {
                 x: 10,
@@ -528,25 +523,9 @@ mod tests {
             },
         ));
         // add button 1
-        scene.add_view(make_button(
-            "button1",
-            Bounds {
-                x: 20,
-                y: 20,
-                w: 20,
-                h: 20,
-            },
-        ));
+        scene.add_view(make_button("button1"));
         // add button 2
-        scene.add_view(make_button(
-            "button2",
-            Bounds {
-                x: 20,
-                y: 20,
-                w: 20,
-                h: 20,
-            },
-        ));
+        scene.add_view(make_button("button2"));
 
         assert_eq!(scene.dirty, true);
         repaint(&mut scene);
@@ -582,6 +561,7 @@ mod tests {
         let button = View {
             name: String::from("toggle"),
             title: String::from("Off"),
+            visible: true,
             bounds: Bounds {
                 x: 10,
                 y: 10,
@@ -589,9 +569,9 @@ mod tests {
                 h: 20,
             },
             draw: Some(draw_toggle_button_view),
-            visible: true,
             input: Some(handle_toggle_button_input),
             state: Some(Box::new(String::from("disabled"))),
+            layout: None,
         };
         scene.add_view(button);
         connect_parent_child(&mut scene, "root", "toggle");
@@ -605,7 +585,9 @@ mod tests {
                 .unwrap()
                 .state
                 .as_ref()
-                .unwrap().downcast_ref::<String>().unwrap(),
+                .unwrap()
+                .downcast_ref::<String>()
+                .unwrap(),
             &"disabled"
         );
         // click at
@@ -619,7 +601,9 @@ mod tests {
                 .unwrap()
                 .state
                 .as_ref()
-                .unwrap().downcast_ref::<String>().unwrap(),
+                .unwrap()
+                .downcast_ref::<String>()
+                .unwrap(),
             &"enabled"
         );
     }
