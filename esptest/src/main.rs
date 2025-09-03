@@ -133,7 +133,7 @@ fn main() -> ! {
     touch.init(i2c_ref).unwrap();
 
     loop {
-        info!("checking input");
+        // info!("checking input");
         if let Ok(point) = touch.get_touch(i2c_ref) {
             if let Some(point) = point {
                 // flip because the screen is mounted sideways on the t-deck
@@ -157,10 +157,11 @@ fn main() -> ! {
         }
 
         let delay_start = Instant::now();
-        ctx.display.clear(theme.panel_bg);
-
-        draw_scene(&mut scene, &mut ctx, &theme);
-        while delay_start.elapsed() < Duration::from_millis(2000) {}
+        if scene.dirty {
+            ctx.display.clear(theme.panel_bg);
+            draw_scene(&mut scene, &mut ctx, &theme);
+        }
+        while delay_start.elapsed() < Duration::from_millis(100) {}
     }
 }
 
@@ -427,7 +428,7 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
             }
         }),
         input: Some(|v|{
-
+            info!("menu clicked at")
         }),
         layout: None,
         state: Some(Box::new(MenuState{data,selected:0})),
