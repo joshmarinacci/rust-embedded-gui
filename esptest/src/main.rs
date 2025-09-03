@@ -146,7 +146,7 @@ fn main() -> ! {
                         target: target,
                         event_type: EventType::Tap(pt)
                     };
-                    info!("created event {:?}",evt);
+                    info!("created event on target {:?} at {:?}",evt.target, evt.event_type);
                     if let Some(view) = scene.get_view_mut("target") {
                         if let Some(input) = view.input {
                             input(view);
@@ -210,21 +210,22 @@ fn make_gui_scene() -> Scene<Rgb565> {
     textinput.bounds.h = 30;
     textinput.name = "textinput".into();
 
-    // let mut menuview = make_menuview(vec!["first".into(),"second".into()]);
-    // menuview.bounds.x = 100;
-    // menuview.bounds.y = 30;
-    // menuview.name = "menuview".into();
+    let mut menuview = make_menuview(vec!["first".into(),"second".into(),"third".into()]);
+    menuview.bounds.x = 100;
+    menuview.bounds.y = 30;
+    menuview.name = "menuview".into();
 
     connect_parent_child(&mut scene,&rootname,&panel.name);
     connect_parent_child(&mut scene,&rootname,&label.name);
     connect_parent_child(&mut scene,&rootname,&button.name);
     connect_parent_child(&mut scene,&rootname,&textinput.name);
+    connect_parent_child(&mut scene,&rootname,&menuview.name);
 
     scene.add_view(panel);
     scene.add_view(label);
     scene.add_view(button);
     scene.add_view(textinput);
-    // scene.add_view(menuview);
+    scene.add_view(menuview);
 
     scene
 }
@@ -405,8 +406,29 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
         draw: Some(|view, ctx, theme| {
             ctx.fillRect(&view.bounds, &theme.bg);
             ctx.strokeRect(&view.bounds, &theme.fg);
+            if let Some(state) = &view.state {
+                if let Some(state) = state.downcast_ref::<MenuState>() {
+                    info!("menu state is {:?}",state.data);
+                    for (i,item) in (&state.data).iter().enumerate() {
+                        let b = Bounds {
+                            x: view.bounds.x,
+                            y: view.bounds.y + (i as i32) * 30,
+                            w: view.bounds.w,
+                            h: 30,
+                        };
+                        if state.selected == i {
+                            ctx.fillRect(&b,&theme.fg);
+                            ctx.fillText(&b,item.as_str(),&theme.bg);
+                        }else {
+                            ctx.fillText(&b, item.as_str(), &theme.fg);
+                        }
+                    }
+                }
+            }
         }),
-        input: None,
+        input: Some(|v|{
+
+        }),
         layout: None,
         state: Some(Box::new(MenuState{data,selected:0})),
     }
