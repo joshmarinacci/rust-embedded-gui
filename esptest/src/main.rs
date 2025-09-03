@@ -7,6 +7,8 @@
 )]
 
 use alloc::string::{String, ToString};
+use alloc::vec;
+use alloc::vec::Vec;
 use embedded_hal_bus::spi::{ExclusiveDevice, RefCellDevice};
 use esp_hal::clock::CpuClock;
 use esp_hal::delay::Delay;
@@ -25,12 +27,14 @@ use embedded_graphics::{
 };
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::geometry::{Point, Size};
+use esp_hal::i2c::master::{BusTimeout, I2c, Config as I2CConfig};
 use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{draw_button_view, draw_panel_view, find_children, layout_vbox, DrawingContext, Scene, Theme, View};
-use gui2::geom::Bounds;
+use gui2::{draw_button_view, draw_panel_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
+use gui2::geom::{Bounds, Point as GPoint};
+use gt911::Gt911Blocking;
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
@@ -101,20 +105,7 @@ fn main() -> ! {
     info!("Display initialized");
 
     let mut ctx:EmbeddedDrawingContext = EmbeddedDrawingContext::new(display);
-    let mut scene: Scene<Rgb565> = Scene::new();
-    scene.add_view(make_vbox(
-        "parent",
-        Bounds {
-            x: 10,
-            y: 10,
-            w: 100,
-            h: 100,
-        },
-    ));
-    // add button 1
-    scene.add_view(make_button("button1"));
-    // add button 2
-    scene.add_view(make_button("button2"));
+    let mut scene: Scene<Rgb565> = make_gui_scene();
 
 
     let theme:Theme<Rgb565> = Theme {
@@ -122,8 +113,50 @@ fn main() -> ! {
         fg: Rgb565::BLACK,
         panel_bg: Rgb565::GREEN,
     };
+
+    static I2C: StaticCell<I2c<Blocking>> = StaticCell::new();
+
+    let i2c = I2c::new(
+        peripherals.I2C0,
+        I2CConfig::default()
+            .with_frequency(Rate::from_khz(100))
+            .with_timeout(BusTimeout::Disabled),
+    )
+        .unwrap()
+        .with_sda(peripherals.GPIO18)
+        .with_scl(peripherals.GPIO8);
+    info!("initialized I2C keyboard");
+    let i2c_ref = I2C.init(i2c);
+
+    let touch = Gt911Blocking::default();
+    touch.init(i2c_ref).unwrap();
+
     loop {
-        info!("sleeping");
+        info!("checking input");
+        if let Ok(point) = touch.get_touch(i2c_ref) {
+            if let Some(point) = point {
+                // flip because the screen is mounted sideways on the t-deck
+                let pt = GPoint::new(320 - point.y as i32, 240-point.x as i32);
+                let targets = pick_at(&mut scene, &pt);
+                info!("clicked on targets {:?}", targets);
+                if let Some(target) =  targets.last() {
+                    let evt:GuiEvent<Rgb565> = GuiEvent {
+                        scene: &mut scene,
+                        target: target,
+                        event_type: EventType::Tap(pt)
+                    };
+                    info!("created event {:?}",evt);
+                    if let Some(view) = scene.get_view_mut("target") {
+                        if let Some(input) = view.input {
+                            input(view);
+                        }
+                    }
+                }
+            }
+        }
+
+
+
         let delay_start = Instant::now();
         ctx.display.clear(Rgb565::BLACK);
 
@@ -139,6 +172,43 @@ fn main() -> ! {
         }
         while delay_start.elapsed() < Duration::from_millis(500) {}
     }
+}
+
+fn make_gui_scene() -> Scene<Rgb565> {
+    let mut scene: Scene<Rgb565> = Scene::new();
+
+    let mut panel = make_panel(Bounds{x:20,y:20,w:200,h:200});
+    panel.name = "panel".into();
+    scene.add_view(panel);
+
+    let mut label = make_label("A label");
+    label.bounds.x = 10;
+    label.bounds.y = 30;
+    label.name = "label1".into();
+    scene.add_view(label);
+
+    let mut button = make_button("A button");
+    button.bounds.x = 10;
+    button.bounds.y = 60;
+    button.name = "button1".into();
+    scene.add_view(button);
+
+    let mut textinput = make_text_input("type text here");
+    textinput.bounds.x = 10;
+    textinput.bounds.y = 90;
+    textinput.bounds.w = 200;
+    textinput.bounds.h = 30;
+    textinput.name = "textinput".into();
+    scene.add_view(textinput);
+
+    let mut menuview = make_menuview(vec!["first","second"]);
+    menuview.bounds.x = 100;
+    menuview.bounds.y = 30;
+    menuview.name = "menuview".into();
+    scene.add_view(menuview);
+
+
+    scene
 }
 
 struct EmbeddedDrawingContext {
@@ -221,8 +291,83 @@ fn make_button<C>(name: &str) -> View<C> {
         },
         visible: true,
         draw: Some(draw_button_view),
+        input: Some(|v| {
+            info!("button got input {:?}",v.name);
+        }),
+        state: None,
+        layout: None,
+    }
+}
+
+fn make_panel<C>(bounds:Bounds) -> View<C> {
+    View {
+        name:"something".into(),
+        title: "some panel".into(),
+        bounds: bounds,
+        visible: true,
+        draw: Some(|view, ctx, theme| {
+            info!("drawing panel");
+            ctx.fillRect(&view.bounds, &theme.panel_bg);
+        }),
         input: None,
         state: None,
         layout: None,
     }
+}
+
+fn make_label<C>(text:&str) -> View<C> {
+    View {
+        name:text.into(),
+        title: text.into(),
+        bounds: Bounds { x:0, y:0, w:10, h:20},
+        visible:true,
+        draw: Some(|view, ctx, theme| {
+            info!("drawing label");
+            ctx.fillText(&view.bounds, &view.title, &theme.fg);
+        }),
+        input: None,
+        state: None,
+        layout: None,
+    }
+}
+
+fn make_text_input<C>(text:&str) -> View<C> {
+    View {
+        name: "text".into(),
+        title: "some text box".into(),
+        bounds:Bounds {
+            x: 0,
+            y: 0,
+            w: 200,
+            h: 30,
+        },
+        visible: true,
+        draw: Some(|view, ctx, theme| {
+            info!("drawing text box");
+            ctx.fillRect(&view.bounds, &theme.panel_bg);
+        }),
+        input: None,
+        state: None,
+        layout: None,
+    }
+}
+
+
+fn make_menuview<C>(data:Vec<&str>) -> View<C> {
+    View {
+        name: "somemenu".into(),
+        title: "somemenu".into(),
+        bounds: Bounds {
+            x:0,
+            y:0,
+            w:100,
+            h:200,
+        },
+        visible:true,
+        input: None,
+        layout: None,
+        state: None,
+        draw: None,
+    }
+
 }

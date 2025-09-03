@@ -56,9 +56,17 @@ pub struct Scene<C> {
 pub type Callback<C> = fn(event: &mut GuiEvent<C>);
 
 #[derive(Debug)]
+pub enum EventType {
+    Generic,
+    Tap(Point),
+    Scroll(i32,i32),
+    Keyboard(u8),
+}
+#[derive(Debug)]
 pub struct GuiEvent<'a, C> {
-    scene: &'a mut Scene<C>,
-    target: &'a str,
+    pub scene: &'a mut Scene<C>,
+    pub target: &'a str,
+    pub event_type: EventType,
 }
 
 impl<C> Scene<C> {
@@ -149,6 +157,7 @@ pub fn click_at<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, pt: Point)
         let mut event: GuiEvent<C> = GuiEvent {
             scene: scene,
             target: target,
+            event_type: EventType::Generic,
         };
         for cb in handlers {
             cb(&mut event);
