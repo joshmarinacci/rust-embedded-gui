@@ -171,6 +171,7 @@ fn draw_scene(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme
 }
 fn draw_view(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme: &Theme<Rgb565>, name:&str) {
     if let Some(view) = scene.get_view(name) {
+        // info!("drawing {} {:?}", name, view.bounds);
         (view.draw.unwrap())(view, ctx, &theme);
         let kids = find_children(&scene, &view.name);
         for kid in kids {
@@ -202,12 +203,12 @@ fn make_gui_scene() -> Scene<Rgb565> {
     button.name = "button1".into();
 
 
-    // let mut textinput = make_text_input("type text here");
-    // textinput.bounds.x = 10;
-    // textinput.bounds.y = 90;
-    // textinput.bounds.w = 200;
-    // textinput.bounds.h = 30;
-    // textinput.name = "textinput".into();
+    let mut textinput = make_text_input("type text here");
+    textinput.bounds.x = 10;
+    textinput.bounds.y = 90;
+    textinput.bounds.w = 200;
+    textinput.bounds.h = 30;
+    textinput.name = "textinput".into();
 
     // let mut menuview = make_menuview(vec!["first".into(),"second".into()]);
     // menuview.bounds.x = 100;
@@ -217,12 +218,12 @@ fn make_gui_scene() -> Scene<Rgb565> {
     connect_parent_child(&mut scene,&rootname,&panel.name);
     connect_parent_child(&mut scene,&rootname,&label.name);
     connect_parent_child(&mut scene,&rootname,&button.name);
-    // connect_parent_child(&mut scene,&panel.name,&textinput.name);
+    connect_parent_child(&mut scene,&rootname,&textinput.name);
 
     scene.add_view(panel);
     scene.add_view(label);
     scene.add_view(button);
-    // scene.add_view(textinput);
+    scene.add_view(textinput);
     // scene.add_view(menuview);
 
     scene
@@ -330,7 +331,6 @@ fn make_panel<C>(bounds:Bounds) -> View<C> {
         bounds: bounds,
         visible: true,
         draw: Some(|view, ctx, theme| {
-            info!("drawing panel");
             ctx.fillRect(&view.bounds, &theme.panel_bg);
             ctx.strokeRect(&view.bounds, &theme.fg);
         }),
@@ -358,7 +358,7 @@ fn make_label<C>(text:&str) -> View<C> {
 fn make_text_input<C>(text:&str) -> View<C> {
     View {
         name: "text".into(),
-        title: "some text box".into(),
+        title: text.into(),
         bounds:Bounds {
             x: 0,
             y: 0,
@@ -367,9 +367,8 @@ fn make_text_input<C>(text:&str) -> View<C> {
         },
         visible: true,
         draw: Some(|view, ctx, theme| {
-            info!("drawing text box");
+            ctx.fillRect(&view.bounds, &theme.bg);
             ctx.strokeRect(&view.bounds, &theme.fg);
-            ctx.fillRect(&view.bounds, &theme.panel_bg);
             ctx.fillText(&view.bounds, &view.title,&theme.fg);
             // if view.focused {
             //     let cursor = Bounds {
