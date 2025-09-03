@@ -141,15 +141,15 @@ fn main() -> ! {
                 let targets = pick_at(&mut scene, &pt);
                 info!("clicked on targets {:?}", targets);
                 if let Some(target) =  targets.last() {
-                    let evt:GuiEvent<Rgb565> = GuiEvent {
+                    let mut evt:GuiEvent<Rgb565> = GuiEvent {
                         scene: &mut scene,
-                        target: target,
+                        target,
                         event_type: EventType::Tap(pt)
                     };
                     info!("created event on target {:?} at {:?}",evt.target, evt.event_type);
-                    if let Some(view) = scene.get_view_mut("target") {
+                    if let Some(view) = evt.scene.get_view("target") {
                         if let Some(input) = view.input {
-                            input(view);
+                            input(&mut evt);
                         }
                     }
                 }
@@ -318,8 +318,8 @@ fn make_button<C>(name: &str) -> View<C> {
             ctx.strokeRect(&view.bounds, &theme.fg);
             ctx.fillText(&view.bounds, &view.title, &theme.fg);
         }),
-        input: Some(|v| {
-            info!("button got input {:?}",v.name);
+        input: Some(|event| {
+            info!("button got input {:?}",event.target);
         }),
         state: None,
         layout: None,

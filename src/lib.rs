@@ -22,7 +22,7 @@ pub trait DrawingContext<C> {
 
 pub type DrawFn<C> = fn(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>);
 pub type LayoutFn<C> = fn(scene: &mut Scene<C>, name: &str);
-pub type InputFn<C> = fn(view: &mut View<C>);
+pub type InputFn<C> = fn(event: &mut GuiEvent<C>);
 
 pub struct Theme<C> {
     pub bg: C,
@@ -148,17 +148,17 @@ pub fn click_at<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, pt: Point)
     let targets = pick_at(scene, &pt);
     if let Some(target) = targets.last() {
         // info!("doing the target {}", target);
-        if let Some(view) = scene.get_view_mut(target) {
-            // info!("got the view {:?}", view);
-            if let Some(input) = view.input {
-                input(view)
-            }
-        }
         let mut event: GuiEvent<C> = GuiEvent {
             scene: scene,
             target: target,
             event_type: EventType::Generic,
         };
+        if let Some(view) = event.scene.get_view(target) {
+            // info!("got the view {:?}", view.name);
+            if let Some(input) = view.input {
+                input(&mut event)
+            }
+        }
         for cb in handlers {
             cb(&mut event);
         }
@@ -279,9 +279,11 @@ pub fn draw_panel_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme
     ctx.fillRect(&view.bounds, &theme.panel_bg);
 }
 
-fn handle_toggle_button_input<C>(view: &mut View<C>) {
-    // info!("view clicked {:?}", view);
-    view.state.insert(Box::new(String::from("enabled")));
+fn handle_toggle_button_input<C>(event: &mut GuiEvent<C>) {
+    // info!("view clicked {:?}", event.event_type);
+    if let Some(view) = event.scene.get_view_mut(event.target) {
+        view.state.insert(Box::new(String::from("enabled")));
+    }
 }
 #[cfg(test)]
 mod tests {
