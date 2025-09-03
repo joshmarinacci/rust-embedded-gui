@@ -33,7 +33,7 @@ use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{draw_button_view, draw_panel_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
+use gui2::{connect_parent_child, draw_button_view, draw_panel_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 
@@ -156,43 +156,47 @@ fn main() -> ! {
             }
         }
 
-
-
         let delay_start = Instant::now();
         ctx.display.clear(Rgb565::BLACK);
 
-        if let Some(root) = scene.get_view(&scene.rootId) {
-            (root.draw.unwrap())(root, &mut ctx, &theme);
-            let kids = find_children(&scene, &root.name);
-            for kid in kids {
-                if let Some(kid) = scene.get_view(&kid) {
-                    (kid.draw.unwrap())(root, &mut ctx, &theme);
-                }
-            }
-            scene.dirty = false;
-        }
+        draw_scene(&mut scene, &mut ctx, &theme);
         while delay_start.elapsed() < Duration::from_millis(500) {}
+    }
+}
+
+fn draw_scene(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme: &Theme<Rgb565>) {
+    let name = scene.rootId.clone();
+    draw_view(scene, ctx, theme, &name);
+    scene.dirty = false;
+}
+fn draw_view(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme: &Theme<Rgb565>, name:&str) {
+    if let Some(view) = scene.get_view(name) {
+        (view.draw.unwrap())(view, ctx, &theme);
+        let kids = find_children(&scene, &view.name);
+        for kid in kids {
+            draw_view(scene,ctx,theme,&kid);
+        }
     }
 }
 
 fn make_gui_scene() -> Scene<Rgb565> {
     let mut scene: Scene<Rgb565> = Scene::new();
+    let rootname = scene.rootId.clone();
 
     let mut panel = make_panel(Bounds{x:20,y:20,w:200,h:200});
     panel.name = "panel".into();
-    scene.add_view(panel);
+
 
     let mut label = make_label("A label");
     label.bounds.x = 10;
     label.bounds.y = 30;
     label.name = "label1".into();
-    scene.add_view(label);
 
     let mut button = make_button("A button");
     button.bounds.x = 10;
     button.bounds.y = 60;
     button.name = "button1".into();
-    scene.add_view(button);
+
 
     let mut textinput = make_text_input("type text here");
     textinput.bounds.x = 10;
@@ -200,14 +204,22 @@ fn make_gui_scene() -> Scene<Rgb565> {
     textinput.bounds.w = 200;
     textinput.bounds.h = 30;
     textinput.name = "textinput".into();
-    scene.add_view(textinput);
 
     let mut menuview = make_menuview(vec!["first".into(),"second".into()]);
     menuview.bounds.x = 100;
     menuview.bounds.y = 30;
     menuview.name = "menuview".into();
-    scene.add_view(menuview);
 
+    connect_parent_child(&mut scene,&rootname,&panel.name);
+    connect_parent_child(&mut scene,&panel.name,&label.name);
+    connect_parent_child(&mut scene,&panel.name,&button.name);
+    connect_parent_child(&mut scene,&panel.name,&textinput.name);
+
+    scene.add_view(panel);
+    scene.add_view(label);
+    scene.add_view(button);
+    scene.add_view(textinput);
+    scene.add_view(menuview);
 
     scene
 }
