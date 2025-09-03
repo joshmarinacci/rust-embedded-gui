@@ -6,6 +6,7 @@
     holding buffers for the duration of a data transfer."
 )]
 
+use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
@@ -201,7 +202,7 @@ fn make_gui_scene() -> Scene<Rgb565> {
     textinput.name = "textinput".into();
     scene.add_view(textinput);
 
-    let mut menuview = make_menuview(vec!["first","second"]);
+    let mut menuview = make_menuview(vec!["first".into(),"second".into()]);
     menuview.bounds.x = 100;
     menuview.bounds.y = 30;
     menuview.name = "menuview".into();
@@ -344,7 +345,18 @@ fn make_text_input<C>(text:&str) -> View<C> {
         visible: true,
         draw: Some(|view, ctx, theme| {
             info!("drawing text box");
+            ctx.strokeRect(&view.bounds, &theme.fg);
             ctx.fillRect(&view.bounds, &theme.panel_bg);
+            ctx.fillText(&view.bounds, &view.title,&theme.fg);
+            // if view.focused {
+            //     let cursor = Bounds {
+            //         x: view.bounds.x + 20,
+            //         y: view.bounds.y + 2,
+            //         w: 2,
+            //         h: view.bounds.h - 4,
+            //     };
+            //     ctx.fillRect(&cursor, &theme.fg);
+            // }
         }),
         input: None,
         state: None,
@@ -353,7 +365,11 @@ fn make_text_input<C>(text:&str) -> View<C> {
 }
 
 
-fn make_menuview<C>(data:Vec<&str>) -> View<C> {
+struct MenuState {
+    data:Vec<String>,
+    selected:usize,
+}
+fn make_menuview<C>(data:Vec<String>) -> View<C> {
     View {
         name: "somemenu".into(),
         title: "somemenu".into(),
@@ -364,10 +380,13 @@ fn make_menuview<C>(data:Vec<&str>) -> View<C> {
             h:200,
         },
         visible:true,
+        draw: Some(|view, ctx, theme| {
+            ctx.fillRect(&view.bounds, &theme.bg);
+            ctx.strokeRect(&view.bounds, &theme.fg);
+        }),
         input: None,
         layout: None,
-        state: None,
-        draw: None,
+        state: Some(Box::new(MenuState{data,selected:0})),
     }
 
 }
