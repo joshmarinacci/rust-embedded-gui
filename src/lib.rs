@@ -10,46 +10,42 @@ use alloc::vec::Vec;
 use core::any::Any;
 use hashbrown::HashMap;
 use log::info;
+use geom::{Bounds, Point};
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-struct Bounds {
-    x: i32,
-    y: i32,
-    w: i32,
-    h: i32,
+mod geom;
+
+pub trait DrawingContext<C> {
+    fn fillRect(&self, bounds: &Bounds, color: &C);
+    fn strokeRect(&self, bounds: &Bounds, color: &C);
+    fn fillText(&self, bounds: &Bounds, text: &str, color: &C);
 }
+
+pub type DrawFn<C> = fn(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>);
+pub type LayoutFn<C> = fn(scene: &mut Scene<C>, name: &str);
+pub type InputFn<C> = fn(view: &mut View<C>);
+
+pub struct Theme<C> {
+    bg: C,
+    fg: C,
+    panel_bg: C,
+}
+
 
 #[derive(Debug)]
-struct Point {
-    x: i32,
-    y: i32,
-}
-
-trait DrawingContext {
-    fn fillRect(&self, bounds: &Bounds, color: &str);
-    fn strokeRect(&self, bounds: &Bounds, color: &str);
-    fn fillText(&self, bounds: &Bounds, text: &str, color: &str);
-}
-
-type DrawFn = fn(view: &View, ctx: &dyn DrawingContext, theme: &Theme);
-type LayoutFn = fn(scene: &mut Scene, name: &str);
-type InputFn = fn(view: &mut View);
-
-#[derive(Debug)]
-pub struct View {
+pub struct View<C> {
     name: String,
     title: String,
     bounds: Bounds,
     visible: bool,
-    draw: Option<DrawFn>,
-    input: Option<InputFn>,
+    draw: Option<DrawFn<C>>,
+    input: Option<InputFn<C>>,
     state: Option<Box<dyn Any>>,
-    layout: Option<LayoutFn>,
+    layout: Option<LayoutFn<C>>,
 }
 
 #[derive(Debug)]
-pub struct Scene {
-    keys: HashMap<String, View>,
+pub struct Scene<C> {
+    keys: HashMap<String, View<C>>,
     connections: Vec<Connection>,
     dirty: bool,
     bounds: Bounds,
@@ -57,34 +53,34 @@ pub struct Scene {
     focused: Option<String>,
 }
 
-type Callback = fn(event: &mut GuiEvent);
+pub type Callback<C> = fn(event: &mut GuiEvent<C>);
 
 #[derive(Debug)]
-struct GuiEvent<'a> {
-    scene: &'a mut Scene,
+pub struct GuiEvent<'a, C> {
+    scene: &'a mut Scene<C>,
     target: &'a str,
 }
 
-impl Scene {
+impl<C> Scene<C> {
     pub(crate) fn connectioncount(&self) -> usize {
         self.connections.len()
     }
     pub(crate) fn has_view(&self, name: &str) -> bool {
         self.keys.get(name).is_some()
     }
-    pub fn get_view(&self, name: &str) -> Option<&View> {
+    pub fn get_view(&self, name: &str) -> Option<&View<C>> {
         self.keys.get(name)
     }
-    pub fn get_view_mut(&mut self, name: &str) -> Option<&mut View> {
+    pub fn get_view_mut(&mut self, name: &str) -> Option<&mut View<C>> {
         self.keys.get_mut(name)
     }
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
     }
-    pub fn remove_view(&mut self, name: &str) -> Option<View> {
+    pub fn remove_view(&mut self, name: &str) -> Option<View<C>> {
         self.keys.remove(name)
     }
-    pub(crate) fn new() -> Scene {
+    pub(crate) fn new() -> Scene<C> {
         let bounds = Bounds {
             x: 0,
             y: 0,
@@ -102,7 +98,7 @@ impl Scene {
             layout: None,
         };
         let rootId = String::from("root");
-        let mut keys: HashMap<String, View> = HashMap::new();
+        let mut keys: HashMap<String, View<C>> = HashMap::new();
         keys.insert(rootId.clone(), root);
         Scene {
             bounds,
@@ -113,14 +109,8 @@ impl Scene {
             focused: None,
         }
     }
-    pub fn add_view(&mut self, view: View) {
+    pub fn add_view(&mut self, view: View<C>) {
         self.keys.insert(view.name.clone(), view);
-    }
-}
-
-impl Point {
-    pub(crate) fn new(x: i32, y: i32) -> Point {
-        Point { x, y }
     }
 }
 
@@ -129,13 +119,13 @@ struct Connection {
     parent: String,
     child: String,
 }
-fn connect_parent_child(scene: &mut Scene, parent: &str, child: &str) {
+pub fn connect_parent_child<C>(scene: &mut Scene<C>, parent: &str, child: &str) {
     scene.connections.push(Connection {
         parent: parent.to_string(),
         child: child.to_string(),
     })
 }
-fn remove_parent_child(scene: &mut Scene, parent: &str, child: &str) -> Option<Connection> {
+pub fn remove_parent_child<C>(scene: &mut Scene<C>, parent: &str, child: &str) -> Option<Connection> {
     if let Some(n) = scene
         .connections
         .iter()
@@ -145,7 +135,7 @@ fn remove_parent_child(scene: &mut Scene, parent: &str, child: &str) -> Option<C
     }
     None
 }
-fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) {
+pub fn click_at<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, pt: Point) {
     // info!("picking at {:?}", pt);
     let targets = pick_at(scene, &pt);
     if let Some(target) = targets.last() {
@@ -156,7 +146,7 @@ fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) {
                 input(view)
             }
         }
-        let mut event: GuiEvent = GuiEvent {
+        let mut event: GuiEvent<C> = GuiEvent {
             scene: scene,
             target: target,
         };
@@ -165,10 +155,10 @@ fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) {
         }
     }
 }
-fn pick_at(scene: &mut Scene, pt: &Point) -> Vec<String> {
+pub fn pick_at<C>(scene: &mut Scene<C>, pt: &Point) -> Vec<String> {
     pick_at_view(scene, pt, &scene.rootId)
 }
-fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<String> {
+fn pick_at_view<C>(scene: &Scene<C>, pt: &Point, name: &str) -> Vec<String> {
     let mut coll: Vec<String> = vec![];
     if let Some(view) = scene.keys.get(name) {
         if view.bounds.contains(pt) {
@@ -185,7 +175,7 @@ fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<String> {
     }
     coll
 }
-fn find_children(scene: &Scene, parent: &str) -> Vec<String> {
+pub fn find_children<C>(scene: &Scene<C>, parent: &str) -> Vec<String> {
     let mut out = vec![];
     for con in &scene.connections {
         if con.parent == parent {
@@ -195,32 +185,7 @@ fn find_children(scene: &Scene, parent: &str) -> Vec<String> {
     out
 }
 
-impl Bounds {
-    pub(crate) fn contains(&self, pt: &Point) -> bool {
-        if self.x <= pt.x && self.y <= pt.y {
-            if self.x + self.w > pt.x && self.y + self.h > pt.y {
-                return true;
-            }
-        }
-        false
-    }
-}
-
-struct Theme<'a> {
-    bg: &'a str,
-    fg: &'a str,
-    panel_bg: &'a str,
-}
-
-fn get_bounds(scene: &Scene, name: &str) -> Option<Bounds> {
-    if let Some(view) = scene.keys.get(name) {
-        Some(view.bounds)
-    } else {
-        None
-    }
-}
-
-fn layout_vbox(scene: &mut Scene, name: &str) {
+fn layout_vbox<C>(scene: &mut Scene<C>, name: &str) {
     let parent = scene.keys.get_mut(name);
     if let Some(parent) = parent {
         let mut y = 0;
@@ -236,7 +201,7 @@ fn layout_vbox(scene: &mut Scene, name: &str) {
         }
     }
 }
-fn get_child_count(scene: &mut Scene, name: &str) -> usize {
+fn get_child_count<C>(scene: &mut Scene<C>, name: &str) -> usize {
     let conn: Vec<&Connection> = scene
         .connections
         .iter()
@@ -245,20 +210,21 @@ fn get_child_count(scene: &mut Scene, name: &str) -> usize {
     conn.len()
 }
 
-fn repaint(scene: &mut Scene) {
-    let theme = Theme {
-        bg: "white",
-        fg: "black",
-        panel_bg: "grey",
+fn repaint(scene: &mut Scene<String>) {
+    let theme:Theme<String> = Theme {
+        bg: "white".into(),
+        fg: "black".into(),
+        panel_bg: "grey".into(),
     };
 
-    let ctx = FakeDrawingContext {
+    let ctx:FakeDrawingContext<String> = FakeDrawingContext {
         clip: Bounds {
             x: 0,
             y: 0,
             w: 200,
             h: 200,
         },
+        bg:String::new(),
     };
     if let Some(root) = scene.get_view(&scene.rootId) {
         (root.draw.unwrap())(root, &ctx, &theme);
@@ -271,41 +237,41 @@ fn repaint(scene: &mut Scene) {
         scene.dirty = false;
     }
 }
-fn draw_generic_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
-    ctx.fillRect(&view.bounds, theme.bg)
+fn draw_generic_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+    ctx.fillRect(&view.bounds, &theme.bg)
 }
-fn draw_root_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
-    ctx.fillRect(&view.bounds, theme.panel_bg)
+fn draw_root_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+    ctx.fillRect(&view.bounds, &theme.panel_bg)
 }
-fn draw_button_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
-    ctx.fillRect(&view.bounds, theme.bg);
-    ctx.strokeRect(&view.bounds, theme.fg);
-    ctx.fillText(&view.bounds, &view.title, theme.fg);
+fn draw_button_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+    ctx.fillRect(&view.bounds, &theme.bg);
+    ctx.strokeRect(&view.bounds, &theme.fg);
+    ctx.fillText(&view.bounds, &view.title, &theme.fg);
 }
-fn draw_toggle_button_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
+fn draw_toggle_button_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
     if let Some(state) = &view.state {
         if let Some(state) = state.downcast_ref::<String>() {
             if state == "enabled" {
-                ctx.fillRect(&view.bounds, theme.fg);
-                ctx.strokeRect(&view.bounds, theme.bg);
-                ctx.fillText(&view.bounds, &view.title, theme.bg);
+                ctx.fillRect(&view.bounds, &theme.fg);
+                ctx.strokeRect(&view.bounds, &theme.bg);
+                ctx.fillText(&view.bounds, &view.title, &theme.bg);
             } else {
-                ctx.fillRect(&view.bounds, theme.bg);
-                ctx.strokeRect(&view.bounds, theme.fg);
-                ctx.fillText(&view.bounds, &view.title, theme.fg);
+                ctx.fillRect(&view.bounds, &theme.bg);
+                ctx.strokeRect(&view.bounds, &theme.fg);
+                ctx.fillText(&view.bounds, &view.title, &theme.fg);
             }
         }
     }
 }
-fn draw_label_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
-    ctx.fillText(&view.bounds, &view.title, theme.fg);
+fn draw_label_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+    ctx.fillText(&view.bounds, &view.title, &theme.fg);
 }
-fn draw_panel_view(view: &View, ctx: &dyn DrawingContext, theme: &Theme) {
-    ctx.fillRect(&view.bounds, theme.panel_bg);
+fn draw_panel_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+    ctx.fillRect(&view.bounds, &theme.panel_bg);
 }
 
-fn handle_toggle_button_input(view: &mut View) {
-    info!("view clicked {:?}", view);
+fn handle_toggle_button_input<C>(view: &mut View<C>) {
+    // info!("view clicked {:?}", view);
     view.state.insert(Box::new(String::from("enabled")));
 }
 #[cfg(test)]
@@ -328,7 +294,7 @@ mod tests {
                 .init();
         });
     }
-    fn make_simple_view(name: &str) -> View {
+    fn make_simple_view<C>(name: &str) -> View<C> {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -345,7 +311,7 @@ mod tests {
             layout: None,
         }
     }
-    fn make_vbox(name: &str, bounds: Bounds) -> View {
+    fn make_vbox<C>(name: &str, bounds: Bounds) -> View<C> {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -357,7 +323,7 @@ mod tests {
             layout: Some(layout_vbox),
         }
     }
-    fn make_button(name: &str) -> View {
+    fn make_button<C>(name: &str) -> View<C> {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -374,7 +340,7 @@ mod tests {
             layout: None,
         }
     }
-    fn make_label(name: &str) -> View {
+    fn make_label<C>(name: &str) -> View<C> {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -391,6 +357,15 @@ mod tests {
             layout: None,
         }
     }
+
+    fn get_bounds<C>(scene: &Scene<C>, name: &str) -> Option<Bounds> {
+        if let Some(view) = scene.keys.get(name) {
+            Some(view.bounds)
+        } else {
+            None
+        }
+    }
+
     #[test]
     fn test_geometry() {
         let bounds = Bounds {
@@ -404,22 +379,22 @@ mod tests {
     }
     #[test]
     fn basic_add_remove() {
-        let mut scene: Scene = Scene::new();
+        let mut scene: Scene<String> = Scene::new();
         assert_eq!(scene.viewcount(), 1);
-        let view: View = make_simple_view("foo");
+        let view: View<String> = make_simple_view("foo");
         assert_eq!(scene.viewcount(), 1);
         scene.add_view(view);
         assert_eq!(scene.viewcount(), 2);
         assert_eq!(scene.has_view("foo"), true);
-        let res: Option<View> = scene.remove_view("foo");
+        let res: Option<View<String>> = scene.remove_view("foo");
         assert_eq!(res.is_some(), true);
         assert_eq!(scene.viewcount(), 1);
-        let res2: Option<View> = scene.remove_view("bar");
+        let res2: Option<View<String>> = scene.remove_view("bar");
         assert_eq!(res2.is_some(), false);
     }
     #[test]
     fn parent_child() {
-        let mut scene: Scene = Scene::new();
+        let mut scene: Scene<String> = Scene::new();
         scene.add_view(make_simple_view("parent"));
         scene.add_view(make_simple_view("child"));
         assert_eq!(scene.connectioncount(), 0);
@@ -437,7 +412,7 @@ mod tests {
     #[test]
     fn test_pick_at() {
         initialize();
-        let mut scene: Scene = Scene::new();
+        let mut scene: Scene<String> = Scene::new();
         // add panel
         scene.add_view(make_vbox(
             "parent",
@@ -461,7 +436,7 @@ mod tests {
     }
     #[test]
     fn test_layout() {
-        let mut scene: Scene = Scene::new();
+        let mut scene: Scene<String> = Scene::new();
         // add panel
         scene.add_view(make_vbox(
             "parent",
@@ -511,7 +486,7 @@ mod tests {
     }
     #[test]
     fn test_repaint() {
-        let mut scene: Scene = Scene::new();
+        let mut scene: Scene<String> = Scene::new();
         // add panel
         scene.add_view(make_vbox(
             "parent",
@@ -533,8 +508,8 @@ mod tests {
     }
     #[test]
     fn test_events() {
-        let mut scene = Scene::new();
-        let mut handlers: Vec<Callback> = vec![];
+        let mut scene:Scene<String> = Scene::new();
+        let mut handlers: Vec<Callback<String>> = vec![];
         handlers.push(|event| {
             info!("got an event {:?}", event);
             if let Some(view) = event.scene.get_view_mut(event.target) {
@@ -591,7 +566,7 @@ mod tests {
             &"disabled"
         );
         // click at
-        let mut handlers: Vec<Callback> = vec![];
+        let mut handlers: Vec<Callback<String>> = vec![];
         click_at(&mut scene, &handlers, Point::new(15, 15));
         // confirm toggle button state has changed to enabled
         assert_eq!(
@@ -609,13 +584,14 @@ mod tests {
     }
 }
 
-struct FakeDrawingContext {
+struct FakeDrawingContext<C> {
     clip: Bounds,
+    bg:C,
 }
-impl DrawingContext for FakeDrawingContext {
-    fn fillRect(&self, bounds: &Bounds, color: &str) {}
+impl DrawingContext<String> for FakeDrawingContext<String> {
+    fn fillRect(&self, bounds: &Bounds, color: &String) {}
 
-    fn strokeRect(&self, bounds: &Bounds, color: &str) {}
+    fn strokeRect(&self, bounds: &Bounds, color: &String) {}
 
-    fn fillText(&self, bounds: &Bounds, text: &str, color: &str) {}
+    fn fillText(&self, bounds: &Bounds, text: &str, color: &String) {}
 }
