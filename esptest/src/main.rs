@@ -112,7 +112,7 @@ fn main() -> ! {
     let theme:Theme<Rgb565> = Theme {
         bg: Rgb565::WHITE,
         fg: Rgb565::BLACK,
-        panel_bg: Rgb565::GREEN,
+        panel_bg: Rgb565::CSS_LIGHT_GRAY,
     };
 
     static I2C: StaticCell<I2c<Blocking>> = StaticCell::new();
@@ -157,10 +157,10 @@ fn main() -> ! {
         }
 
         let delay_start = Instant::now();
-        ctx.display.clear(Rgb565::BLACK);
+        ctx.display.clear(theme.panel_bg);
 
         draw_scene(&mut scene, &mut ctx, &theme);
-        while delay_start.elapsed() < Duration::from_millis(500) {}
+        while delay_start.elapsed() < Duration::from_millis(2000) {}
     }
 }
 
@@ -187,39 +187,43 @@ fn make_gui_scene() -> Scene<Rgb565> {
     panel.name = "panel".into();
 
 
-    let mut label = make_label("A label");
+    let mut label = make_label("A Label");
     label.bounds.x = 10;
     label.bounds.y = 30;
+    label.bounds.w = 100;
+    label.bounds.h = 20;
     label.name = "label1".into();
 
     let mut button = make_button("A button");
     button.bounds.x = 10;
     button.bounds.y = 60;
+    button.bounds.w = 100;
+    button.bounds.h = 20;
     button.name = "button1".into();
 
 
-    let mut textinput = make_text_input("type text here");
-    textinput.bounds.x = 10;
-    textinput.bounds.y = 90;
-    textinput.bounds.w = 200;
-    textinput.bounds.h = 30;
-    textinput.name = "textinput".into();
+    // let mut textinput = make_text_input("type text here");
+    // textinput.bounds.x = 10;
+    // textinput.bounds.y = 90;
+    // textinput.bounds.w = 200;
+    // textinput.bounds.h = 30;
+    // textinput.name = "textinput".into();
 
-    let mut menuview = make_menuview(vec!["first".into(),"second".into()]);
-    menuview.bounds.x = 100;
-    menuview.bounds.y = 30;
-    menuview.name = "menuview".into();
+    // let mut menuview = make_menuview(vec!["first".into(),"second".into()]);
+    // menuview.bounds.x = 100;
+    // menuview.bounds.y = 30;
+    // menuview.name = "menuview".into();
 
     connect_parent_child(&mut scene,&rootname,&panel.name);
-    connect_parent_child(&mut scene,&panel.name,&label.name);
-    connect_parent_child(&mut scene,&panel.name,&button.name);
-    connect_parent_child(&mut scene,&panel.name,&textinput.name);
+    connect_parent_child(&mut scene,&rootname,&label.name);
+    connect_parent_child(&mut scene,&rootname,&button.name);
+    // connect_parent_child(&mut scene,&panel.name,&textinput.name);
 
     scene.add_view(panel);
     scene.add_view(label);
     scene.add_view(button);
-    scene.add_view(textinput);
-    scene.add_view(menuview);
+    // scene.add_view(textinput);
+    // scene.add_view(menuview);
 
     scene
 }
@@ -254,7 +258,7 @@ impl EmbeddedDrawingContext {
 impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
     fn fillRect(&mut self, bounds: &Bounds, color: &Rgb565) {
         let pt = Point::new(bounds.x,bounds.y);
-        let size = Size::new(bounds.w as u32, bounds.y as u32);
+        let size = Size::new(bounds.w as u32, bounds.h as u32);
         Rectangle::new(pt,size)
             .into_styled(PrimitiveStyle::with_fill(*color))
             .draw(&mut self.display).unwrap();
@@ -263,7 +267,7 @@ impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
 
     fn strokeRect(&mut self, bounds: &Bounds, color: &Rgb565) {
         let pt = Point::new(bounds.x,bounds.y);
-        let size = Size::new(bounds.w as u32, bounds.y as u32);
+        let size = Size::new(bounds.w as u32, bounds.h as u32);
         Rectangle::new(pt,size)
             .into_styled(PrimitiveStyle::with_stroke(*color,1))
             .draw(&mut self.display).unwrap();
@@ -271,9 +275,12 @@ impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
 
     fn fillText(&mut self, bounds: &Bounds, text: &str, color: &Rgb565) {
         let style = MonoTextStyle::new(&FONT_6X10, *color);
-        let pt = Point::new(bounds.x,bounds.y);
-        let size = Size::new(bounds.w as u32, bounds.y as u32);
-        Text::new(text, Point::new(20, 30), style)
+        let mut pt = Point::new(bounds.x, bounds.y);
+        pt.y += bounds.h / 2;
+        pt.y += (FONT_6X10.baseline as i32)/2;
+        let w = (FONT_6X10.character_size.width as i32) * (text.len() as i32);
+        pt.x += (bounds.w - w) / 2;
+        Text::new(text, pt, style)
             .draw(&mut self.display)
             .unwrap();
     }
@@ -303,7 +310,11 @@ fn make_button<C>(name: &str) -> View<C> {
             h: 20,
         },
         visible: true,
-        draw: Some(draw_button_view),
+        draw: Some(|view, ctx, theme|{
+            ctx.fillRect(&view.bounds, &theme.bg);
+            ctx.strokeRect(&view.bounds, &theme.fg);
+            ctx.fillText(&view.bounds, &view.title, &theme.fg);
+        }),
         input: Some(|v| {
             info!("button got input {:?}",v.name);
         }),
@@ -321,6 +332,7 @@ fn make_panel<C>(bounds:Bounds) -> View<C> {
         draw: Some(|view, ctx, theme| {
             info!("drawing panel");
             ctx.fillRect(&view.bounds, &theme.panel_bg);
+            ctx.strokeRect(&view.bounds, &theme.fg);
         }),
         input: None,
         state: None,
@@ -335,7 +347,6 @@ fn make_label<C>(text:&str) -> View<C> {
         bounds: Bounds { x:0, y:0, w:10, h:20},
         visible:true,
         draw: Some(|view, ctx, theme| {
-            info!("drawing label");
             ctx.fillText(&view.bounds, &view.title, &theme.fg);
         }),
         input: None,
