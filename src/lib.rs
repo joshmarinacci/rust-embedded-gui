@@ -12,44 +12,44 @@ use hashbrown::HashMap;
 use log::info;
 use geom::{Bounds, Point};
 
-mod geom;
+pub mod geom;
 
 pub trait DrawingContext<C> {
-    fn fillRect(&self, bounds: &Bounds, color: &C);
-    fn strokeRect(&self, bounds: &Bounds, color: &C);
-    fn fillText(&self, bounds: &Bounds, text: &str, color: &C);
+    fn fillRect(&mut self, bounds: &Bounds, color: &C);
+    fn strokeRect(&mut self, bounds: &Bounds, color: &C);
+    fn fillText(&mut self, bounds: &Bounds, text: &str, color: &C);
 }
 
-pub type DrawFn<C> = fn(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>);
+pub type DrawFn<C> = fn(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>);
 pub type LayoutFn<C> = fn(scene: &mut Scene<C>, name: &str);
 pub type InputFn<C> = fn(view: &mut View<C>);
 
 pub struct Theme<C> {
-    bg: C,
-    fg: C,
-    panel_bg: C,
+    pub bg: C,
+    pub fg: C,
+    pub panel_bg: C,
 }
 
 
 #[derive(Debug)]
 pub struct View<C> {
-    name: String,
-    title: String,
-    bounds: Bounds,
-    visible: bool,
-    draw: Option<DrawFn<C>>,
-    input: Option<InputFn<C>>,
-    state: Option<Box<dyn Any>>,
-    layout: Option<LayoutFn<C>>,
+    pub name: String,
+    pub title: String,
+    pub bounds: Bounds,
+    pub visible: bool,
+    pub draw: Option<DrawFn<C>>,
+    pub input: Option<InputFn<C>>,
+    pub state: Option<Box<dyn Any>>,
+    pub layout: Option<LayoutFn<C>>,
 }
 
 #[derive(Debug)]
 pub struct Scene<C> {
     keys: HashMap<String, View<C>>,
     connections: Vec<Connection>,
-    dirty: bool,
+    pub dirty: bool,
     bounds: Bounds,
-    rootId: String,
+    pub rootId: String,
     focused: Option<String>,
 }
 
@@ -80,7 +80,7 @@ impl<C> Scene<C> {
     pub fn remove_view(&mut self, name: &str) -> Option<View<C>> {
         self.keys.remove(name)
     }
-    pub(crate) fn new() -> Scene<C> {
+    pub fn new() -> Scene<C> {
         let bounds = Bounds {
             x: 0,
             y: 0,
@@ -185,7 +185,7 @@ pub fn find_children<C>(scene: &Scene<C>, parent: &str) -> Vec<String> {
     out
 }
 
-fn layout_vbox<C>(scene: &mut Scene<C>, name: &str) {
+pub fn layout_vbox<C>(scene: &mut Scene<C>, name: &str) {
     let parent = scene.keys.get_mut(name);
     if let Some(parent) = parent {
         let mut y = 0;
@@ -217,7 +217,7 @@ fn repaint(scene: &mut Scene<String>) {
         panel_bg: "grey".into(),
     };
 
-    let ctx:FakeDrawingContext<String> = FakeDrawingContext {
+    let mut ctx:FakeDrawingContext<String> = FakeDrawingContext {
         clip: Bounds {
             x: 0,
             y: 0,
@@ -227,28 +227,28 @@ fn repaint(scene: &mut Scene<String>) {
         bg:String::new(),
     };
     if let Some(root) = scene.get_view(&scene.rootId) {
-        (root.draw.unwrap())(root, &ctx, &theme);
+        (root.draw.unwrap())(root, &mut ctx, &theme);
         let kids = find_children(scene, &root.name);
         for kid in kids {
             if let Some(kid) = scene.get_view(&kid) {
-                (kid.draw.unwrap())(root, &ctx, &theme);
+                (kid.draw.unwrap())(root, &mut ctx, &theme);
             }
         }
         scene.dirty = false;
     }
 }
-fn draw_generic_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_generic_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillRect(&view.bounds, &theme.bg)
 }
-fn draw_root_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_root_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillRect(&view.bounds, &theme.panel_bg)
 }
-fn draw_button_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+pub fn draw_button_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillRect(&view.bounds, &theme.bg);
     ctx.strokeRect(&view.bounds, &theme.fg);
     ctx.fillText(&view.bounds, &view.title, &theme.fg);
 }
-fn draw_toggle_button_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_toggle_button_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     if let Some(state) = &view.state {
         if let Some(state) = state.downcast_ref::<String>() {
             if state == "enabled" {
@@ -263,10 +263,10 @@ fn draw_toggle_button_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme
         }
     }
 }
-fn draw_label_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_label_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillText(&view.bounds, &view.title, &theme.fg);
 }
-fn draw_panel_view<C>(view: &View<C>, ctx: &dyn DrawingContext<C>, theme: &Theme<C>) {
+pub fn draw_panel_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillRect(&view.bounds, &theme.panel_bg);
 }
 
@@ -589,9 +589,9 @@ struct FakeDrawingContext<C> {
     bg:C,
 }
 impl DrawingContext<String> for FakeDrawingContext<String> {
-    fn fillRect(&self, bounds: &Bounds, color: &String) {}
+    fn fillRect(&mut self, bounds: &Bounds, color: &String) {}
 
-    fn strokeRect(&self, bounds: &Bounds, color: &String) {}
+    fn strokeRect(&mut self, bounds: &Bounds, color: &String) {}
 
-    fn fillText(&self, bounds: &Bounds, text: &str, color: &String) {}
+    fn fillText(&mut self, bounds: &Bounds, text: &str, color: &String) {}
 }
