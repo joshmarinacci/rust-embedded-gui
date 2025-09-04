@@ -428,7 +428,30 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
             }
         }),
         input: Some(|v|{
-            info!("menu clicked at")
+            info!("menu clicked at");
+            match &v.event_type {
+                EventType::Tap(pt) => {
+                    info!("tapped at {:?}",pt);
+                    if let Some(view) = v.scene.get_view_mut(v.target) {
+                        info!("the view is {} at {:?}",view.name, view.bounds);
+                        if view.bounds.contains(pt) {
+                            info!("I was clicked on. index is {}", pt.y/30);
+                            let selected = pt.y/30;
+                            if let Some(state) = &mut view.state {
+                                if let Some(state) = state.downcast_mut::<MenuState>() {
+                                    info!("menu state is {:?}",state.data);
+                                    if selected >= 0 && selected < state.data.len() as i32 {
+                                        state.selected = selected as usize;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                _ => {
+                    info!("unknown event type");
+                }
+            }
         }),
         layout: None,
         state: Some(Box::new(MenuState{data,selected:0})),
