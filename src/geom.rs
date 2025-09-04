@@ -6,6 +6,17 @@ pub struct Bounds {
     pub h: i32,
 }
 
+impl Bounds {
+    pub(crate) fn new(x: i32, y: i32, w: i32, h: i32) -> Bounds {
+        Bounds {
+            x,
+            y,
+            w,
+            h,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Point {
     pub x: i32,

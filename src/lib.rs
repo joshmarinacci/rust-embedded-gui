@@ -171,6 +171,26 @@ pub fn click_at<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, pt: Point)
         }
     }
 }
+pub fn type_at_focused<C>(scene: &mut Scene<C>, handlers:&Vec<Callback<C>>, key:u8) {
+    if scene.focused.is_none() {
+        return;
+    } else {
+        let focused = scene.focused.as_ref().unwrap().clone();
+        let mut event:GuiEvent<C> = GuiEvent {
+            scene:scene,
+            target: &focused,
+            event_type: EventType::Keyboard(key),
+        };
+        if let Some(view) = event.scene.get_view(&focused) {
+            if let Some(input) = view.input {
+                input(&mut event)
+            }
+            for cb in handlers {
+                cb(&mut event);
+            }
+        }
+    }
+}
 pub fn pick_at<C>(scene: &mut Scene<C>, pt: &Point) -> Vec<String> {
     pick_at_view(scene, pt, &scene.rootId)
 }
@@ -386,6 +406,28 @@ mod tests {
             layout: None,
         }
     }
+    fn make_text_box<C>(name:&str, title:&str) -> View<C> {
+        View {
+            name:name.into(),
+            title:title.into(),
+            bounds: Bounds::new(0,0,100,30),
+            visible: true,
+            state: None,
+            draw: None,
+            layout: None,
+            input: Some(|e| {
+                match e.event_type {
+                    EventType::Keyboard(key) => {
+                        info!("got a keyboard event {}",key);
+                        if let Some(view) = e.scene.get_view_mut(e.target) {
+                            view.title.push(key as char)
+                        }
+                    }
+                    _ => info!("ignoring other event")
+                };
+            }),
+        }
+    }
     fn make_label<C>(name: &str) -> View<C> {
         View {
             name: name.to_string(),
@@ -403,13 +445,22 @@ mod tests {
             layout: None,
         }
     }
-
     fn get_bounds<C>(scene: &Scene<C>, name: &str) -> Option<Bounds> {
         if let Some(view) = scene.keys.get(name) {
             Some(view.bounds)
         } else {
             None
         }
+    }
+    fn was_button_clicked<C>(scene:&mut Scene<C>, name:&str) -> bool {
+        scene.get_view(name).unwrap()
+            .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
+            .got_input
+    }
+    fn was_button_drawn<C>(scene:&mut Scene<C>, name:&str) -> bool {
+        scene.get_view(name).unwrap()
+            .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
+            .drawn
     }
 
     #[test]
@@ -628,7 +679,6 @@ mod tests {
             &"enabled"
         );
     }
-
     #[test]
     fn test_make_visible() {
         // create scene
@@ -683,15 +733,32 @@ mod tests {
         assert_eq!(was_button_drawn(&mut scene,"button1"),true);
         assert_eq!(was_button_drawn(&mut scene,"button2"),true);
     }
-    fn was_button_clicked<C>(scene:&mut Scene<C>, name:&str) -> bool {
-        scene.get_view(name).unwrap()
-                       .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
-                       .got_input
+
+    #[test]
+    fn test_keyboard_evnts() {
+        // make scene
+        initialize();
+        let mut scene = Scene::new();
+        let rootid = scene.rootId.clone();
+
+        // make text box
+        let mut text_box = make_text_box("textbox1","foo");
+        connect_parent_child(&mut scene,&rootid,&text_box.name);
+        scene.add_view(text_box);
+        // confirm text is correct
+        assert_eq!(get_view_title(&scene,"textbox1"),"foo");
+        // set text box as focused
+        scene.focused = Some("textbox1".into());
+
+        // send keyboard event
+        let mut handlers: Vec<Callback<String>> = vec![];
+        type_at_focused(&mut scene, &handlers,b'X');
+        // confirm text is updated
+        assert_eq!(get_view_title(&scene,"textbox1"),"fooX");
     }
-    fn was_button_drawn<C>(scene:&mut Scene<C>, name:&str) -> bool {
-        scene.get_view(name).unwrap()
-            .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
-            .drawn
+
+    fn get_view_title<C>(scene: &Scene<C>, name: &str) -> String {
+        scene.get_view(name).unwrap().title.clone()
     }
 }
 
