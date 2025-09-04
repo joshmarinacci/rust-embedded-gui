@@ -33,7 +33,7 @@ use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{connect_parent_child, draw_button_view, draw_panel_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
+use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 
@@ -169,16 +169,6 @@ fn draw_scene(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme
     let name = scene.rootId.clone();
     draw_view(scene, ctx, theme, &name);
     scene.dirty = false;
-}
-fn draw_view(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme: &Theme<Rgb565>, name:&str) {
-    if let Some(view) = scene.get_view_mut(name) {
-        (view.draw.unwrap())(view, ctx, &theme);
-    }
-    if let Some(view) = scene.get_view(name) {
-        for kid in find_children(&scene, &view.name) {
-            draw_view(scene,ctx,theme,&kid);
-        }
-    }
 }
 
 fn make_gui_scene() -> Scene<Rgb565> {

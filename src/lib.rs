@@ -243,20 +243,23 @@ fn repaint(scene: &mut Scene<String>) {
         bg:String::new(),
     };
     let root_name = scene.rootId.clone();
-    if let Some(root) = scene.get_view_mut(&root_name) {
-        (root.draw.unwrap())(root, &mut ctx, &theme);
-    }
+    draw_view(scene, &mut ctx, &theme, &root_name);
+    scene.dirty = false;
+}
 
-    if let Some(root) = scene.get_view(&root_name) {
-        let kids = find_children(scene, &root.name);
-        for kid in kids {
-            if let Some(kid) = scene.get_view_mut(&kid) {
-                (kid.draw.unwrap())(kid, &mut ctx, &theme);
-            }
+pub fn draw_view<C>(scene: &mut Scene<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>, name:&str) {
+    if let Some(view) = scene.get_view_mut(name) {
+        if view.visible {
+            (view.draw.unwrap())(view, ctx, &theme);
         }
-        scene.dirty = false;
+    }
+    if let Some(view) = scene.get_view(name) {
+        for kid in find_children(&scene, &view.name) {
+            draw_view(scene,ctx,theme,&kid);
+        }
     }
 }
+
 fn draw_generic_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillRect(&view.bounds, &theme.bg)
 }
@@ -649,12 +652,14 @@ mod tests {
 
         assert_eq!(was_button_clicked(&mut scene,"button1"),false);
         assert_eq!(was_button_drawn(&mut scene,"button1"),false);
-        // assert_eq!(scene.get_view("button1").unwrap()
-        //     .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
-        //     .got_input,false);
-        // draw
+        assert_eq!(was_button_drawn(&mut scene,"button2"),false);
+
+        // repaint. only button 1 should get drawn
         repaint(&mut scene);
+        assert_eq!(scene.dirty,false);
         assert_eq!(was_button_drawn(&mut scene,"button1"),true);
+        assert_eq!(was_button_drawn(&mut scene,"button2"),false);
+
         let mut handlers: Vec<Callback<String>> = vec![];
         handlers.push(|e|{
             info!("clicked on {}",e.target);
@@ -664,17 +669,19 @@ mod tests {
             }
         });
 
-        // confirm button2 was not drawn
         // tap button 1
+        assert_eq!(scene.dirty,false);
         click_at(&mut scene, &handlers, Point::new(15, 15));
         assert_eq!(was_button_clicked(&mut scene,"button1"),true);
-        // assert_eq!(scene.get_view("button1").unwrap()
-        //                .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
-        //                .got_input,true);
-        // event handler to make button 2 visible on tapping button 1
         // confirm dirty
-        // draw
-        // confirm button 2 was drawn
+        assert_eq!(scene.dirty,true);
+
+
+        // this time both buttons should be drawn
+        repaint(&mut scene);
+        assert_eq!(scene.dirty,false);
+        assert_eq!(was_button_drawn(&mut scene,"button1"),true);
+        assert_eq!(was_button_drawn(&mut scene,"button2"),true);
     }
     fn was_button_clicked<C>(scene:&mut Scene<C>, name:&str) -> bool {
         scene.get_view(name).unwrap()
