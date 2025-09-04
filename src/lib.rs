@@ -20,7 +20,7 @@ pub trait DrawingContext<C> {
     fn fillText(&mut self, bounds: &Bounds, text: &str, color: &C);
 }
 
-pub type DrawFn<C> = fn(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>);
+pub type DrawFn<C> = fn(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>);
 pub type LayoutFn<C> = fn(scene: &mut Scene<C>, name: &str);
 pub type InputFn<C> = fn(event: &mut GuiEvent<C>);
 
@@ -50,7 +50,14 @@ pub struct Scene<C> {
     pub dirty: bool,
     bounds: Bounds,
     pub rootId: String,
-    focused: Option<String>,
+    pub focused: Option<String>,
+}
+
+impl<C> Scene<C> {
+    pub fn set_focused(&mut self, name: &str) {
+        self.focused = Some(name.into());
+        self.dirty = true
+    }
 }
 
 pub type Callback<C> = fn(event: &mut GuiEvent<C>);
@@ -235,21 +242,25 @@ fn repaint(scene: &mut Scene<String>) {
         },
         bg:String::new(),
     };
-    if let Some(root) = scene.get_view(&scene.rootId) {
+    let root_name = scene.rootId.clone();
+    if let Some(root) = scene.get_view_mut(&root_name) {
         (root.draw.unwrap())(root, &mut ctx, &theme);
+    }
+
+    if let Some(root) = scene.get_view(&root_name) {
         let kids = find_children(scene, &root.name);
         for kid in kids {
-            if let Some(kid) = scene.get_view(&kid) {
-                (kid.draw.unwrap())(root, &mut ctx, &theme);
+            if let Some(kid) = scene.get_view_mut(&kid) {
+                (kid.draw.unwrap())(kid, &mut ctx, &theme);
             }
         }
         scene.dirty = false;
     }
 }
-fn draw_generic_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_generic_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillRect(&view.bounds, &theme.bg)
 }
-fn draw_root_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_root_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillRect(&view.bounds, &theme.panel_bg)
 }
 pub fn draw_button_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
@@ -257,7 +268,7 @@ pub fn draw_button_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, them
     ctx.strokeRect(&view.bounds, &theme.fg);
     ctx.fillText(&view.bounds, &view.title, &theme.fg);
 }
-fn draw_toggle_button_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_toggle_button_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     if let Some(state) = &view.state {
         if let Some(state) = state.downcast_ref::<String>() {
             if state == "enabled" {
@@ -272,10 +283,10 @@ fn draw_toggle_button_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, t
         }
     }
 }
-fn draw_label_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_label_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillText(&view.bounds, &view.title, &theme.fg);
 }
-pub fn draw_panel_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+pub fn draw_panel_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
     ctx.fillRect(&view.bounds, &theme.panel_bg);
 }
 
@@ -334,7 +345,11 @@ mod tests {
             layout: Some(layout_vbox),
         }
     }
-    fn make_button<C>(name: &str) -> View<C> {
+    struct TestButtonState {
+        drawn:bool,
+        got_input:bool,
+    }
+    fn make_test_button<C>(name: &str) -> View<C> {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -345,9 +360,26 @@ mod tests {
                 h: 20,
             },
             visible: true,
-            draw: Some(draw_button_view),
-            input: None,
-            state: None,
+            draw: Some(|view, ctx, theme|{
+                if let Some(state) = &mut view.state {
+                    if let Some(state) = state.downcast_mut::<TestButtonState>() {
+                        state.drawn = true;
+                    }
+                }
+            }),
+            input: Some(|e|{
+                if let Some(view) = e.scene.get_view_mut(e.target) {
+                    if let Some(state) = &mut view.state {
+                        if let Some(state) = state.downcast_mut::<TestButtonState>() {
+                            state.got_input = true;
+                        }
+                    }
+                }
+            }),
+            state: Some(Box::new(TestButtonState{
+                drawn: false,
+                got_input: false,
+            })),
             layout: None,
         }
     }
@@ -435,7 +467,7 @@ mod tests {
             },
         ));
         // add button
-        let mut button = make_button("child");
+        let mut button = make_test_button("child");
         button.bounds = Bounds { x: 10, y: 10, w: 10, h:10};
         scene.add_view(button);
         // connect
@@ -459,7 +491,7 @@ mod tests {
             },
         ));
         // add button 1
-        scene.add_view(make_button("button1"));
+        scene.add_view(make_test_button("button1"));
         // add button 2
         scene.add_view(make_label("button2"));
         // connect
@@ -509,9 +541,9 @@ mod tests {
             },
         ));
         // add button 1
-        scene.add_view(make_button("button1"));
+        scene.add_view(make_test_button("button1"));
         // add button 2
-        scene.add_view(make_button("button2"));
+        scene.add_view(make_test_button("button2"));
 
         assert_eq!(scene.dirty, true);
         repaint(&mut scene);
@@ -592,6 +624,67 @@ mod tests {
                 .unwrap(),
             &"enabled"
         );
+    }
+
+    #[test]
+    fn test_make_visible() {
+        // create scene
+        initialize();
+        let mut scene = Scene::new();
+        let rootid = scene.rootId.clone();
+
+        // create button 1
+        let mut button1 = make_test_button("button1");
+        button1.visible = true;
+        connect_parent_child(&mut scene, &rootid, &button1.name);
+        scene.add_view(button1);
+
+        // create button 2
+        let mut button2 = make_test_button("button2");
+        button2.bounds.x = 100;
+        // make button 2 invisible
+        button2.visible = false;
+        connect_parent_child(&mut scene, &rootid, &button2.name);
+        scene.add_view(button2);
+
+        assert_eq!(was_button_clicked(&mut scene,"button1"),false);
+        assert_eq!(was_button_drawn(&mut scene,"button1"),false);
+        // assert_eq!(scene.get_view("button1").unwrap()
+        //     .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
+        //     .got_input,false);
+        // draw
+        repaint(&mut scene);
+        assert_eq!(was_button_drawn(&mut scene,"button1"),true);
+        let mut handlers: Vec<Callback<String>> = vec![];
+        handlers.push(|e|{
+            info!("clicked on {}",e.target);
+            if let Some(view) =e.scene.get_view_mut("button2") {
+                view.visible = true;
+                e.scene.dirty = true;
+            }
+        });
+
+        // confirm button2 was not drawn
+        // tap button 1
+        click_at(&mut scene, &handlers, Point::new(15, 15));
+        assert_eq!(was_button_clicked(&mut scene,"button1"),true);
+        // assert_eq!(scene.get_view("button1").unwrap()
+        //                .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
+        //                .got_input,true);
+        // event handler to make button 2 visible on tapping button 1
+        // confirm dirty
+        // draw
+        // confirm button 2 was drawn
+    }
+    fn was_button_clicked<C>(scene:&mut Scene<C>, name:&str) -> bool {
+        scene.get_view(name).unwrap()
+                       .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
+                       .got_input
+    }
+    fn was_button_drawn<C>(scene:&mut Scene<C>, name:&str) -> bool {
+        scene.get_view(name).unwrap()
+            .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
+            .drawn
     }
 }
 

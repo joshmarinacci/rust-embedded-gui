@@ -171,11 +171,11 @@ fn draw_scene(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme
     scene.dirty = false;
 }
 fn draw_view(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme: &Theme<Rgb565>, name:&str) {
-    if let Some(view) = scene.get_view(name) {
-        // info!("drawing {} {:?}", name, view.bounds);
+    if let Some(view) = scene.get_view_mut(name) {
         (view.draw.unwrap())(view, ctx, &theme);
-        let kids = find_children(&scene, &view.name);
-        for kid in kids {
+    }
+    if let Some(view) = scene.get_view(name) {
+        for kid in find_children(&scene, &view.name) {
             draw_view(scene,ctx,theme,&kid);
         }
     }
@@ -427,13 +427,14 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
                 }
             }
         }),
-        input: Some(|v|{
+        input: Some(|event|{
             info!("menu clicked at");
-            match &v.event_type {
+            match &event.event_type {
                 EventType::Tap(pt) => {
                     info!("tapped at {:?}",pt);
-                    if let Some(view) = v.scene.get_view_mut(v.target) {
+                    if let Some(view) = event.scene.get_view_mut(event.target) {
                         info!("the view is {} at {:?}",view.name, view.bounds);
+                        let name = view.name.clone();
                         if view.bounds.contains(pt) {
                             info!("I was clicked on. index is {}", pt.y/30);
                             let selected = pt.y/30;
@@ -442,6 +443,7 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
                                     info!("menu state is {:?}",state.data);
                                     if selected >= 0 && selected < state.data.len() as i32 {
                                         state.selected = selected as usize;
+                                        event.scene.set_focused(&name);
                                     }
                                 }
                             }
