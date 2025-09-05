@@ -285,6 +285,7 @@ fn make_vbox<C>(name: &str, bounds: Bounds) -> View<C> {
         title: name.to_string(),
         bounds,
         visible: true,
+        children: vec![],
         draw: Some(draw_panel_view),
         input: None,
         state: None,
@@ -303,6 +304,7 @@ fn make_button<C>(name: &str) -> View<C> {
             h: 20,
         },
         visible: true,
+        children: vec![],
         draw: Some(|view, ctx, theme|{
             ctx.fillRect(&view.bounds, &theme.bg);
             ctx.strokeRect(&view.bounds, &theme.fg);
@@ -322,6 +324,7 @@ fn make_panel<C>(bounds:Bounds) -> View<C> {
         title: "some panel".into(),
         bounds: bounds,
         visible: true,
+        children: vec![],
         draw: Some(|view, ctx, theme| {
             ctx.fillRect(&view.bounds, &theme.panel_bg);
             ctx.strokeRect(&view.bounds, &theme.fg);
@@ -338,6 +341,7 @@ fn make_label<C>(text:&str) -> View<C> {
         title: text.into(),
         bounds: Bounds { x:0, y:0, w:10, h:20},
         visible:true,
+        children: vec![],
         draw: Some(|view, ctx, theme| {
             ctx.fillText(&view.bounds, &view.title, &theme.fg);
         }),
@@ -358,6 +362,7 @@ fn make_text_input<C>(text:&str) -> View<C> {
             h: 30,
         },
         visible: true,
+        children: vec![],
         draw: Some(|view, ctx, theme| {
             ctx.fillRect(&view.bounds, &theme.bg);
             ctx.strokeRect(&view.bounds, &theme.fg);
@@ -394,6 +399,7 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
             h:200,
         },
         visible:true,
+        children: vec![],
         draw: Some(|view, ctx, theme| {
             ctx.fillRect(&view.bounds, &theme.bg);
             ctx.strokeRect(&view.bounds, &theme.fg);

@@ -41,12 +41,12 @@ pub struct View<C> {
     pub input: Option<InputFn<C>>,
     pub state: Option<Box<dyn Any>>,
     pub layout: Option<LayoutFn<C>>,
+    pub children: Vec<String>,
 }
 
 #[derive(Debug)]
 pub struct Scene<C> {
     keys: HashMap<String, View<C>>,
-    connections: Vec<Connection>,
     pub dirty: bool,
     bounds: Bounds,
     pub rootId: String,
@@ -77,9 +77,6 @@ pub struct GuiEvent<'a, C> {
 }
 
 impl<C> Scene<C> {
-    pub(crate) fn connectioncount(&self) -> usize {
-        self.connections.len()
-    }
     pub(crate) fn has_view(&self, name: &str) -> bool {
         self.keys.get(name).is_some()
     }
@@ -111,6 +108,7 @@ impl<C> Scene<C> {
             input: None,
             state: None,
             layout: None,
+            children: vec![]
         };
         let rootId = String::from("root");
         let mut keys: HashMap<String, View<C>> = HashMap::new();
@@ -118,7 +116,6 @@ impl<C> Scene<C> {
         Scene {
             bounds,
             keys,
-            connections: vec![],
             dirty: true,
             rootId,
             focused: None,
@@ -129,26 +126,17 @@ impl<C> Scene<C> {
     }
 }
 
-#[derive(Debug)]
-struct Connection {
-    parent: String,
-    child: String,
-}
 pub fn connect_parent_child<C>(scene: &mut Scene<C>, parent: &str, child: &str) {
-    scene.connections.push(Connection {
-        parent: parent.to_string(),
-        child: child.to_string(),
-    })
-}
-pub fn remove_parent_child<C>(scene: &mut Scene<C>, parent: &str, child: &str) -> Option<Connection> {
-    if let Some(n) = scene
-        .connections
-        .iter()
-        .position(|c| c.parent == parent && c.child == child)
-    {
-        return Some(scene.connections.remove(n));
+    if let Some(view) = scene.get_view_mut(parent) {
+        view.children.push(child.into());
     }
-    None
+}
+pub fn remove_parent_child<C>(scene: &mut Scene<C>, parent: &str, child: &str) {
+    if let Some(view) = scene.get_view_mut(parent) {
+        if let Some(n) = view.children.iter().position(|name |name==child) {
+            view.children.remove(n);
+        }
+    }
 }
 pub fn click_at<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, pt: Point) {
     // info!("picking at {:?}", pt);
@@ -212,13 +200,11 @@ fn pick_at_view<C>(scene: &Scene<C>, pt: &Point, name: &str) -> Vec<String> {
     coll
 }
 pub fn find_children<C>(scene: &Scene<C>, parent: &str) -> Vec<String> {
-    let mut out = vec![];
-    for con in &scene.connections {
-        if con.parent == parent {
-            out.push(con.child.clone());
-        }
+    if let Some(view) = scene.get_view(parent) {
+        view.children.clone()
+    } else {
+        vec![]
     }
-    out
 }
 
 pub fn layout_vbox<C>(scene: &mut Scene<C>, name: &str) {
@@ -238,12 +224,11 @@ pub fn layout_vbox<C>(scene: &mut Scene<C>, name: &str) {
     }
 }
 fn get_child_count<C>(scene: &mut Scene<C>, name: &str) -> usize {
-    let conn: Vec<&Connection> = scene
-        .connections
-        .iter()
-        .filter(|c| c.parent == name)
-        .collect();
-    conn.len()
+    if let Some(view) = scene.get_view(name) {
+        view.children.len()
+    } else {
+        0
+    }
 }
 
 fn repaint(scene: &mut Scene<String>) {
@@ -350,6 +335,7 @@ mod tests {
                 h: 10,
             },
             visible: true,
+            children: vec![],
             draw: Some(draw_generic_view),
             input: None,
             state: None,
@@ -362,6 +348,7 @@ mod tests {
             title: name.to_string(),
             bounds,
             visible: true,
+            children: vec![],
             draw: Some(draw_panel_view),
             input: None,
             state: None,
@@ -383,6 +370,7 @@ mod tests {
                 h: 20,
             },
             visible: true,
+            children: vec![],
             draw: Some(|view, ctx, theme|{
                 if let Some(state) = &mut view.state {
                     if let Some(state) = state.downcast_mut::<TestButtonState>() {
@@ -412,6 +400,7 @@ mod tests {
             title:title.into(),
             bounds: Bounds::new(0,0,100,30),
             visible: true,
+            children: vec![],
             state: None,
             draw: None,
             layout: None,
@@ -439,6 +428,7 @@ mod tests {
                 h: 20,
             },
             visible: true,
+            children: vec![],
             draw: Some(draw_label_view),
             input: None,
             state: None,
@@ -494,17 +484,12 @@ mod tests {
         let mut scene: Scene<String> = Scene::new();
         scene.add_view(make_simple_view("parent"));
         scene.add_view(make_simple_view("child"));
-        assert_eq!(scene.connectioncount(), 0);
-        assert_eq!(get_child_count(&mut scene, "parent"), 0);
+        assert_eq!(scene.get_view("parent").unwrap().children.len(), 0);
         assert_eq!(scene.viewcount(), 3);
-
         connect_parent_child(&mut scene, "parent", "child");
-        assert_eq!(scene.connectioncount(), 1);
-        assert_eq!(get_child_count(&mut scene, "parent"), 1);
-
+        assert_eq!(scene.get_view("parent").unwrap().children.len(), 1);
         remove_parent_child(&mut scene, "parent", "child");
-        assert_eq!(scene.connectioncount(), 0);
-        assert_eq!(get_child_count(&mut scene, "parent"), 0);
+        assert_eq!(scene.get_view("parent").unwrap().children.len(), 0);
     }
     #[test]
     fn test_pick_at() {
@@ -640,6 +625,7 @@ mod tests {
                 w: 20,
                 h: 20,
             },
+            children: vec![],
             draw: Some(draw_toggle_button_view),
             input: Some(handle_toggle_button_input),
             state: Some(Box::new(String::from("disabled"))),
