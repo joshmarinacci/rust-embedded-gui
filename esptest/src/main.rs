@@ -445,7 +445,15 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
                 }
             }
         }),
-        layout: None,
+        layout: Some(|scene, name|{
+            if let Some(parent) = scene.get_view_mut(name) {
+                if let Some(state) = &parent.state {
+                    if let Some(state) = state.downcast_ref::<MenuState>() {
+                        parent.bounds.h = 30 * (state.data.len() as i32)
+                    }
+                }
+            };
+        }),
         state: Some(Box::new(MenuState{data,selected:0})),
     }
 

@@ -7,7 +7,7 @@ pub struct Bounds {
 }
 
 impl Bounds {
-    pub(crate) fn new(x: i32, y: i32, w: i32, h: i32) -> Bounds {
+    pub fn new(x: i32, y: i32, w: i32, h: i32) -> Bounds {
         Bounds {
             x,
             y,
