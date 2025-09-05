@@ -8,13 +8,14 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::any::Any;
+use geom::{Bounds, Point};
 use hashbrown::HashMap;
 use log::info;
-use geom::{Bounds, Point};
 
 pub mod geom;
 
 pub trait DrawingContext<C> {
+    fn clear(&mut self, color: &C);
     fn fillRect(&mut self, bounds: &Bounds, color: &C);
     fn strokeRect(&mut self, bounds: &Bounds, color: &C);
     fn fillText(&mut self, bounds: &Bounds, text: &str, color: &C);
@@ -29,7 +30,6 @@ pub struct Theme<C> {
     pub fg: C,
     pub panel_bg: C,
 }
-
 
 #[derive(Debug)]
 pub struct View<C> {
@@ -66,7 +66,7 @@ pub type Callback<C> = fn(event: &mut GuiEvent<C>);
 pub enum EventType {
     Generic,
     Tap(Point),
-    Scroll(i32,i32),
+    Scroll(i32, i32),
     Keyboard(u8),
 }
 #[derive(Debug)]
@@ -108,7 +108,7 @@ impl<C> Scene<C> {
             input: None,
             state: None,
             layout: None,
-            children: vec![]
+            children: vec![],
         };
         let rootId = String::from("root");
         let mut keys: HashMap<String, View<C>> = HashMap::new();
@@ -133,7 +133,7 @@ pub fn connect_parent_child<C>(scene: &mut Scene<C>, parent: &str, child: &str) 
 }
 pub fn remove_parent_child<C>(scene: &mut Scene<C>, parent: &str, child: &str) {
     if let Some(view) = scene.get_view_mut(parent) {
-        if let Some(n) = view.children.iter().position(|name |name==child) {
+        if let Some(n) = view.children.iter().position(|name| name == child) {
             view.children.remove(n);
         }
     }
@@ -159,13 +159,13 @@ pub fn click_at<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, pt: Point)
         }
     }
 }
-pub fn type_at_focused<C>(scene: &mut Scene<C>, handlers:&Vec<Callback<C>>, key:u8) {
+pub fn type_at_focused<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, key: u8) {
     if scene.focused.is_none() {
         return;
     } else {
         let focused = scene.focused.as_ref().unwrap().clone();
-        let mut event:GuiEvent<C> = GuiEvent {
-            scene:scene,
+        let mut event: GuiEvent<C> = GuiEvent {
+            scene: scene,
             target: &focused,
             event_type: EventType::Keyboard(key),
         };
@@ -232,27 +232,39 @@ fn get_child_count<C>(scene: &mut Scene<C>, name: &str) -> usize {
 }
 
 fn repaint(scene: &mut Scene<String>) {
-    let theme:Theme<String> = Theme {
+    let theme: Theme<String> = Theme {
         bg: "white".into(),
         fg: "black".into(),
         panel_bg: "grey".into(),
     };
 
-    let mut ctx:FakeDrawingContext<String> = FakeDrawingContext {
+    let mut ctx: FakeDrawingContext<String> = FakeDrawingContext {
         clip: Bounds {
             x: 0,
             y: 0,
             w: 200,
             h: 200,
         },
-        bg:String::new(),
+        bg: String::new(),
     };
-    let root_name = scene.rootId.clone();
-    draw_view(scene, &mut ctx, &theme, &root_name);
-    scene.dirty = false;
+    draw_scene(scene, &mut ctx, &theme);
 }
 
-pub fn draw_view<C>(scene: &mut Scene<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>, name:&str) {
+pub fn draw_scene<C>(scene: &mut Scene<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+    if scene.dirty {
+        ctx.clear(&theme.panel_bg);
+        let name = scene.rootId.clone();
+        draw_view(scene, ctx, theme, &name);
+        scene.dirty = false;
+    }
+}
+
+pub fn draw_view<C>(
+    scene: &mut Scene<C>,
+    ctx: &mut dyn DrawingContext<C>,
+    theme: &Theme<C>,
+    name: &str,
+) {
     if let Some(view) = scene.get_view_mut(name) {
         if view.visible {
             (view.draw.unwrap())(view, ctx, &theme);
@@ -260,7 +272,7 @@ pub fn draw_view<C>(scene: &mut Scene<C>, ctx: &mut dyn DrawingContext<C>, theme
     }
     if let Some(view) = scene.get_view(name) {
         for kid in find_children(&scene, &view.name) {
-            draw_view(scene,ctx,theme,&kid);
+            draw_view(scene, ctx, theme, &kid);
         }
     }
 }
@@ -276,7 +288,11 @@ pub fn draw_button_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, them
     ctx.strokeRect(&view.bounds, &theme.fg);
     ctx.fillText(&view.bounds, &view.title, &theme.fg);
 }
-fn draw_toggle_button_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_toggle_button_view<C>(
+    view: &mut View<C>,
+    ctx: &mut dyn DrawingContext<C>,
+    theme: &Theme<C>,
+) {
     if let Some(state) = &view.state {
         if let Some(state) = state.downcast_ref::<String>() {
             if state == "enabled" {
@@ -356,8 +372,8 @@ mod tests {
         }
     }
     struct TestButtonState {
-        drawn:bool,
-        got_input:bool,
+        drawn: bool,
+        got_input: bool,
     }
     fn make_test_button<C>(name: &str) -> View<C> {
         View {
@@ -371,14 +387,14 @@ mod tests {
             },
             visible: true,
             children: vec![],
-            draw: Some(|view, ctx, theme|{
+            draw: Some(|view, ctx, theme| {
                 if let Some(state) = &mut view.state {
                     if let Some(state) = state.downcast_mut::<TestButtonState>() {
                         state.drawn = true;
                     }
                 }
             }),
-            input: Some(|e|{
+            input: Some(|e| {
                 if let Some(view) = e.scene.get_view_mut(e.target) {
                     if let Some(state) = &mut view.state {
                         if let Some(state) = state.downcast_mut::<TestButtonState>() {
@@ -387,18 +403,18 @@ mod tests {
                     }
                 }
             }),
-            state: Some(Box::new(TestButtonState{
+            state: Some(Box::new(TestButtonState {
                 drawn: false,
                 got_input: false,
             })),
             layout: None,
         }
     }
-    fn make_text_box<C>(name:&str, title:&str) -> View<C> {
+    fn make_text_box<C>(name: &str, title: &str) -> View<C> {
         View {
-            name:name.into(),
-            title:title.into(),
-            bounds: Bounds::new(0,0,100,30),
+            name: name.into(),
+            title: title.into(),
+            bounds: Bounds::new(0, 0, 100, 30),
             visible: true,
             children: vec![],
             state: None,
@@ -407,12 +423,12 @@ mod tests {
             input: Some(|e| {
                 match e.event_type {
                     EventType::Keyboard(key) => {
-                        info!("got a keyboard event {}",key);
+                        info!("got a keyboard event {}", key);
                         if let Some(view) = e.scene.get_view_mut(e.target) {
                             view.title.push(key as char)
                         }
                     }
-                    _ => info!("ignoring other event")
+                    _ => info!("ignoring other event"),
                 };
             }),
         }
@@ -442,14 +458,26 @@ mod tests {
             None
         }
     }
-    fn was_button_clicked<C>(scene:&mut Scene<C>, name:&str) -> bool {
-        scene.get_view(name).unwrap()
-            .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
+    fn was_button_clicked<C>(scene: &mut Scene<C>, name: &str) -> bool {
+        scene
+            .get_view(name)
+            .unwrap()
+            .state
+            .as_ref()
+            .unwrap()
+            .downcast_ref::<TestButtonState>()
+            .unwrap()
             .got_input
     }
-    fn was_button_drawn<C>(scene:&mut Scene<C>, name:&str) -> bool {
-        scene.get_view(name).unwrap()
-            .state.as_ref().unwrap().downcast_ref::<TestButtonState>().unwrap()
+    fn was_button_drawn<C>(scene: &mut Scene<C>, name: &str) -> bool {
+        scene
+            .get_view(name)
+            .unwrap()
+            .state
+            .as_ref()
+            .unwrap()
+            .downcast_ref::<TestButtonState>()
+            .unwrap()
             .drawn
     }
 
@@ -507,7 +535,12 @@ mod tests {
         ));
         // add button
         let mut button = make_test_button("child");
-        button.bounds = Bounds { x: 10, y: 10, w: 10, h:10};
+        button.bounds = Bounds {
+            x: 10,
+            y: 10,
+            w: 10,
+            h: 10,
+        };
         scene.add_view(button);
         // connect
         connect_parent_child(&mut scene, "root", "parent");
@@ -590,7 +623,7 @@ mod tests {
     }
     #[test]
     fn test_events() {
-        let mut scene:Scene<String> = Scene::new();
+        let mut scene: Scene<String> = Scene::new();
         let mut handlers: Vec<Callback<String>> = vec![];
         handlers.push(|event| {
             info!("got an event {:?}", event);
@@ -686,38 +719,37 @@ mod tests {
         connect_parent_child(&mut scene, &rootid, &button2.name);
         scene.add_view(button2);
 
-        assert_eq!(was_button_clicked(&mut scene,"button1"),false);
-        assert_eq!(was_button_drawn(&mut scene,"button1"),false);
-        assert_eq!(was_button_drawn(&mut scene,"button2"),false);
+        assert_eq!(was_button_clicked(&mut scene, "button1"), false);
+        assert_eq!(was_button_drawn(&mut scene, "button1"), false);
+        assert_eq!(was_button_drawn(&mut scene, "button2"), false);
 
         // repaint. only button 1 should get drawn
         repaint(&mut scene);
-        assert_eq!(scene.dirty,false);
-        assert_eq!(was_button_drawn(&mut scene,"button1"),true);
-        assert_eq!(was_button_drawn(&mut scene,"button2"),false);
+        assert_eq!(scene.dirty, false);
+        assert_eq!(was_button_drawn(&mut scene, "button1"), true);
+        assert_eq!(was_button_drawn(&mut scene, "button2"), false);
 
         let mut handlers: Vec<Callback<String>> = vec![];
-        handlers.push(|e|{
-            info!("clicked on {}",e.target);
-            if let Some(view) =e.scene.get_view_mut("button2") {
+        handlers.push(|e| {
+            info!("clicked on {}", e.target);
+            if let Some(view) = e.scene.get_view_mut("button2") {
                 view.visible = true;
                 e.scene.dirty = true;
             }
         });
 
         // tap button 1
-        assert_eq!(scene.dirty,false);
+        assert_eq!(scene.dirty, false);
         click_at(&mut scene, &handlers, Point::new(15, 15));
-        assert_eq!(was_button_clicked(&mut scene,"button1"),true);
+        assert_eq!(was_button_clicked(&mut scene, "button1"), true);
         // confirm dirty
-        assert_eq!(scene.dirty,true);
-
+        assert_eq!(scene.dirty, true);
 
         // this time both buttons should be drawn
         repaint(&mut scene);
-        assert_eq!(scene.dirty,false);
-        assert_eq!(was_button_drawn(&mut scene,"button1"),true);
-        assert_eq!(was_button_drawn(&mut scene,"button2"),true);
+        assert_eq!(scene.dirty, false);
+        assert_eq!(was_button_drawn(&mut scene, "button1"), true);
+        assert_eq!(was_button_drawn(&mut scene, "button2"), true);
     }
 
     #[test]
@@ -728,19 +760,19 @@ mod tests {
         let rootid = scene.rootId.clone();
 
         // make text box
-        let mut text_box = make_text_box("textbox1","foo");
-        connect_parent_child(&mut scene,&rootid,&text_box.name);
+        let mut text_box = make_text_box("textbox1", "foo");
+        connect_parent_child(&mut scene, &rootid, &text_box.name);
         scene.add_view(text_box);
         // confirm text is correct
-        assert_eq!(get_view_title(&scene,"textbox1"),"foo");
+        assert_eq!(get_view_title(&scene, "textbox1"), "foo");
         // set text box as focused
         scene.focused = Some("textbox1".into());
 
         // send keyboard event
         let mut handlers: Vec<Callback<String>> = vec![];
-        type_at_focused(&mut scene, &handlers,b'X');
+        type_at_focused(&mut scene, &handlers, b'X');
         // confirm text is updated
-        assert_eq!(get_view_title(&scene,"textbox1"),"fooX");
+        assert_eq!(get_view_title(&scene, "textbox1"), "fooX");
     }
 
     fn get_view_title<C>(scene: &Scene<C>, name: &str) -> String {
@@ -750,9 +782,11 @@ mod tests {
 
 struct FakeDrawingContext<C> {
     clip: Bounds,
-    bg:C,
+    bg: C,
 }
 impl DrawingContext<String> for FakeDrawingContext<String> {
+    fn clear(&mut self, color: &String) {}
+
     fn fillRect(&mut self, bounds: &Bounds, color: &String) {}
 
     fn strokeRect(&mut self, bounds: &Bounds, color: &String) {}

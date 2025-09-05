@@ -33,7 +33,7 @@ use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
+use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 
@@ -157,19 +157,11 @@ fn main() -> ! {
         }
 
         let delay_start = Instant::now();
-        if scene.dirty {
-            ctx.display.clear(theme.panel_bg);
-            draw_scene(&mut scene, &mut ctx, &theme);
-        }
+        draw_scene(&mut scene, &mut ctx, &theme);
         while delay_start.elapsed() < Duration::from_millis(100) {}
     }
 }
 
-fn draw_scene(scene: &mut Scene<Rgb565>, ctx: &mut EmbeddedDrawingContext, theme: &Theme<Rgb565>) {
-    let name = scene.rootId.clone();
-    draw_view(scene, ctx, theme, &name);
-    scene.dirty = false;
-}
 
 fn make_gui_scene() -> Scene<Rgb565> {
     let mut scene: Scene<Rgb565> = Scene::new();
@@ -249,6 +241,10 @@ impl EmbeddedDrawingContext {
 }
 
 impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
+    fn clear(&mut self, color: &Rgb565) {
+        self.display.clear(*color).unwrap();
+    }
+
     fn fillRect(&mut self, bounds: &Bounds, color: &Rgb565) {
         let pt = Point::new(bounds.x,bounds.y);
         let size = Size::new(bounds.w as u32, bounds.h as u32);
