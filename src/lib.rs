@@ -59,6 +59,11 @@ impl<C> Scene<C> {
         self.focused = Some(name.into());
         self.dirty = true
     }
+    pub fn set_visible(&mut self, name: &str) {
+        if let Some(view) = self.get_view_mut(name) {
+            view.visible = true;
+        }
+    }
 }
 
 pub type Callback<C> = fn(event: &mut GuiEvent<C>);
@@ -190,7 +195,7 @@ pub fn pick_at<C>(scene: &mut Scene<C>, pt: &Point) -> Vec<String> {
 fn pick_at_view<C>(scene: &Scene<C>, pt: &Point, name: &str) -> Vec<String> {
     let mut coll: Vec<String> = vec![];
     if let Some(view) = scene.keys.get(name) {
-        if view.bounds.contains(pt) {
+        if view.bounds.contains(pt) && view.visible {
             coll.push(view.name.clone());
             let pt2 = Point {
                 x: pt.x - view.bounds.x,
