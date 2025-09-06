@@ -124,6 +124,10 @@ impl<C> Scene<C> {
     pub fn add_view(&mut self, view: View<C>) {
         self.keys.insert(view.name.clone(), view);
     }
+    pub fn add_view_to_root(&mut self, view: View<C>) {
+        connect_parent_child(self, &self.rootId.clone(), &view.name);
+        self.add_view(view);
+    }
 }
 
 pub fn connect_parent_child<C>(scene: &mut Scene<C>, parent: &str, child: &str) {
