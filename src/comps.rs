@@ -2,11 +2,11 @@ use alloc::string::ToString;
 use alloc::vec;
 use log::info;
 use crate::geom::Bounds;
-use crate::{DrawingContext, EventType, GuiEvent, Theme, View};
+use crate::{DrawingContext, EventType, GuiEvent, HAlign, Theme, View};
 
 fn draw_panel<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillRect(&view.bounds, &theme.bg);
-    ctx.strokeRect(&view.bounds, &theme.fg);
+    ctx.fill_rect(&view.bounds, &theme.bg);
+    ctx.stroke_rect(&view.bounds, &theme.fg);
 }
 pub fn make_panel<C>(name: &str, bounds: Bounds) -> View<C> {
     View {
@@ -25,9 +25,9 @@ pub fn make_panel<C>(name: &str, bounds: Bounds) -> View<C> {
 
 
 fn draw_button<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillRect(&view.bounds, &theme.bg);
-    ctx.strokeRect(&view.bounds, &theme.fg);
-    ctx.fillText(&view.bounds, &view.title, &theme.fg);
+    ctx.fill_rect(&view.bounds, &theme.bg);
+    ctx.stroke_rect(&view.bounds, &theme.fg);
+    ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
 }
 
 fn input_button<C>(event:&mut GuiEvent<C>) {
@@ -60,7 +60,7 @@ pub fn make_button<C>(name: &str, title: &str) -> View<C> {
 }
 
 fn draw_label<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillText(&view.bounds, &view.title, &theme.fg);
+    ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Left);
 }
 pub fn make_label<C>(name: &str, title: &str) -> View<C> {
     View {
@@ -81,9 +81,9 @@ pub fn make_label<C>(name: &str, title: &str) -> View<C> {
     }
 }
 fn draw_text_input<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillRect(&view.bounds, &theme.bg);
-    ctx.strokeRect(&view.bounds, &theme.fg);
-    ctx.fillText(&view.bounds, &view.title,&theme.fg);
+    ctx.fill_rect(&view.bounds, &theme.bg);
+    ctx.stroke_rect(&view.bounds, &theme.fg);
+    ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Left);
     // if view.focused {
     //     let cursor = Bounds {
     //         x: view.bounds.x + 20,

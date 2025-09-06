@@ -33,7 +33,7 @@ use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
+use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, HAlign, Scene, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
@@ -229,7 +229,7 @@ impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
         self.display.clear(*color).unwrap();
     }
 
-    fn fillRect(&mut self, bounds: &Bounds, color: &Rgb565) {
+    fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
         let pt = Point::new(bounds.x,bounds.y);
         let size = Size::new(bounds.w as u32, bounds.h as u32);
         Rectangle::new(pt,size)
@@ -238,7 +238,7 @@ impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
 
     }
 
-    fn strokeRect(&mut self, bounds: &Bounds, color: &Rgb565) {
+    fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
         let pt = Point::new(bounds.x,bounds.y);
         let size = Size::new(bounds.w as u32, bounds.h as u32);
         Rectangle::new(pt,size)
@@ -246,7 +246,7 @@ impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
             .draw(&mut self.display).unwrap();
     }
 
-    fn fillText(&mut self, bounds: &Bounds, text: &str, color: &Rgb565) {
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, color: &Rgb565, halign: &HAlign) {
         let style = MonoTextStyle::new(&FONT_6X10, *color);
         let mut pt = Point::new(bounds.x, bounds.y);
         pt.y += bounds.h / 2;
@@ -290,8 +290,8 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
         visible:true,
         children: vec![],
         draw: Some(|view, ctx, theme| {
-            ctx.fillRect(&view.bounds, &theme.bg);
-            ctx.strokeRect(&view.bounds, &theme.fg);
+            ctx.fill_rect(&view.bounds, &theme.bg);
+            ctx.stroke_rect(&view.bounds, &theme.fg);
             if let Some(state) = &view.state {
                 if let Some(state) = state.downcast_ref::<MenuState>() {
                     info!("menu state is {:?}",state.data);
@@ -303,10 +303,10 @@ fn make_menuview<C>(data:Vec<String>) -> View<C> {
                             h: 30,
                         };
                         if state.selected == i {
-                            ctx.fillRect(&b,&theme.fg);
-                            ctx.fillText(&b,item.as_str(),&theme.bg);
+                            ctx.fill_rect(&b, &theme.fg);
+                            ctx.fill_text(&b, item.as_str(), &theme.bg, &HAlign::Center);
                         }else {
-                            ctx.fillText(&b, item.as_str(), &theme.fg);
+                            ctx.fill_text(&b, item.as_str(), &theme.fg, &HAlign::Center);
                         }
                     }
                 }

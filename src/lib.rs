@@ -15,11 +15,16 @@ use log::info;
 pub mod geom;
 pub mod comps;
 
+pub enum HAlign {
+    Left,
+    Center,
+    Right
+}
 pub trait DrawingContext<C> {
     fn clear(&mut self, color: &C);
-    fn fillRect(&mut self, bounds: &Bounds, color: &C);
-    fn strokeRect(&mut self, bounds: &Bounds, color: &C);
-    fn fillText(&mut self, bounds: &Bounds, text: &str, color: &C);
+    fn fill_rect(&mut self, bounds: &Bounds, color: &C);
+    fn stroke_rect(&mut self, bounds: &Bounds, color: &C);
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, color: &C, align:&HAlign);
 }
 
 pub type DrawFn<C> = fn(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>);
@@ -310,15 +315,15 @@ pub fn draw_view<C>(
 }
 
 fn draw_generic_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillRect(&view.bounds, &theme.bg)
+    ctx.fill_rect(&view.bounds, &theme.bg)
 }
 fn draw_root_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillRect(&view.bounds, &theme.panel_bg)
+    ctx.fill_rect(&view.bounds, &theme.panel_bg)
 }
 pub fn draw_button_view<C>(view: &View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillRect(&view.bounds, &theme.bg);
-    ctx.strokeRect(&view.bounds, &theme.fg);
-    ctx.fillText(&view.bounds, &view.title, &theme.fg);
+    ctx.fill_rect(&view.bounds, &theme.bg);
+    ctx.stroke_rect(&view.bounds, &theme.fg);
+    ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
 }
 fn draw_toggle_button_view<C>(
     view: &mut View<C>,
@@ -328,22 +333,22 @@ fn draw_toggle_button_view<C>(
     if let Some(state) = &view.state {
         if let Some(state) = state.downcast_ref::<String>() {
             if state == "enabled" {
-                ctx.fillRect(&view.bounds, &theme.fg);
-                ctx.strokeRect(&view.bounds, &theme.bg);
-                ctx.fillText(&view.bounds, &view.title, &theme.bg);
+                ctx.fill_rect(&view.bounds, &theme.fg);
+                ctx.stroke_rect(&view.bounds, &theme.bg);
+                ctx.fill_text(&view.bounds, &view.title, &theme.bg, &HAlign::Center);
             } else {
-                ctx.fillRect(&view.bounds, &theme.bg);
-                ctx.strokeRect(&view.bounds, &theme.fg);
-                ctx.fillText(&view.bounds, &view.title, &theme.fg);
+                ctx.fill_rect(&view.bounds, &theme.bg);
+                ctx.stroke_rect(&view.bounds, &theme.fg);
+                ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
             }
         }
     }
 }
 fn draw_label_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillText(&view.bounds, &view.title, &theme.fg);
+    ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Left);
 }
 pub fn draw_panel_view<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
-    ctx.fillRect(&view.bounds, &theme.panel_bg);
+    ctx.fill_rect(&view.bounds, &theme.panel_bg);
 }
 
 fn handle_toggle_button_input<C>(event: &mut GuiEvent<C>) {
@@ -819,9 +824,9 @@ struct FakeDrawingContext<C> {
 impl DrawingContext<String> for FakeDrawingContext<String> {
     fn clear(&mut self, color: &String) {}
 
-    fn fillRect(&mut self, bounds: &Bounds, color: &String) {}
+    fn fill_rect(&mut self, bounds: &Bounds, color: &String) {}
 
-    fn strokeRect(&mut self, bounds: &Bounds, color: &String) {}
+    fn stroke_rect(&mut self, bounds: &Bounds, color: &String) {}
 
-    fn fillText(&mut self, bounds: &Bounds, text: &str, color: &String) {}
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, color: &String, align: &HAlign) {}
 }
