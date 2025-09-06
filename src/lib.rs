@@ -146,7 +146,7 @@ pub fn click_at<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, pt: Point)
         let mut event: GuiEvent<C> = GuiEvent {
             scene: scene,
             target: target,
-            event_type: EventType::Generic,
+            event_type: EventType::Tap(pt),
         };
         if let Some(view) = event.scene.get_view(target) {
             // info!("got the view {:?}", view.name);
