@@ -189,6 +189,28 @@ pub fn type_at_focused<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, key
         }
     }
 }
+
+pub fn scroll_at_focused<C>(scene: &mut Scene<C>, handlers: &Vec<Callback<C>>, deltaX: i32, deltaY:i32) {
+    if scene.focused.is_none() {
+        return;
+    } else {
+        let focused = scene.focused.as_ref().unwrap().clone();
+        let mut event: GuiEvent<C> = GuiEvent {
+            scene: scene,
+            target: &focused,
+            event_type: EventType::Scroll(deltaX, deltaY)
+        };
+        if let Some(view) = event.scene.get_view(&focused) {
+            if let Some(input) = view.input {
+                input(&mut event)
+            }
+            for cb in handlers {
+                cb(&mut event);
+            }
+        }
+    }
+}
+
 pub fn pick_at<C>(scene: &mut Scene<C>, pt: &Point) -> Vec<String> {
     pick_at_view(scene, pt, &scene.rootId)
 }
