@@ -13,6 +13,7 @@ use hashbrown::HashMap;
 use log::info;
 
 pub mod geom;
+pub mod comps;
 
 pub trait DrawingContext<C> {
     fn clear(&mut self, color: &C);

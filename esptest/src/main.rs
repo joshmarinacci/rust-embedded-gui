@@ -36,6 +36,7 @@ use static_cell::StaticCell;
 use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, Scene, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
+use gui2::comps::{make_button, make_label, make_panel, make_text_input};
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
@@ -167,48 +168,31 @@ fn make_gui_scene() -> Scene<Rgb565> {
     let mut scene: Scene<Rgb565> = Scene::new();
     let rootname = scene.rootId.clone();
 
-    let mut panel = make_panel(Bounds{x:20,y:20,w:200,h:200});
-    panel.name = "panel".into();
+    let mut panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
 
 
-    let mut label = make_label("A Label");
+    let mut label = make_label("label1","A Label");
     label.bounds.x = 10;
     label.bounds.y = 30;
-    label.bounds.w = 100;
-    label.bounds.h = 20;
-    label.name = "label1".into();
 
-    let mut button = make_button("A button");
+    let mut button = make_button("button1","A button");
     button.bounds.x = 10;
     button.bounds.y = 60;
-    button.bounds.w = 100;
-    button.bounds.h = 20;
-    button.name = "button1".into();
 
-
-    let mut textinput = make_text_input("type text here");
+    let mut textinput = make_text_input("textinput","type text here");
     textinput.bounds.x = 10;
     textinput.bounds.y = 90;
-    textinput.bounds.w = 200;
-    textinput.bounds.h = 30;
-    textinput.name = "textinput".into();
 
     let mut menuview = make_menuview(vec!["first".into(),"second".into(),"third".into()]);
     menuview.bounds.x = 100;
     menuview.bounds.y = 30;
     menuview.name = "menuview".into();
 
-    connect_parent_child(&mut scene,&rootname,&panel.name);
-    connect_parent_child(&mut scene,&rootname,&label.name);
-    connect_parent_child(&mut scene,&rootname,&button.name);
-    connect_parent_child(&mut scene,&rootname,&textinput.name);
-    connect_parent_child(&mut scene,&rootname,&menuview.name);
-
-    scene.add_view(panel);
-    scene.add_view(label);
-    scene.add_view(button);
-    scene.add_view(textinput);
-    scene.add_view(menuview);
+    scene.add_view_to_root(panel);
+    scene.add_view_to_root(label);
+    scene.add_view_to_root(button);
+    scene.add_view_to_root(textinput);
+    scene.add_view_to_root(menuview);
 
     scene
 }
@@ -288,97 +272,6 @@ fn make_vbox<C>(name: &str, bounds: Bounds) -> View<C> {
         layout: Some(layout_vbox),
     }
 }
-
-fn make_button<C>(name: &str) -> View<C> {
-    View {
-        name: name.to_string(),
-        title: name.to_string(),
-        bounds: Bounds {
-            x: 0,
-            y: 0,
-            w: 20,
-            h: 20,
-        },
-        visible: true,
-        children: vec![],
-        draw: Some(|view, ctx, theme|{
-            ctx.fillRect(&view.bounds, &theme.bg);
-            ctx.strokeRect(&view.bounds, &theme.fg);
-            ctx.fillText(&view.bounds, &view.title, &theme.fg);
-        }),
-        input: Some(|event| {
-            info!("button got input {:?}",event.target);
-        }),
-        state: None,
-        layout: None,
-    }
-}
-
-fn make_panel<C>(bounds:Bounds) -> View<C> {
-    View {
-        name:"something".into(),
-        title: "some panel".into(),
-        bounds: bounds,
-        visible: true,
-        children: vec![],
-        draw: Some(|view, ctx, theme| {
-            ctx.fillRect(&view.bounds, &theme.panel_bg);
-            ctx.strokeRect(&view.bounds, &theme.fg);
-        }),
-        input: None,
-        state: None,
-        layout: None,
-    }
-}
-
-fn make_label<C>(text:&str) -> View<C> {
-    View {
-        name:text.into(),
-        title: text.into(),
-        bounds: Bounds { x:0, y:0, w:10, h:20},
-        visible:true,
-        children: vec![],
-        draw: Some(|view, ctx, theme| {
-            ctx.fillText(&view.bounds, &view.title, &theme.fg);
-        }),
-        input: None,
-        state: None,
-        layout: None,
-    }
-}
-
-fn make_text_input<C>(text:&str) -> View<C> {
-    View {
-        name: "text".into(),
-        title: text.into(),
-        bounds:Bounds {
-            x: 0,
-            y: 0,
-            w: 200,
-            h: 30,
-        },
-        visible: true,
-        children: vec![],
-        draw: Some(|view, ctx, theme| {
-            ctx.fillRect(&view.bounds, &theme.bg);
-            ctx.strokeRect(&view.bounds, &theme.fg);
-            ctx.fillText(&view.bounds, &view.title,&theme.fg);
-            // if view.focused {
-            //     let cursor = Bounds {
-            //         x: view.bounds.x + 20,
-            //         y: view.bounds.y + 2,
-            //         w: 2,
-            //         h: view.bounds.h - 4,
-            //     };
-            //     ctx.fillRect(&cursor, &theme.fg);
-            // }
-        }),
-        input: None,
-        state: None,
-        layout: None,
-    }
-}
-
 
 struct MenuState {
     data:Vec<String>,
