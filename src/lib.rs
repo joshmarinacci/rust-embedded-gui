@@ -76,7 +76,7 @@ pub struct Scene<C, F> {
 impl<C, F> Scene<C, F> {
     pub fn set_focused(&mut self, name: &str) {
         self.focused = Some(name.into());
-        self.dirty = true
+        self.mark_dirty();
     }
     pub fn is_focused(&self, name: &str) -> bool {
         self.focused.as_ref().is_some_and(|focused| focused == name)
@@ -85,11 +85,16 @@ impl<C, F> Scene<C, F> {
         if let Some(view) = self.get_view_mut(name) {
             view.visible = true;
         }
+        self.mark_dirty();
     }
     pub fn hide_view(&mut self, name: &str) {
         if let Some(view) = self.get_view_mut(name) {
             view.visible = false;
         }
+        self.mark_dirty();
+    }
+    pub fn mark_dirty(&mut self) {
+        self.dirty = true;
     }
 }
 
