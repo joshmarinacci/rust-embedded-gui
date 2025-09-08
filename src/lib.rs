@@ -49,7 +49,6 @@ pub struct View<C, F> {
     pub input: Option<InputFn<C, F>>,
     pub state: Option<Box<dyn Any>>,
     pub layout: Option<LayoutFn<C, F>>,
-    pub children: Vec<String>,
 }
 
 impl<C,F> View<C, F> {
@@ -67,6 +66,7 @@ impl<C,F> View<C, F> {
 #[derive(Debug)]
 pub struct Scene<C, F> {
     keys: HashMap<String, View<C, F>>,
+    children: HashMap<String, Vec<String>>,
     pub dirty: bool,
     bounds: Bounds,
     pub rootId: String,
@@ -95,6 +95,21 @@ impl<C, F> Scene<C, F> {
     }
     pub fn mark_dirty(&mut self) {
         self.dirty = true;
+    }
+    pub fn remove_child(&mut self, parent: &str, child: &str) {
+        if let Some(children) = self.children.get_mut(parent) {
+            if let Some(n) = children.iter().position(|name| name == child) {
+                children.remove(n);
+            }
+        }
+    }
+    pub fn add_child(&mut self, parent:&str, child:&str) {
+        if !self.children.contains_key(parent) {
+            self.children.insert(parent.to_string(), vec![]);
+        }
+        if let Some(children) = self.children.get_mut(parent) {
+            children.push(child.to_string());
+        }
     }
 }
 
@@ -146,7 +161,6 @@ impl<C, F> Scene<C, F> {
             input: None,
             state: None,
             layout: None,
-            children: vec![],
         };
         let rootId = String::from("root");
         let mut keys: HashMap<String, View<C, F>> = HashMap::new();
@@ -157,6 +171,7 @@ impl<C, F> Scene<C, F> {
             dirty: true,
             rootId,
             focused: None,
+            children: HashMap::new(),
         }
     }
     pub fn add_view(&mut self, view: View<C, F>) {
@@ -166,17 +181,32 @@ impl<C, F> Scene<C, F> {
         connect_parent_child(self, &self.rootId.clone(), &view.name);
         self.add_view(view);
     }
+    pub fn add_view_to_parent(&mut self, view:View<C,F>, parent:&str) {
+        connect_parent_child(self, parent, &view.name);
+        self.add_view(view);
+    }
+    pub fn remove_parent_and_children(&mut self, name:&str) {
+        let kids = find_children(self,name);
+        for kid in kids {
+            self.remove_view(&kid);
+            self.remove_child(name,&kid);
+        }
+        self.remove_view(name);
+    }
 }
 
 pub fn connect_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
-    if let Some(view) = scene.get_view_mut(parent) {
-        view.children.push(child.into());
+    if !scene.children.contains_key(parent) {
+        scene.children.insert(parent.to_string(), vec![]);
+    }
+    if let Some(children) = scene.children.get_mut(parent) {
+        children.push(child.to_string());
     }
 }
 pub fn remove_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
-    if let Some(view) = scene.get_view_mut(parent) {
-        if let Some(n) = view.children.iter().position(|name| name == child) {
-            view.children.remove(n);
+    if let Some(children) = scene.children.get_mut(parent) {
+        if let Some(n) = children.iter().position(|name| name == child) {
+            children.remove(n);
         }
     }
 }
@@ -222,7 +252,7 @@ pub fn type_at_focused<C,F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, 
     }
 }
 
-pub fn scroll_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, deltaX: i32, deltaY:i32) {
+pub fn scroll_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, dx: i32, dy:i32) {
     if scene.focused.is_none() {
         return;
     } else {
@@ -230,7 +260,7 @@ pub fn scroll_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<
         let mut event: GuiEvent<C, F> = GuiEvent {
             scene: scene,
             target: &focused,
-            event_type: EventType::Scroll(deltaX, deltaY)
+            event_type: EventType::Scroll(dx, dy)
         };
         if let Some(view) = event.scene.get_view(&focused) {
             if let Some(input) = view.input {
@@ -264,8 +294,8 @@ fn pick_at_view<C, F>(scene: &Scene<C, F>, pt: &Point, name: &str) -> Vec<String
     coll
 }
 pub fn find_children<C, F>(scene: &Scene<C, F>, parent: &str) -> Vec<String> {
-    if let Some(view) = scene.get_view(parent) {
-        view.children.clone()
+    if let Some(children) = scene.children.get(parent) {
+        children.clone()
     } else {
         vec![]
     }
@@ -288,8 +318,8 @@ pub fn layout_vbox<C, F>(scene: &mut Scene<C, F>, name: &str) {
     }
 }
 fn get_child_count<C, F>(scene: &mut Scene<C, F>, name: &str) -> usize {
-    if let Some(view) = scene.get_view(name) {
-        view.children.len()
+    if let Some(children) = scene.children.get(name) {
+        children.len()
     } else {
         0
     }
@@ -418,7 +448,6 @@ mod tests {
                 h: 10,
             },
             visible: true,
-            children: vec![],
             draw: Some(draw_generic_view),
             input: None,
             state: None,
@@ -431,7 +460,6 @@ mod tests {
             title: name.to_string(),
             bounds,
             visible: true,
-            children: vec![],
             draw: Some(draw_panel_view),
             input: None,
             state: None,
@@ -453,7 +481,6 @@ mod tests {
                 h: 20,
             },
             visible: true,
-            children: vec![],
             draw: Some(|view, ctx, theme| {
                 if let Some(state) = &mut view.state {
                     if let Some(state) = state.downcast_mut::<TestButtonState>() {
@@ -483,7 +510,6 @@ mod tests {
             title: title.into(),
             bounds: Bounds::new(0, 0, 100, 30),
             visible: true,
-            children: vec![],
             state: None,
             draw: None,
             layout: None,
@@ -511,7 +537,6 @@ mod tests {
                 h: 20,
             },
             visible: true,
-            children: vec![],
             draw: Some(draw_label_view),
             input: None,
             state: None,
@@ -579,19 +604,29 @@ mod tests {
         let mut scene:Scene<String,String> = Scene::new();
         scene.add_view(make_simple_view("parent"));
         scene.add_view(make_simple_view("child"));
-        assert_eq!(scene.get_view("parent").unwrap().children.len(), 0);
+        assert_eq!(get_child_count(&mut scene,"parent"), 0);
         assert_eq!(scene.viewcount(), 3);
-        connect_parent_child(&mut scene, "parent", "child");
-        assert_eq!(scene.get_view("parent").unwrap().children.len(), 1);
-        remove_parent_child(&mut scene, "parent", "child");
-        assert_eq!(scene.get_view("parent").unwrap().children.len(), 0);
+        scene.add_child("parent","child");
+        assert_eq!(get_child_count(&mut scene,"parent"), 1);
+        scene.remove_child("parent","child");
+        assert_eq!(get_child_count(&mut scene,"parent"), 0);
+
+        scene.add_child("parent","child");
+        assert_eq!(get_child_count(&mut scene,"parent"), 1);
+        let child2 = make_simple_view("child2");
+        scene.add_view_to_parent(child2,"parent");
+        assert_eq!(get_child_count(&mut scene,"parent"), 2);
+        assert_eq!(scene.viewcount(), 4);
+
+        scene.remove_parent_and_children("parent");
+        assert_eq!(get_child_count(&mut scene,"parent"), 0);
+        assert_eq!(scene.viewcount(), 1);
     }
     #[test]
     fn test_pick_at() {
         initialize();
         let mut scene: Scene<String, String> = Scene::new();
-        // add panel
-        scene.add_view(make_vbox(
+        let vbox = make_vbox(
             "parent",
             Bounds {
                 x: 10,
@@ -599,8 +634,8 @@ mod tests {
                 w: 100,
                 h: 100,
             },
-        ));
-        // add button
+        );
+
         let mut button = make_test_button("child");
         button.bounds = Bounds {
             x: 10,
@@ -608,10 +643,11 @@ mod tests {
             w: 10,
             h: 10,
         };
+
+        scene.add_child(&scene.rootId.clone(), &vbox.name);
+        scene.add_child(&vbox.name, &button.name);
+        scene.add_view(vbox);
         scene.add_view(button);
-        // connect
-        connect_parent_child(&mut scene, "root", "parent");
-        connect_parent_child(&mut scene, "parent", "child");
         assert_eq!(pick_at(&mut scene, &Point { x: 5, y: 5 }).len(), 1);
         assert_eq!(pick_at(&mut scene, &Point { x: 15, y: 15 }).len(), 2);
         assert_eq!(pick_at(&mut scene, &Point { x: 25, y: 25 }).len(), 3);
@@ -725,7 +761,6 @@ mod tests {
                 w: 20,
                 h: 20,
             },
-            children: vec![],
             draw: Some(draw_toggle_button_view),
             input: Some(handle_toggle_button_input),
             state: Some(Box::new(String::from("disabled"))),
