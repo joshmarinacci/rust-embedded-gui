@@ -28,6 +28,8 @@ use embedded_graphics::{
 };
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::geometry::{Point, Size};
+use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
+use embedded_graphics::mono_font::MonoFont;
 use esp_hal::i2c::master::{BusTimeout, I2c, Config as I2CConfig};
 use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
@@ -107,13 +109,15 @@ fn main() -> ! {
     info!("Display initialized");
 
     let mut ctx:EmbeddedDrawingContext = EmbeddedDrawingContext::new(display);
-    let mut scene: Scene<Rgb565> = make_gui_scene();
+    let mut scene: Scene<Rgb565, MonoFont> = make_gui_scene();
 
 
-    let theme:Theme<Rgb565> = Theme {
+    let theme:Theme<Rgb565, MonoFont> = Theme {
         bg: Rgb565::WHITE,
         fg: Rgb565::BLACK,
         panel_bg: Rgb565::CSS_LIGHT_GRAY,
+        font: FONT_7X13,
+        bold_font: FONT_7X13_BOLD,
     };
 
     static I2C: StaticCell<I2c<Blocking>> = StaticCell::new();
@@ -142,7 +146,7 @@ fn main() -> ! {
                 let targets = pick_at(&mut scene, &pt);
                 info!("clicked on targets {:?}", targets);
                 if let Some(target) =  targets.last() {
-                    let mut evt:GuiEvent<Rgb565> = GuiEvent {
+                    let mut evt:GuiEvent<Rgb565, MonoFont> = GuiEvent {
                         scene: &mut scene,
                         target,
                         event_type: EventType::Tap(pt)
@@ -164,8 +168,8 @@ fn main() -> ! {
 }
 
 
-fn make_gui_scene() -> Scene<Rgb565> {
-    let mut scene: Scene<Rgb565> = Scene::new();
+fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
+    let mut scene: Scene<Rgb565, MonoFont> = Scene::new();
     let rootname = scene.rootId.clone();
 
     let mut panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
@@ -224,7 +228,7 @@ impl EmbeddedDrawingContext {
     }
 }
 
-impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
+impl DrawingContext<Rgb565, MonoFont<'static>> for EmbeddedDrawingContext {
     fn clear(&mut self, color: &Rgb565) {
         self.display.clear(*color).unwrap();
     }
@@ -259,7 +263,7 @@ impl DrawingContext<Rgb565> for EmbeddedDrawingContext {
     }
 }
 
-fn make_vbox<C>(name: &str, bounds: Bounds) -> View<C> {
+fn make_vbox<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
     View {
         name: name.to_string(),
         title: name.to_string(),
@@ -277,7 +281,7 @@ struct MenuState {
     data:Vec<String>,
     selected:usize,
 }
-fn make_menuview<C>(data:Vec<String>) -> View<C> {
+fn make_menuview<C, F>(data:Vec<String>) -> View<C, F> {
     View {
         name: "somemenu".into(),
         title: "somemenu".into(),

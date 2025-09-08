@@ -4,11 +4,11 @@ use log::info;
 use crate::geom::Bounds;
 use crate::{DrawingContext, EventType, GuiEvent, HAlign, Theme, View};
 
-fn draw_panel<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_panel<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
     ctx.fill_rect(&view.bounds, &theme.bg);
     ctx.stroke_rect(&view.bounds, &theme.fg);
 }
-pub fn make_panel<C>(name: &str, bounds: Bounds) -> View<C> {
+pub fn make_panel<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
     View {
         name: name.into(),
         title: name.into(),
@@ -24,13 +24,13 @@ pub fn make_panel<C>(name: &str, bounds: Bounds) -> View<C> {
 
 
 
-fn draw_button<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_button<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
     ctx.fill_rect(&view.bounds, &theme.bg);
     ctx.stroke_rect(&view.bounds, &theme.fg);
     ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
 }
 
-fn input_button<C>(event:&mut GuiEvent<C>) {
+fn input_button<C, F>(event:&mut GuiEvent<C, F>) {
     info!("button got input {:?} {:?}", event.target, event.event_type);
     match &event.event_type {
         EventType::Tap(pt) => {
@@ -40,7 +40,7 @@ fn input_button<C>(event:&mut GuiEvent<C>) {
         _ => {}
     }
 }
-pub fn make_button<C>(name: &str, title: &str) -> View<C> {
+pub fn make_button<C, F>(name: &str, title: &str) -> View<C, F> {
     View {
         name: name.to_string(),
         title: title.to_string(),
@@ -59,10 +59,10 @@ pub fn make_button<C>(name: &str, title: &str) -> View<C> {
     }
 }
 
-fn draw_label<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_label<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
     ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Left);
 }
-pub fn make_label<C>(name: &str, title: &str) -> View<C> {
+pub fn make_label<C, F>(name: &str, title: &str) -> View<C, F> {
     View {
         name: name.into(),
         title: title.into(),
@@ -80,7 +80,7 @@ pub fn make_label<C>(name: &str, title: &str) -> View<C> {
         layout: None,
     }
 }
-fn draw_text_input<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme: &Theme<C>) {
+fn draw_text_input<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
     ctx.fill_rect(&view.bounds, &theme.bg);
     ctx.stroke_rect(&view.bounds, &theme.fg);
     ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Left);
@@ -95,7 +95,7 @@ fn draw_text_input<C>(view: &mut View<C>, ctx: &mut dyn DrawingContext<C>, theme
     // }
 }
 
-fn input_text_input<C>(event:&mut GuiEvent<C>) {
+fn input_text_input<C, F>(event:&mut GuiEvent<C, F>) {
     info!("text input got event {:?}",event.event_type);
     match &event.event_type {
         EventType::Keyboard(key) => {
@@ -117,7 +117,7 @@ fn input_text_input<C>(event:&mut GuiEvent<C>) {
         }
     }
 }
-pub fn make_text_input<C>(name:&str, title: &str) -> View<C> {
+pub fn make_text_input<C, F>(name:&str, title: &str) -> View<C, F> {
     View {
         name: name.into(),
         title: title.into(),
