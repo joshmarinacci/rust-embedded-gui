@@ -52,6 +52,18 @@ pub struct View<C, F> {
     pub children: Vec<String>,
 }
 
+impl<C,F> View<C, F> {
+    pub fn position_at(mut self, x:i32, y:i32) -> View<C, F> {
+        self.bounds.x = x;
+        self.bounds.y = y;
+        self
+    }
+    pub fn hide(mut self) -> View<C, F> {
+        self.visible = false;
+        self
+    }
+}
+
 #[derive(Debug)]
 pub struct Scene<C, F> {
     keys: HashMap<String, View<C, F>>,
@@ -66,9 +78,17 @@ impl<C, F> Scene<C, F> {
         self.focused = Some(name.into());
         self.dirty = true
     }
-    pub fn set_visible(&mut self, name: &str) {
+    pub fn is_focused(&self, name: &str) -> bool {
+        self.focused.as_ref().is_some_and(|focused| focused == name)
+    }
+    pub fn show_view(&mut self, name: &str) {
         if let Some(view) = self.get_view_mut(name) {
             view.visible = true;
+        }
+    }
+    pub fn hide_view(&mut self, name: &str) {
+        if let Some(view) = self.get_view_mut(name) {
+            view.visible = false;
         }
     }
 }
