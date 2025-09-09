@@ -7,6 +7,17 @@ pub struct Bounds {
 }
 
 impl Bounds {
+    pub(crate) fn contract(&self, amt: i32) -> Bounds {
+        Bounds {
+            x: self.x + amt,
+            y: self.y + amt,
+            w: self.w - amt - amt,
+            h: self.h - amt - amt,
+        }
+    }
+}
+
+impl Bounds {
     pub fn new(x: i32, y: i32, w: i32, h: i32) -> Bounds {
         Bounds {
             x,
