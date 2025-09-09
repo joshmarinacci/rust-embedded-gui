@@ -35,6 +35,7 @@ pub struct DrawEvent<'a, C, F> {
     bounds: &'a Bounds,
 }
 
+#[derive(Debug)]
 pub enum Action {
     Generic,
     Command(String),
@@ -148,6 +149,7 @@ pub struct GuiEvent<'a, C, F> {
     pub scene: &'a mut Scene<C, F>,
     pub target: &'a str,
     pub event_type: EventType,
+    pub action: Option<Action>,
 }
 
 impl<C, F> Scene<C, F> {
@@ -250,11 +252,12 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
             scene: scene,
             target: target,
             event_type: EventType::Tap(pt),
+            action:None,
         };
         if let Some(view) = event.scene.get_view(target) {
             // info!("got the view {:?}", view.name);
             if let Some(input) = view.input {
-                let res = input(&mut event);
+                event.action = input(&mut event);
             }
         }
         for cb in handlers {
@@ -271,10 +274,11 @@ pub fn type_at_focused<C,F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, 
             scene: scene,
             target: &focused,
             event_type: EventType::Keyboard(key),
+            action: None,
         };
         if let Some(view) = event.scene.get_view(&focused) {
             if let Some(input) = view.input {
-                let ret = input(&mut event);
+                event.action = input(&mut event);
             }
             for cb in handlers {
                 cb(&mut event);
@@ -291,11 +295,12 @@ pub fn scroll_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<
         let mut event: GuiEvent<C, F> = GuiEvent {
             scene: scene,
             target: &focused,
-            event_type: EventType::Scroll(dx, dy)
+            event_type: EventType::Scroll(dx, dy),
+            action: None,
         };
         if let Some(view) = event.scene.get_view(&focused) {
             if let Some(input) = view.input {
-                let ret = input(&mut event);
+                event.action = input(&mut event);
             }
             for cb in handlers {
                 cb(&mut event);
@@ -794,6 +799,7 @@ mod tests {
                 view.visible = false;
             }
             event.scene.dirty = true;
+            info!("the action is {:?}", event.action);
         });
         assert_eq!(scene.get_view("root").unwrap().visible, true);
         click_at(&mut scene, &handlers, Point::new(5, 5));
