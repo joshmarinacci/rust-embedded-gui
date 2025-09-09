@@ -27,7 +27,16 @@ pub trait DrawingContext<C, F> {
     fn fill_text(&mut self, bounds: &Bounds, text: &str, color: &C, align:&HAlign);
 }
 
+pub struct DrawEvent<'a, C, F> {
+    ctx: &'a mut dyn DrawingContext<C, F>,
+    theme: &'a Theme<C, F>,
+    focused: &'a Option<String>,
+    view: &'a View<C, F>,
+    bounds: &'a Bounds,
+}
+
 pub type DrawFn<C, F> = fn(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>);
+pub type DrawFn2<C, F> = fn(event: &mut DrawEvent<C, F>);
 pub type LayoutFn<C, F> = fn(scene: &mut Scene<C, F>, name: &str);
 pub type InputFn<C, F> = fn(event: &mut GuiEvent<C, F>);
 
@@ -49,6 +58,7 @@ pub struct View<C, F> {
     pub input: Option<InputFn<C, F>>,
     pub state: Option<Box<dyn Any>>,
     pub layout: Option<LayoutFn<C, F>>,
+    pub draw2: Option<DrawFn2<C, F>>,
 }
 
 impl<C,F> View<C, F> {
@@ -161,6 +171,7 @@ impl<C, F> Scene<C, F> {
             input: None,
             state: None,
             layout: None,
+            draw2: None,
         };
         let rootId = String::from("root");
         let mut keys: HashMap<String, View<C, F>> = HashMap::new();
@@ -362,9 +373,23 @@ pub fn draw_view<C, F>(
     theme: &Theme<C, F>,
     name: &str,
 ) {
+    let focused = &scene.focused.clone();
+    let bounds = &scene.bounds.clone();
     if let Some(view) = scene.get_view_mut(name) {
         if view.visible {
-            (view.draw.unwrap())(view, ctx, &theme);
+            if let Some(draw) = view.draw {
+                draw(view, ctx, &theme);
+            }
+            if let Some(draw2) = view.draw2 {
+                let mut de:DrawEvent<C, F> = DrawEvent {
+                    theme,
+                    view,
+                    ctx,
+                    focused,
+                    bounds,
+                };
+                draw2(&mut de);
+            }
         }
     }
     if let Some(view) = scene.get_view(name) {
@@ -449,6 +474,7 @@ mod tests {
             },
             visible: true,
             draw: Some(draw_generic_view),
+            draw2: None,
             input: None,
             state: None,
             layout: None,
@@ -461,6 +487,7 @@ mod tests {
             bounds,
             visible: true,
             draw: Some(draw_panel_view),
+            draw2: None,
             input: None,
             state: None,
             layout: Some(layout_vbox),
@@ -488,6 +515,7 @@ mod tests {
                     }
                 }
             }),
+            draw2: None,
             input: Some(|e| {
                 if let Some(view) = e.scene.get_view_mut(e.target) {
                     if let Some(state) = &mut view.state {
@@ -512,6 +540,7 @@ mod tests {
             visible: true,
             state: None,
             draw: None,
+            draw2: None,
             layout: None,
             input: Some(|e| {
                 match e.event_type {
@@ -538,6 +567,7 @@ mod tests {
             },
             visible: true,
             draw: Some(draw_label_view),
+            draw2: None,
             input: None,
             state: None,
             layout: None,
@@ -762,6 +792,7 @@ mod tests {
                 h: 20,
             },
             draw: Some(draw_toggle_button_view),
+            draw2: None,
             input: Some(handle_toggle_button_input),
             state: Some(Box::new(String::from("disabled"))),
             layout: None,
@@ -853,7 +884,6 @@ mod tests {
         assert_eq!(was_button_drawn(&mut scene, "button1"), true);
         assert_eq!(was_button_drawn(&mut scene, "button2"), true);
     }
-
     #[test]
     fn test_keyboard_evnts() {
         // make scene
@@ -877,6 +907,32 @@ mod tests {
         assert_eq!(get_view_title(&scene, "textbox1"), "fooX");
     }
 
+    #[test]
+    fn test_draw2() {
+        initialize();
+        let mut scene = Scene::new();
+        let mut val = Box::new(String::from("bar"));
+        let mut view:View<String, String> = View {
+            name:"view".into(),
+            title:"view".into(),
+            bounds: Bounds::new(0,0,10,10),
+            visible: true,
+            draw2:Some(|e|{
+                let mut color = &e.theme.fg;
+                if e.focused.is_some() && e.view.name.eq(e.focused.as_ref().unwrap()) {
+                    color = &e.theme.bg;
+                }
+                e.ctx.fill_rect(&e.view.bounds, color);
+            }),
+            state: None,
+            draw: None,
+            input: None,
+            layout: None,
+        };
+
+        scene.add_view_to_root(view);
+        repaint(&mut scene);
+    }
     fn get_view_title<C, F>(scene: &Scene<C, F>, name: &str) -> String {
         scene.get_view(name).unwrap().title.clone()
     }
