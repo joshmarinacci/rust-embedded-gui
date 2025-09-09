@@ -149,7 +149,8 @@ fn main() -> ! {
                     let mut evt:GuiEvent<Rgb565, MonoFont> = GuiEvent {
                         scene: &mut scene,
                         target,
-                        event_type: EventType::Tap(pt)
+                        event_type: EventType::Tap(pt),
+                        action: None,
                     };
                     info!("created event on target {:?} at {:?}",evt.target, evt.event_type);
                     if let Some(view) = evt.scene.get_view("target") {

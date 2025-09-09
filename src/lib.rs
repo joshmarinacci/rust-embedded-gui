@@ -35,7 +35,7 @@ pub struct DrawEvent<'a, C, F> {
     bounds: &'a Bounds,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Action {
     Generic,
     Command(String),
