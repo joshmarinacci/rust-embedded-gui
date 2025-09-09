@@ -71,6 +71,13 @@ impl<C,F> View<C, F> {
         self.visible = false;
         self
     }
+    pub fn get_state<T: 'static>(&mut self) -> Option<&mut T> {
+        if let Some(view) = &mut self.state {
+            return view.downcast_mut::<T>();
+        }
+        None
+    }
+
 }
 
 #[derive(Debug)]
@@ -149,6 +156,15 @@ impl<C, F> Scene<C, F> {
     pub fn get_view_mut(&mut self, name: &str) -> Option<&mut View<C, F>> {
         self.keys.get_mut(name)
     }
+    pub fn get_view_state<T: 'static>(&mut self, name:&str) -> Option<&mut T> {
+        if let Some(view) = self.get_view_mut(name) {
+            if let Some(view) = &mut view.state {
+                return view.downcast_mut::<T>();
+            }
+        }
+        None
+    }
+
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
     }
