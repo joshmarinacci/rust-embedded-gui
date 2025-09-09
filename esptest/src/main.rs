@@ -269,8 +269,8 @@ fn make_vbox<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
         title: name.to_string(),
         bounds,
         visible: true,
-        children: vec![],
         draw: Some(draw_panel_view),
+        draw2: None,
         input: None,
         state: None,
         layout: Some(layout_vbox),
@@ -292,7 +292,6 @@ fn make_menuview<C, F>(data:Vec<String>) -> View<C, F> {
             h:200,
         },
         visible:true,
-        children: vec![],
         draw: Some(|view, ctx, theme| {
             ctx.fill_rect(&view.bounds, &theme.bg);
             ctx.stroke_rect(&view.bounds, &theme.fg);
@@ -316,6 +315,7 @@ fn make_menuview<C, F>(data:Vec<String>) -> View<C, F> {
                 }
             }
         }),
+        draw2: None,
         input: Some(|event|{
             info!("menu clicked at");
             match &event.event_type {
