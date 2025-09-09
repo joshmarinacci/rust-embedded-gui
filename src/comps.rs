@@ -2,7 +2,7 @@ use alloc::string::ToString;
 use alloc::vec;
 use log::info;
 use crate::geom::Bounds;
-use crate::{DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, Theme, View};
+use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, Theme, View};
 
 fn draw_panel<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
     ctx.fill_rect(&view.bounds, &theme.bg);
@@ -35,7 +35,7 @@ fn draw_button<C, F>(e:&mut DrawEvent<C, F>) {
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &e.theme.fg, &HAlign::Center);
 }
 
-fn input_button<C, F>(event:&mut GuiEvent<C, F>) {
+fn input_button<C, F>(event:&mut GuiEvent<C, F>) -> Option<Action> {
     info!("button got input {:?} {:?}", event.target, event.event_type);
     match &event.event_type {
         EventType::Tap(pt) => {
@@ -44,6 +44,7 @@ fn input_button<C, F>(event:&mut GuiEvent<C, F>) {
         }
         _ => {}
     }
+    None
 }
 pub fn make_button<C, F>(name: &str, title: &str) -> View<C, F> {
     View {
@@ -97,27 +98,35 @@ fn draw_text_input<C, F>(e:&mut DrawEvent<C, F>) {
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &e.theme.fg, &HAlign::Left);
 }
 
-fn input_text_input<C, F>(event:&mut GuiEvent<C, F>) {
+fn input_text_input<C, F>(event:&mut GuiEvent<C, F>) -> Option<Action> {
     info!("text input got event {:?}",event.event_type);
     match &event.event_type {
         EventType::Keyboard(key) => {
             if let Some(view) = event.scene.get_view_mut(event.target) {
-                if *key == 8 {
-                    view.title.remove(view.title.len()-1);
-                } else {
-                    view.title.push(*key as char);
+                match *key {
+                    8 => {
+                        view.title.remove(view.title.len()-1);
+                    },
+                    13 => {
+                        info!("doing return");
+                        return Some(Action::Command("Completed".into()));
+                    },
+                    _ => {
+                        view.title.push(*key as char);
+                    }
                 }
+                info!("done");
             }
             event.scene.dirty = true;
         }
         EventType::Tap(pt) => {
-            info!("tapped on text input");
-            event.scene.focused = Some(event.target.into());
+            event.scene.set_focused(event.target.into());
         }
         _ => {
 
         }
     }
+    None
 }
 pub fn make_text_input<C, F>(name:&str, title: &str) -> View<C, F> {
     View {

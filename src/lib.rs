@@ -35,10 +35,14 @@ pub struct DrawEvent<'a, C, F> {
     bounds: &'a Bounds,
 }
 
+pub enum Action {
+    Generic,
+    Command(String),
+}
 pub type DrawFn<C, F> = fn(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>);
 pub type DrawFn2<C, F> = fn(event: &mut DrawEvent<C, F>);
 pub type LayoutFn<C, F> = fn(scene: &mut Scene<C, F>, name: &str);
-pub type InputFn<C, F> = fn(event: &mut GuiEvent<C, F>);
+pub type InputFn<C, F> = fn(event: &mut GuiEvent<C, F>) -> Option<Action>;
 
 pub struct Theme<C, F> {
     pub bg: C,
@@ -250,7 +254,7 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
         if let Some(view) = event.scene.get_view(target) {
             // info!("got the view {:?}", view.name);
             if let Some(input) = view.input {
-                input(&mut event)
+                let res = input(&mut event);
             }
         }
         for cb in handlers {
@@ -270,7 +274,7 @@ pub fn type_at_focused<C,F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, 
         };
         if let Some(view) = event.scene.get_view(&focused) {
             if let Some(input) = view.input {
-                input(&mut event)
+                let ret = input(&mut event);
             }
             for cb in handlers {
                 cb(&mut event);
@@ -291,7 +295,7 @@ pub fn scroll_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<
         };
         if let Some(view) = event.scene.get_view(&focused) {
             if let Some(input) = view.input {
-                input(&mut event)
+                let ret = input(&mut event);
             }
             for cb in handlers {
                 cb(&mut event);
@@ -452,11 +456,12 @@ pub fn draw_panel_view<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext
     ctx.fill_rect(&view.bounds, &theme.panel_bg);
 }
 
-fn handle_toggle_button_input<C, F>(event: &mut GuiEvent<C, F>) {
+fn handle_toggle_button_input<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
     // info!("view clicked {:?}", event.event_type);
     if let Some(view) = event.scene.get_view_mut(event.target) {
         view.state.insert(Box::new(String::from("enabled")));
     }
+    None
 }
 #[cfg(test)]
 mod tests {
@@ -540,6 +545,7 @@ mod tests {
                         }
                     }
                 }
+                None
             }),
             state: Some(Box::new(TestButtonState {
                 drawn: false,
@@ -568,6 +574,7 @@ mod tests {
                     }
                     _ => info!("ignoring other event"),
                 };
+                None
             }),
         }
     }

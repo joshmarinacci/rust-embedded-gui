@@ -35,7 +35,7 @@ use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, DrawingContext, EventType, GuiEvent, HAlign, Scene, Theme, View};
+use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, Scene, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
@@ -187,7 +187,7 @@ fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
     textinput.bounds.x = 10;
     textinput.bounds.y = 90;
 
-    let mut menuview = make_menuview(vec!["first".into(),"second".into(),"third".into()]);
+    let mut menuview = make_menuview("menuview",vec!["first".into(),"second".into(),"third".into()]);
     menuview.bounds.x = 100;
     menuview.bounds.y = 30;
     menuview.name = "menuview".into();
@@ -281,10 +281,10 @@ struct MenuState {
     data:Vec<String>,
     selected:usize,
 }
-fn make_menuview<C, F>(data:Vec<String>) -> View<C, F> {
+fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
     View {
-        name: "somemenu".into(),
-        title: "somemenu".into(),
+        name: name.into(),
+        title: name.into(),
         bounds: Bounds {
             x:0,
             y:0,
@@ -333,6 +333,7 @@ fn make_menuview<C, F>(data:Vec<String>) -> View<C, F> {
                                     if selected >= 0 && selected < state.data.len() as i32 {
                                         state.selected = selected as usize;
                                         event.scene.set_focused(&name);
+                                        return Some(Action::Command("selected".into()))
                                     }
                                 }
                             }
@@ -343,6 +344,7 @@ fn make_menuview<C, F>(data:Vec<String>) -> View<C, F> {
                     info!("unknown event type");
                 }
             }
+            None
         }),
         layout: Some(|scene, name|{
             if let Some(parent) = scene.get_view_mut(name) {
