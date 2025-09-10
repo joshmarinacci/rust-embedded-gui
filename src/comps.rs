@@ -26,12 +26,12 @@ pub fn make_panel<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
 
 fn draw_button<C, F>(e:&mut DrawEvent<C, F>) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
     if let Some(focused) = e.focused {
         if focused == &e.view.name {
+            e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
         }
     }
-    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-    e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &e.theme.fg, &HAlign::Center);
 }
 
@@ -39,8 +39,8 @@ fn input_button<C, F>(event:&mut GuiEvent<C, F>) -> Option<Action> {
     info!("button got input {:?} {:?}", event.target, event.event_type);
     match &event.event_type {
         EventType::Tap(pt) => {
-            info!("tapped on text input");
             event.scene.focused = Some(event.target.into());
+            return Some(Action::Generic)
         }
         _ => {}
     }

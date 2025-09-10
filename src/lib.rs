@@ -175,6 +175,7 @@ impl<C, F> Scene<C, F> {
         self.keys.len()
     }
     pub fn remove_view(&mut self, name: &str) -> Option<View<C, F>> {
+        self.mark_dirty();
         self.keys.remove(name)
     }
     pub fn new() -> Scene<C, F> {
@@ -209,6 +210,7 @@ impl<C, F> Scene<C, F> {
     }
     pub fn add_view(&mut self, view: View<C, F>) {
         self.keys.insert(view.name.clone(), view);
+        self.mark_dirty();
     }
     pub fn add_view_to_root(&mut self, view: View<C, F>) {
         connect_parent_child(self, &self.rootId.clone(), &view.name);
