@@ -91,9 +91,11 @@ pub struct Scene<C, F> {
     children: HashMap<String, Vec<String>>,
     pub dirty: bool,
     bounds: Bounds,
+    pub dirty_rect: Bounds,
     pub rootId: String,
     pub focused: Option<String>,
 }
+
 
 impl<C, F> Scene<C, F> {
     pub fn set_focused(&mut self, name: &str) {
@@ -116,7 +118,17 @@ impl<C, F> Scene<C, F> {
         self.mark_dirty();
     }
     pub fn mark_dirty(&mut self) {
+        self.dirty_rect = self.bounds.clone();
         self.dirty = true;
+    }
+    pub(crate) fn mark_dirty_view(&mut self, name:&str) {
+        // info!("marking dirty {name}");
+        if let Some(view) = self.get_view(name) {
+            // info!("found view {:?}", view.name);
+            self.dirty_rect = self.dirty_rect.union(view.bounds);
+            // info!("new dirty rect {:?}", self.dirty_rect);
+            self.dirty = true;
+        }
     }
     pub fn remove_child(&mut self, parent: &str, child: &str) {
         if let Some(children) = self.children.get_mut(parent) {
@@ -205,6 +217,7 @@ impl<C, F> Scene<C, F> {
             dirty: true,
             rootId,
             focused: None,
+            dirty_rect: bounds.clone(),
             children: HashMap::new(),
         }
     }
@@ -373,16 +386,12 @@ fn repaint(scene: &mut Scene<String, String>) {
     };
 
     let mut ctx: FakeDrawingContext<String, String> = FakeDrawingContext {
-        clip: Bounds {
-            x: 0,
-            y: 0,
-            w: 200,
-            h: 200,
-        },
         bg: String::new(),
         font: String::new(),
+        clip: scene.dirty_rect,
     };
     draw_scene(scene, &mut ctx, &theme);
+    scene.dirty_rect = Bounds::new_empty();
 }
 
 pub fn draw_scene<C, F>(scene: &mut Scene<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
@@ -475,6 +484,8 @@ mod tests {
     use super::*;
     use log::LevelFilter;
     use std::sync::Once;
+    use crate::comps::make_button;
+
     extern crate std;
 
     static INIT: Once = Once::new();
@@ -964,6 +975,37 @@ mod tests {
         scene.add_view_to_root(view);
         repaint(&mut scene);
     }
+
+    #[test]
+    fn test_cliprect() {
+        initialize();
+        // make scene
+        let mut scene:Scene<String,String> = Scene::new();
+        // add button
+        let button = make_button("button","Button").position_at(20,20);
+        scene.add_view_to_root(button);
+        assert_eq!(scene.dirty,true);
+        // check that dirty area is same as bounds
+        assert_eq!(scene.dirty_rect,scene.bounds);
+        assert_eq!(scene.dirty_rect.is_empty(),false);
+        // draw
+        repaint(&mut scene);
+        // check that dirty area is empty
+        assert_eq!(scene.dirty,false);
+        assert_eq!(scene.dirty_rect.is_empty(),true);
+        // send tap to button
+        let mut handlers: Vec<Callback<String, String>> = vec![];
+        click_at(&mut scene, &handlers, Point::new(30, 30));
+        // check that dirty area is just for the button
+        assert_eq!(scene.dirty,true);
+        assert_eq!(scene.dirty_rect,scene.get_view("button").unwrap().bounds);
+        // draw
+        repaint(&mut scene);
+        assert_eq!(scene.dirty,false);
+        assert_eq!(scene.dirty_rect.is_empty(),true);
+        // check that button was redrawn
+    }
+
     fn get_view_title<C, F>(scene: &Scene<C, F>, name: &str) -> String {
         scene.get_view(name).unwrap().title.clone()
     }

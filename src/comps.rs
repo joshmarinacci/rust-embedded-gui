@@ -40,6 +40,7 @@ fn input_button<C, F>(event:&mut GuiEvent<C, F>) -> Option<Action> {
     match &event.event_type {
         EventType::Tap(pt) => {
             event.scene.focused = Some(event.target.into());
+            event.scene.mark_dirty_view(event.target);
             return Some(Action::Generic)
         }
         _ => {}
