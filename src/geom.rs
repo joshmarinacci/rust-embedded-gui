@@ -11,8 +11,8 @@ impl Bounds {
         Bounds {
             x,
             y,
-            w: x + x2,
-            h: y + y2,
+            w: x2-x,
+            h: y2-y,
         }
     }
 }
@@ -20,18 +20,18 @@ impl Bounds {
 impl Bounds {
     pub fn x2(&self) -> i32 { self.x + self.w }
     pub fn y2(&self) -> i32 { self.y + self.h }
-    pub(crate) fn union(&self, p0: Bounds) -> Bounds {
+    pub fn union(&self, b: Bounds) -> Bounds {
         if self.is_empty() {
-            return p0.clone();
+            return b.clone();
         }
-        if p0.is_empty() {
+        if b.is_empty() {
             return self.clone();
         }
         Bounds::from_xyxy2(
-            self.x.min(p0.x),
-            self.y.min(p0.y),
-            self.x2().max(p0.x2()),
-            self.y2().max(p0.y2()),
+            self.x.min(b.x),
+            self.y.min(b.y),
+            self.x2().max(b.x2()),
+            self.y2().max(b.y2()),
         )
     }
 }
@@ -49,7 +49,7 @@ impl Bounds {
 
 impl Bounds {
     pub fn is_empty(&self) -> bool {
-        self.w < 1 || self.h < 0
+        self.w < 1 || self.h < 1
     }
     pub(crate) fn contract(&self, amt: i32) -> Bounds {
         Bounds {

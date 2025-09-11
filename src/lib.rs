@@ -93,7 +93,7 @@ pub struct Scene<C, F> {
     pub bounds: Bounds,
     pub dirty_rect: Bounds,
     pub rootId: String,
-    pub focused: Option<String>,
+    focused: Option<String>,
 }
 
 
@@ -113,13 +113,13 @@ impl<C, F> Scene<C, F> {
         if let Some(view) = self.get_view_mut(name) {
             view.visible = true;
         }
-        self.mark_dirty();
+        self.mark_dirty_view(name);
     }
     pub fn hide_view(&mut self, name: &str) {
         if let Some(view) = self.get_view_mut(name) {
             view.visible = false;
         }
-        self.mark_dirty();
+        self.mark_dirty_view(name);
     }
     pub fn mark_dirty(&mut self) {
         self.dirty_rect = self.bounds.clone();
@@ -191,7 +191,7 @@ impl<C, F> Scene<C, F> {
         self.keys.len()
     }
     pub fn remove_view(&mut self, name: &str) -> Option<View<C, F>> {
-        self.mark_dirty();
+        self.mark_dirty_view(name);
         self.keys.remove(name)
     }
     pub fn new_with_bounds(bounds: Bounds) -> Scene<C, F> {
@@ -321,6 +321,28 @@ pub fn scroll_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<
             action: None,
         };
         if let Some(view) = event.scene.get_view(&focused) {
+            if let Some(input) = view.input {
+                event.action = input(&mut event);
+            }
+            for cb in handlers {
+                cb(&mut event);
+            }
+        }
+    }
+}
+
+pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>) {
+    if scene.focused.is_none() {
+        return
+    } else {
+        let focused = scene.focused.as_ref().unwrap().clone();
+        let mut event: GuiEvent<C, F> = GuiEvent {
+            scene: scene,
+            target: &focused,
+            event_type: EventType::Action(),
+            action: None,
+        };
+        if let Some(view) = &event.scene.get_view(&focused) {
             if let Some(input) = view.input {
                 event.action = input(&mut event);
             }
@@ -655,6 +677,7 @@ mod tests {
 
     #[test]
     fn test_geometry() {
+        initialize();
         let bounds = Bounds {
             x: 0,
             y: 0,
@@ -663,6 +686,11 @@ mod tests {
         };
         assert_eq!(bounds.contains(&Point::new(10, 10)), true);
         assert_eq!(bounds.contains(&Point::new(-1, -1)), false);
+
+        let b2 = Bounds::new(140, 180, 80, 30);
+        let b3 = Bounds::new(140, 180, 80, 30);
+        // INFO - union Bounds { x: 140, y: 180, w: 80, h: 30 } Bounds { x: 140, y: 180, w: 80, h: 30 }
+        assert_eq!(b2.union(b3),b2.clone());
     }
     #[test]
     fn basic_add_remove() {
