@@ -118,10 +118,10 @@ fn input_text_input<C, F>(event:&mut GuiEvent<C, F>) -> Option<Action> {
                 }
                 info!("done");
             }
-            event.scene.dirty = true;
+            event.scene.mark_dirty_view(event.target);
         }
         EventType::Tap(pt) => {
-            event.scene.set_focused(event.target.into());
+            event.scene.set_focused(event.target);
         }
         _ => {
 
