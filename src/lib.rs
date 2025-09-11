@@ -155,6 +155,7 @@ pub enum EventType {
     Tap(Point),
     Scroll(i32, i32),
     Keyboard(u8),
+    Action(),
 }
 #[derive(Debug)]
 pub struct GuiEvent<'a, C, F> {
@@ -396,7 +397,7 @@ fn repaint(scene: &mut Scene<String, String>) {
 
 pub fn draw_scene<C, F>(scene: &mut Scene<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
     if scene.dirty {
-        ctx.clear(&theme.panel_bg);
+        ctx.fill_rect(&scene.bounds, &theme.panel_bg);
         let name = scene.rootId.clone();
         draw_view(scene, ctx, theme, &name);
         scene.dirty = false;
