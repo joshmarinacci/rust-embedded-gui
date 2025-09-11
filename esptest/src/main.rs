@@ -177,9 +177,8 @@ fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
     let mut panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
 
 
-    let mut label = make_label("label1","A Label");
-    label.bounds.x = 10;
-    label.bounds.y = 30;
+    scene.add_view_to_parent(make_label("label1","A Label").position_at(10,30),
+    &panel.name);
 
     scene.add_view_to_root(make_button("button1","A button")
         .position_at(10,60));
@@ -190,16 +189,13 @@ fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
         .position_at(10,200));
     scene.mark_dirty();
 
-    let mut textinput = make_text_input("textinput","type text here");
-    textinput.bounds.x = 10;
-    textinput.bounds.y = 90;
+    scene.add_view_to_parent(
+        make_text_input("textinput","type text here")
+            .position_at(10,90),&panel.name);
 
-    let mut menuview = make_menuview("menuview",vec!["first".into(),"second".into(),"third".into()])
-        .position_at(100,30);
+    scene.add_view_to_parent(make_menuview("menuview",vec!["first".into(),"second".into(),"third".into()])
+                                 .position_at(100,30), &panel.name);
     scene.add_view_to_root(panel);
-    scene.add_view_to_root(label);
-    scene.add_view_to_root(textinput);
-    scene.add_view_to_root(menuview);
 
     scene
 }
