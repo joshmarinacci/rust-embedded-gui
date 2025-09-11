@@ -18,7 +18,7 @@ use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig, Pull};
 use esp_hal::{main, Blocking};
 use esp_hal::spi::master::{Config as SpiConfig, Spi};
 use esp_hal::time::{Duration, Instant, Rate};
-use log::info;
+use log::{error, info};
 
 use embedded_graphics::{
     mono_font::{ascii::FONT_6X10, MonoTextStyle},
@@ -153,7 +153,7 @@ fn main() -> ! {
                         action: None,
                     };
                     info!("created event on target {:?} at {:?}",evt.target, evt.event_type);
-                    if let Some(view) = evt.scene.get_view("target") {
+                    if let Some(view) = evt.scene.get_view(evt.target) {
                         if let Some(input) = view.input {
                             input(&mut evt);
                         }
@@ -163,6 +163,7 @@ fn main() -> ! {
         }
 
         let delay_start = Instant::now();
+        ctx.clip_rect = scene.dirty_rect.clone();
         draw_scene(&mut scene, &mut ctx, &theme);
         while delay_start.elapsed() < Duration::from_millis(100) {}
     }
@@ -170,7 +171,7 @@ fn main() -> ! {
 
 
 fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
-    let mut scene: Scene<Rgb565, MonoFont> = Scene::new();
+    let mut scene: Scene<Rgb565, MonoFont> = Scene::new_with_bounds(Bounds::new(0,0,320,240));
     let rootname = scene.rootId.clone();
 
     let mut panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
@@ -180,22 +181,23 @@ fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
     label.bounds.x = 10;
     label.bounds.y = 30;
 
-    let mut button = make_button("button1","A button");
-    button.bounds.x = 10;
-    button.bounds.y = 60;
+    scene.add_view_to_root(make_button("button1","A button")
+        .position_at(10,60));
+    scene.add_view_to_root(make_button("button2","A button")
+        .position_at(10,120));
+
+    scene.add_view_to_root(make_button("button3","A button")
+        .position_at(10,200));
+    scene.mark_dirty();
 
     let mut textinput = make_text_input("textinput","type text here");
     textinput.bounds.x = 10;
     textinput.bounds.y = 90;
 
-    let mut menuview = make_menuview("menuview",vec!["first".into(),"second".into(),"third".into()]);
-    menuview.bounds.x = 100;
-    menuview.bounds.y = 30;
-    menuview.name = "menuview".into();
-
+    let mut menuview = make_menuview("menuview",vec!["first".into(),"second".into(),"third".into()])
+        .position_at(100,30);
     scene.add_view_to_root(panel);
     scene.add_view_to_root(label);
-    scene.add_view_to_root(button);
     scene.add_view_to_root(textinput);
     scene.add_view_to_root(menuview);
 
@@ -212,6 +214,7 @@ struct EmbeddedDrawingContext {
         ST7789,
         NoResetPin,
     >,
+    pub clip_rect: Bounds,
 }
 
 impl EmbeddedDrawingContext {
@@ -225,28 +228,34 @@ impl EmbeddedDrawingContext {
     >) -> EmbeddedDrawingContext {
         EmbeddedDrawingContext {
             display,
+            clip_rect: Bounds::new_empty(),
         }
     }
 }
 
+fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
+    Rectangle::new(Point::new(bounds.x,bounds.y),
+                   Size::new(bounds.w as u32,bounds.h as u32))
+}
+
 impl DrawingContext<Rgb565, MonoFont<'static>> for EmbeddedDrawingContext {
     fn clear(&mut self, color: &Rgb565) {
+        error!("clear {:?}", color);
         self.display.clear(*color).unwrap();
     }
 
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        let pt = Point::new(bounds.x,bounds.y);
-        let size = Size::new(bounds.w as u32, bounds.h as u32);
-        Rectangle::new(pt,size)
+        // info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
+        bounds_to_rect(bounds)
+            .intersection(&bounds_to_rect(&self.clip_rect))
             .into_styled(PrimitiveStyle::with_fill(*color))
             .draw(&mut self.display).unwrap();
 
     }
 
     fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        let pt = Point::new(bounds.x,bounds.y);
-        let size = Size::new(bounds.w as u32, bounds.h as u32);
-        Rectangle::new(pt,size)
+        bounds_to_rect(bounds)
+            .intersection(&bounds_to_rect(&self.clip_rect))
             .into_styled(PrimitiveStyle::with_stroke(*color,1))
             .draw(&mut self.display).unwrap();
     }
@@ -282,6 +291,7 @@ struct MenuState {
     data:Vec<String>,
     selected:usize,
 }
+const vh:i32 = 30;
 fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
     View {
         name: name.into(),
@@ -290,49 +300,51 @@ fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
             x:0,
             y:0,
             w:100,
-            h:200,
+            h:(data.len() as i32) * vh,
         },
         visible:true,
         draw: Some(|view, ctx, theme| {
             ctx.fill_rect(&view.bounds, &theme.bg);
-            ctx.stroke_rect(&view.bounds, &theme.fg);
             if let Some(state) = &view.state {
                 if let Some(state) = state.downcast_ref::<MenuState>() {
-                    info!("menu state is {:?}",state.data);
+                    info!("menu state is {:?} {}",state.data, state.selected);
                     for (i,item) in (&state.data).iter().enumerate() {
                         let b = Bounds {
-                            x: view.bounds.x,
-                            y: view.bounds.y + (i as i32) * 30,
-                            w: view.bounds.w,
-                            h: 30,
+                            x: view.bounds.x+1,
+                            y: view.bounds.y + (i as i32) * vh + 1,
+                            w: view.bounds.w -2,
+                            h: vh,
                         };
                         if state.selected == i {
                             ctx.fill_rect(&b, &theme.fg);
                             ctx.fill_text(&b, item.as_str(), &theme.bg, &HAlign::Center);
                         }else {
+                            ctx.fill_rect(&b, &theme.bg);
                             ctx.fill_text(&b, item.as_str(), &theme.fg, &HAlign::Center);
                         }
                     }
                 }
             }
+            ctx.stroke_rect(&view.bounds, &theme.fg);
         }),
         draw2: None,
         input: Some(|event|{
-            info!("menu clicked at");
+            // info!("menu clicked at");
             match &event.event_type {
                 EventType::Tap(pt) => {
-                    info!("tapped at {:?}",pt);
+                    // info!("tapped at {:?}",pt);
+                    event.scene.mark_dirty_view(event.target);
                     if let Some(view) = event.scene.get_view_mut(event.target) {
-                        info!("the view is {} at {:?}",view.name, view.bounds);
+                        // info!("the view is {} at {:?}",view.name, view.bounds);
                         let name = view.name.clone();
                         if view.bounds.contains(pt) {
-                            info!("I was clicked on. index is {}", pt.y/30);
-                            let selected = pt.y/30;
+                            // info!("I was clicked on. index is {}", pt.y/20);
+                            let selected = (pt.y - view.bounds.y)/vh;
                             if let Some(state) = &mut view.state {
                                 if let Some(state) = state.downcast_mut::<MenuState>() {
-                                    info!("menu state is {:?}",state.data);
                                     if selected >= 0 && selected < state.data.len() as i32 {
                                         state.selected = selected as usize;
+                                        info!("menu state is {:?}",state.selected);
                                         event.scene.set_focused(&name);
                                         return Some(Action::Command("selected".into()))
                                     }
@@ -351,7 +363,7 @@ fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
             if let Some(parent) = scene.get_view_mut(name) {
                 if let Some(state) = &parent.state {
                     if let Some(state) = state.downcast_ref::<MenuState>() {
-                        parent.bounds.h = 30 * (state.data.len() as i32)
+                        parent.bounds.h = vh * (state.data.len() as i32)
                     }
                 }
             };

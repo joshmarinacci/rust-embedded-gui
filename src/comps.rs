@@ -1,6 +1,6 @@
 use alloc::string::ToString;
 use alloc::vec;
-use log::info;
+use log::{info, warn};
 use crate::geom::Bounds;
 use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, Theme, View};
 
@@ -36,10 +36,10 @@ fn draw_button<C, F>(e:&mut DrawEvent<C, F>) {
 }
 
 fn input_button<C, F>(event:&mut GuiEvent<C, F>) -> Option<Action> {
-    info!("button got input {:?} {:?}", event.target, event.event_type);
+    // warn!("button got input {:?} {:?}", event.target, event.event_type);
     match &event.event_type {
         EventType::Tap(pt) => {
-            event.scene.focused = Some(event.target.into());
+            event.scene.set_focused(event.target);
             event.scene.mark_dirty_view(event.target);
             return Some(Action::Generic)
         }

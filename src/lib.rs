@@ -90,7 +90,7 @@ pub struct Scene<C, F> {
     keys: HashMap<String, View<C, F>>,
     children: HashMap<String, Vec<String>>,
     pub dirty: bool,
-    bounds: Bounds,
+    pub bounds: Bounds,
     pub dirty_rect: Bounds,
     pub rootId: String,
     pub focused: Option<String>,
@@ -99,8 +99,12 @@ pub struct Scene<C, F> {
 
 impl<C, F> Scene<C, F> {
     pub fn set_focused(&mut self, name: &str) {
+        if self.focused.is_some() {
+            let fo = self.focused.as_ref().unwrap().clone();
+            self.mark_dirty_view(&fo);
+        }
         self.focused = Some(name.into());
-        self.mark_dirty();
+        self.mark_dirty_view(name);
     }
     pub fn is_focused(&self, name: &str) -> bool {
         self.focused.as_ref().is_some_and(|focused| focused == name)
@@ -121,12 +125,11 @@ impl<C, F> Scene<C, F> {
         self.dirty_rect = self.bounds.clone();
         self.dirty = true;
     }
-    pub(crate) fn mark_dirty_view(&mut self, name:&str) {
-        // info!("marking dirty {name}");
+    pub fn mark_dirty_view(&mut self, name:&str) {
+        info!("Marking dirty view {}", name);
         if let Some(view) = self.get_view(name) {
-            // info!("found view {:?}", view.name);
             self.dirty_rect = self.dirty_rect.union(view.bounds);
-            // info!("new dirty rect {:?}", self.dirty_rect);
+            info!("dirty rect now {:?}", self.dirty_rect);
             self.dirty = true;
         }
     }
@@ -191,13 +194,7 @@ impl<C, F> Scene<C, F> {
         self.mark_dirty();
         self.keys.remove(name)
     }
-    pub fn new() -> Scene<C, F> {
-        let bounds = Bounds {
-            x: 0,
-            y: 0,
-            w: 200,
-            h: 200,
-        };
+    pub fn new_with_bounds(bounds: Bounds) -> Scene<C, F> {
         let root = View {
             name: "root".to_string(),
             title: "root".to_string(),
@@ -221,6 +218,15 @@ impl<C, F> Scene<C, F> {
             dirty_rect: bounds.clone(),
             children: HashMap::new(),
         }
+    }
+    pub fn new() -> Scene<C, F> {
+        let bounds = Bounds {
+            x: 0,
+            y: 0,
+            w: 200,
+            h: 200,
+        };
+        Self::new_with_bounds(bounds)
     }
     pub fn add_view(&mut self, view: View<C, F>) {
         self.keys.insert(view.name.clone(), view);
@@ -397,10 +403,12 @@ fn repaint(scene: &mut Scene<String, String>) {
 
 pub fn draw_scene<C, F>(scene: &mut Scene<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
     if scene.dirty {
+        info!("draw scene: {} {:?} {:?}", scene.dirty, scene.bounds, scene.dirty_rect);
         ctx.fill_rect(&scene.bounds, &theme.panel_bg);
         let name = scene.rootId.clone();
         draw_view(scene, ctx, theme, &name);
         scene.dirty = false;
+        scene.dirty_rect = Bounds::new_empty();
     }
 }
 
