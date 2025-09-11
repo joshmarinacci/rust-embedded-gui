@@ -89,7 +89,7 @@ impl<C,F> View<C, F> {
 pub struct Scene<C, F> {
     keys: HashMap<String, View<C, F>>,
     children: HashMap<String, Vec<String>>,
-    pub dirty: bool,
+    dirty: bool,
     pub bounds: Bounds,
     pub dirty_rect: Bounds,
     pub rootId: String,
@@ -121,15 +121,15 @@ impl<C, F> Scene<C, F> {
         }
         self.mark_dirty_view(name);
     }
-    pub fn mark_dirty(&mut self) {
+    pub fn mark_dirty_all(&mut self) {
         self.dirty_rect = self.bounds.clone();
         self.dirty = true;
     }
     pub fn mark_dirty_view(&mut self, name:&str) {
-        info!("Marking dirty view {}", name);
+        // info!("Marking dirty view {}", name);
         if let Some(view) = self.get_view(name) {
             self.dirty_rect = self.dirty_rect.union(view.bounds);
-            info!("dirty rect now {:?}", self.dirty_rect);
+            // info!("dirty rect now {:?}", self.dirty_rect);
             self.dirty = true;
         }
     }
@@ -229,8 +229,9 @@ impl<C, F> Scene<C, F> {
         Self::new_with_bounds(bounds)
     }
     pub fn add_view(&mut self, view: View<C, F>) {
-        self.keys.insert(view.name.clone(), view);
-        self.mark_dirty();
+        let name = view.name.clone();
+        self.keys.insert(name.clone(), view);
+        self.mark_dirty_view(&*name);
     }
     pub fn add_view_to_root(&mut self, view: View<C, F>) {
         connect_parent_child(self, &self.rootId.clone(), &view.name);

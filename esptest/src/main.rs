@@ -187,7 +187,7 @@ fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
 
     scene.add_view_to_root(make_button("button3","A button")
         .position_at(10,200));
-    scene.mark_dirty();
+    scene.mark_dirty_all();
 
     scene.add_view_to_parent(
         make_text_input("textinput","type text here")
