@@ -28,11 +28,11 @@ pub trait DrawingContext<C, F> {
 }
 
 pub struct DrawEvent<'a, C, F> {
-    ctx: &'a mut dyn DrawingContext<C, F>,
-    theme: &'a Theme<C, F>,
-    focused: &'a Option<String>,
-    view: &'a View<C, F>,
-    bounds: &'a Bounds,
+    pub ctx: &'a mut dyn DrawingContext<C, F>,
+    pub theme: &'a Theme<C, F>,
+    pub focused: &'a Option<String>,
+    pub view: &'a View<C, F>,
+    pub bounds: &'a Bounds,
 }
 
 #[derive(Debug, Clone)]
@@ -383,13 +383,12 @@ pub fn find_children<C, F>(scene: &Scene<C, F>, parent: &str) -> Vec<String> {
 }
 
 pub fn layout_vbox<C, F>(scene: &mut Scene<C, F>, name: &str) {
-    let parent = scene.keys.get_mut(name);
-    if let Some(parent) = parent {
+    if let Some(parent) = scene.get_view_mut(name) {
         let mut y = 0;
         let bounds = parent.bounds.clone();
         let kids = find_children(scene, name);
         for kid in kids {
-            if let Some(ch) = scene.keys.get_mut(&kid) {
+            if let Some(ch) = scene.get_view_mut(&kid) {
                 ch.bounds.x = 0;
                 ch.bounds.y = y;
                 ch.bounds.w = bounds.w;

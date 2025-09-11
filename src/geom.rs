@@ -34,6 +34,14 @@ impl Bounds {
             self.y2().max(b.y2()),
         )
     }
+    pub fn center_at(&self, x:i32, y:i32) -> Bounds {
+        Bounds {
+            x: x - self.w/2,
+            y: y - self.h/2,
+            w: self.w,
+            h: self.h,
+        }
+    }
 }
 
 impl Bounds {
