@@ -12,19 +12,19 @@ use geom::{Bounds, Point};
 use hashbrown::HashMap;
 use log::info;
 
-pub mod geom;
 pub mod comps;
+pub mod geom;
 
 pub enum HAlign {
     Left,
     Center,
-    Right
+    Right,
 }
 pub trait DrawingContext<C, F> {
     fn clear(&mut self, color: &C);
     fn fill_rect(&mut self, bounds: &Bounds, color: &C);
     fn stroke_rect(&mut self, bounds: &Bounds, color: &C);
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, color: &C, align:&HAlign);
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, color: &C, align: &HAlign);
 }
 
 pub struct DrawEvent<'a, C, F> {
@@ -40,7 +40,8 @@ pub enum Action {
     Generic,
     Command(String),
 }
-pub type DrawFn<C, F> = fn(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>);
+pub type DrawFn<C, F> =
+    fn(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>);
 pub type DrawFn2<C, F> = fn(event: &mut DrawEvent<C, F>);
 pub type LayoutFn<C, F> = fn(scene: &mut Scene<C, F>, name: &str);
 pub type InputFn<C, F> = fn(event: &mut GuiEvent<C, F>) -> Option<Action>;
@@ -66,8 +67,8 @@ pub struct View<C, F> {
     pub draw2: Option<DrawFn2<C, F>>,
 }
 
-impl<C,F> View<C, F> {
-    pub fn position_at(mut self, x:i32, y:i32) -> View<C, F> {
+impl<C, F> View<C, F> {
+    pub fn position_at(mut self, x: i32, y: i32) -> View<C, F> {
         self.bounds.x = x;
         self.bounds.y = y;
         self
@@ -82,7 +83,6 @@ impl<C,F> View<C, F> {
         }
         None
     }
-
 }
 
 #[derive(Debug)]
@@ -95,7 +95,6 @@ pub struct Scene<C, F> {
     pub root_id: String,
     focused: Option<String>,
 }
-
 
 impl<C, F> Scene<C, F> {
     pub fn set_focused(&mut self, name: &str) {
@@ -125,7 +124,7 @@ impl<C, F> Scene<C, F> {
         self.dirty_rect = self.bounds;
         self.dirty = true;
     }
-    pub fn mark_dirty_view(&mut self, name:&str) {
+    pub fn mark_dirty_view(&mut self, name: &str) {
         // info!("Marking dirty view {}", name);
         if let Some(view) = self.get_view(name) {
             self.dirty_rect = self.dirty_rect.union(view.bounds);
@@ -140,7 +139,7 @@ impl<C, F> Scene<C, F> {
             }
         }
     }
-    pub fn add_child(&mut self, parent:&str, child:&str) {
+    pub fn add_child(&mut self, parent: &str, child: &str) {
         if !self.children.contains_key(parent) {
             self.children.insert(parent.to_string(), vec![]);
         }
@@ -178,7 +177,7 @@ impl<C, F> Scene<C, F> {
     pub fn get_view_mut(&mut self, name: &str) -> Option<&mut View<C, F>> {
         self.keys.get_mut(name)
     }
-    pub fn get_view_state<T: 'static>(&mut self, name:&str) -> Option<&mut T> {
+    pub fn get_view_state<T: 'static>(&mut self, name: &str) -> Option<&mut T> {
         if let Some(view) = self.get_view_mut(name) {
             if let Some(view) = &mut view.state {
                 return view.downcast_mut::<T>();
@@ -237,15 +236,15 @@ impl<C, F> Scene<C, F> {
         connect_parent_child(self, &self.root_id.clone(), &view.name);
         self.add_view(view);
     }
-    pub fn add_view_to_parent(&mut self, view:View<C,F>, parent:&str) {
+    pub fn add_view_to_parent(&mut self, view: View<C, F>, parent: &str) {
         connect_parent_child(self, parent, &view.name);
         self.add_view(view);
     }
-    pub fn remove_parent_and_children(&mut self, name:&str) {
-        let kids = find_children(self,name);
+    pub fn remove_parent_and_children(&mut self, name: &str) {
+        let kids = find_children(self, name);
         for kid in kids {
             self.remove_view(&kid);
-            self.remove_child(name,&kid);
+            self.remove_child(name, &kid);
         }
         self.remove_view(name);
     }
@@ -275,7 +274,7 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
             scene,
             target,
             event_type: EventType::Tap(pt),
-            action:None,
+            action: None,
         };
         if let Some(view) = event.scene.get_view(target) {
             // info!("got the view {:?}", view.name);
@@ -288,7 +287,7 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
         }
     }
 }
-pub fn type_at_focused<C,F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) {
+pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -308,7 +307,12 @@ pub fn type_at_focused<C,F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, 
     }
 }
 
-pub fn scroll_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, dx: i32, dy:i32) {
+pub fn scroll_at_focused<C, F>(
+    scene: &mut Scene<C, F>,
+    handlers: &Vec<Callback<C, F>>,
+    dx: i32,
+    dy: i32,
+) {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -417,9 +421,16 @@ fn repaint(scene: &mut Scene<String, String>) {
     scene.dirty_rect = Bounds::new_empty();
 }
 
-pub fn draw_scene<C, F>(scene: &mut Scene<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
+pub fn draw_scene<C, F>(
+    scene: &mut Scene<C, F>,
+    ctx: &mut dyn DrawingContext<C, F>,
+    theme: &Theme<C, F>,
+) {
     if scene.dirty {
-        info!("draw scene: {} {:?} {:?}", scene.dirty, scene.bounds, scene.dirty_rect);
+        info!(
+            "draw scene: {} {:?} {:?}",
+            scene.dirty, scene.bounds, scene.dirty_rect
+        );
         ctx.fill_rect(&scene.bounds, &theme.panel_bg);
         let name = scene.root_id.clone();
         draw_view(scene, ctx, theme, &name);
@@ -442,7 +453,7 @@ pub fn draw_view<C, F>(
                 draw(view, ctx, theme);
             }
             if let Some(draw2) = view.draw2 {
-                let mut de:DrawEvent<C, F> = DrawEvent {
+                let mut de: DrawEvent<C, F> = DrawEvent {
                     theme,
                     view,
                     ctx,
@@ -460,24 +471,36 @@ pub fn draw_view<C, F>(
     }
 }
 
-fn draw_root_view<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
+fn draw_root_view<C, F>(
+    view: &mut View<C, F>,
+    ctx: &mut dyn DrawingContext<C, F>,
+    theme: &Theme<C, F>,
+) {
     ctx.fill_rect(&view.bounds, &theme.panel_bg)
 }
-pub fn draw_button_view<C, F>(view: &View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
+pub fn draw_button_view<C, F>(
+    view: &View<C, F>,
+    ctx: &mut dyn DrawingContext<C, F>,
+    theme: &Theme<C, F>,
+) {
     ctx.fill_rect(&view.bounds, &theme.bg);
     ctx.stroke_rect(&view.bounds, &theme.fg);
     ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
 }
-pub fn draw_panel_view<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
+pub fn draw_panel_view<C, F>(
+    view: &mut View<C, F>,
+    ctx: &mut dyn DrawingContext<C, F>,
+    theme: &Theme<C, F>,
+) {
     ctx.fill_rect(&view.bounds, &theme.panel_bg);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::comps::make_button;
     use log::LevelFilter;
     use std::sync::Once;
-    use crate::comps::make_button;
 
     extern crate std;
 
@@ -494,7 +517,11 @@ mod tests {
                 .init();
         });
     }
-    fn draw_generic_view<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
+    fn draw_generic_view<C, F>(
+        view: &mut View<C, F>,
+        ctx: &mut dyn DrawingContext<C, F>,
+        theme: &Theme<C, F>,
+    ) {
         ctx.fill_rect(&view.bounds, &theme.bg)
     }
     fn make_simple_view<C, F>(name: &str) -> View<C, F> {
@@ -592,7 +619,11 @@ mod tests {
             }),
         }
     }
-    fn draw_label_view<C, F>(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>) {
+    fn draw_label_view<C, F>(
+        view: &mut View<C, F>,
+        ctx: &mut dyn DrawingContext<C, F>,
+        theme: &Theme<C, F>,
+    ) {
         ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Left);
     }
     fn make_label<C, F>(name: &str) -> View<C, F> {
@@ -658,18 +689,18 @@ mod tests {
         let b2 = Bounds::new(140, 180, 80, 30);
         let b3 = Bounds::new(140, 180, 80, 30);
         // INFO - union Bounds { x: 140, y: 180, w: 80, h: 30 } Bounds { x: 140, y: 180, w: 80, h: 30 }
-        assert_eq!(b2.union(b3),b2.clone());
+        assert_eq!(b2.union(b3), b2.clone());
     }
     #[test]
     fn basic_add_remove() {
         let mut scene: Scene<String, String> = Scene::new_with_bounds(Bounds::new(0, 0, 100, 30));
         assert_eq!(scene.viewcount(), 1);
-        let view= make_simple_view("foo");
+        let view = make_simple_view("foo");
         assert_eq!(scene.viewcount(), 1);
         scene.add_view(view);
         assert_eq!(scene.viewcount(), 2);
         assert_eq!(scene.has_view("foo"), true);
-        let res= scene.remove_view("foo");
+        let res = scene.remove_view("foo");
         assert_eq!(res.is_some(), true);
         assert_eq!(scene.viewcount(), 1);
         let res2 = scene.remove_view("bar");
@@ -677,25 +708,25 @@ mod tests {
     }
     #[test]
     fn parent_child() {
-        let mut scene:Scene<String,String> = Scene::new();
+        let mut scene: Scene<String, String> = Scene::new();
         scene.add_view(make_simple_view("parent"));
         scene.add_view(make_simple_view("child"));
-        assert_eq!(get_child_count(&mut scene,"parent"), 0);
+        assert_eq!(get_child_count(&mut scene, "parent"), 0);
         assert_eq!(scene.viewcount(), 3);
-        scene.add_child("parent","child");
-        assert_eq!(get_child_count(&mut scene,"parent"), 1);
-        scene.remove_child("parent","child");
-        assert_eq!(get_child_count(&mut scene,"parent"), 0);
+        scene.add_child("parent", "child");
+        assert_eq!(get_child_count(&mut scene, "parent"), 1);
+        scene.remove_child("parent", "child");
+        assert_eq!(get_child_count(&mut scene, "parent"), 0);
 
-        scene.add_child("parent","child");
-        assert_eq!(get_child_count(&mut scene,"parent"), 1);
+        scene.add_child("parent", "child");
+        assert_eq!(get_child_count(&mut scene, "parent"), 1);
         let child2 = make_simple_view("child2");
-        scene.add_view_to_parent(child2,"parent");
-        assert_eq!(get_child_count(&mut scene,"parent"), 2);
+        scene.add_view_to_parent(child2, "parent");
+        assert_eq!(get_child_count(&mut scene, "parent"), 2);
         assert_eq!(scene.viewcount(), 4);
 
         scene.remove_parent_and_children("parent");
-        assert_eq!(get_child_count(&mut scene,"parent"), 0);
+        assert_eq!(get_child_count(&mut scene, "parent"), 0);
         assert_eq!(scene.viewcount(), 1);
     }
     #[test]
@@ -845,7 +876,7 @@ mod tests {
                 w: 20,
                 h: 20,
             },
-            draw: Some(|view, ctx,theme | {
+            draw: Some(|view, ctx, theme| {
                 if let Some(state) = &view.state {
                     if let Some(state) = state.downcast_ref::<String>() {
                         if state == "enabled" {
@@ -979,12 +1010,12 @@ mod tests {
     fn test_draw2() {
         initialize();
         let mut scene = Scene::new();
-        let view:View<String, String> = View {
-            name:"view".into(),
-            title:"view".into(),
-            bounds: Bounds::new(0,0,10,10),
+        let view: View<String, String> = View {
+            name: "view".into(),
+            title: "view".into(),
+            bounds: Bounds::new(0, 0, 10, 10),
             visible: true,
-            draw2:Some(|e|{
+            draw2: Some(|e| {
                 let mut color = &e.theme.fg;
                 if e.focused.is_some() && e.view.name.eq(e.focused.as_ref().unwrap()) {
                     color = &e.theme.bg;
@@ -1005,29 +1036,29 @@ mod tests {
     fn test_cliprect() {
         initialize();
         // make scene
-        let mut scene:Scene<String,String> = Scene::new();
+        let mut scene: Scene<String, String> = Scene::new();
         // add button
-        let button = make_button("button","Button").position_at(20,20);
+        let button = make_button("button", "Button").position_at(20, 20);
         scene.add_view_to_root(button);
-        assert_eq!(scene.dirty,true);
+        assert_eq!(scene.dirty, true);
         // check that dirty area is same as bounds
-        assert_eq!(scene.dirty_rect,scene.bounds);
-        assert_eq!(scene.dirty_rect.is_empty(),false);
+        assert_eq!(scene.dirty_rect, scene.bounds);
+        assert_eq!(scene.dirty_rect.is_empty(), false);
         // draw
         repaint(&mut scene);
         // check that dirty area is empty
-        assert_eq!(scene.dirty,false);
-        assert_eq!(scene.dirty_rect.is_empty(),true);
+        assert_eq!(scene.dirty, false);
+        assert_eq!(scene.dirty_rect.is_empty(), true);
         // send tap to button
         let handlers: Vec<Callback<String, String>> = vec![];
         click_at(&mut scene, &handlers, Point::new(30, 30));
         // check that dirty area is just for the button
-        assert_eq!(scene.dirty,true);
-        assert_eq!(scene.dirty_rect,scene.get_view("button").unwrap().bounds);
+        assert_eq!(scene.dirty, true);
+        assert_eq!(scene.dirty_rect, scene.get_view("button").unwrap().bounds);
         // draw
         repaint(&mut scene);
-        assert_eq!(scene.dirty,false);
-        assert_eq!(scene.dirty_rect.is_empty(),true);
+        assert_eq!(scene.dirty, false);
+        assert_eq!(scene.dirty_rect.is_empty(), true);
         // check that button was redrawn
     }
 

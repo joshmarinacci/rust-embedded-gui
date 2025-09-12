@@ -11,15 +11,19 @@ impl Bounds {
         Bounds {
             x,
             y,
-            w: x2-x,
-            h: y2-y,
+            w: x2 - x,
+            h: y2 - y,
         }
     }
 }
 
 impl Bounds {
-    pub fn x2(&self) -> i32 { self.x + self.w }
-    pub fn y2(&self) -> i32 { self.y + self.h }
+    pub fn x2(&self) -> i32 {
+        self.x + self.w
+    }
+    pub fn y2(&self) -> i32 {
+        self.y + self.h
+    }
     pub fn union(&self, b: Bounds) -> Bounds {
         if self.is_empty() {
             return b;
@@ -34,10 +38,10 @@ impl Bounds {
             self.y2().max(b.y2()),
         )
     }
-    pub fn center_at(&self, x:i32, y:i32) -> Bounds {
+    pub fn center_at(&self, x: i32, y: i32) -> Bounds {
         Bounds {
-            x: x - self.w/2,
-            y: y - self.h/2,
+            x: x - self.w / 2,
+            y: y - self.h / 2,
             w: self.w,
             h: self.h,
         }
@@ -48,9 +52,9 @@ impl Bounds {
     pub fn new_empty() -> Bounds {
         Bounds {
             x: 0,
-            y:0,
-            w:-1,
-            h:-1
+            y: 0,
+            w: -1,
+            h: -1,
         }
     }
 }
@@ -71,12 +75,7 @@ impl Bounds {
 
 impl Bounds {
     pub fn new(x: i32, y: i32, w: i32, h: i32) -> Bounds {
-        Bounds {
-            x,
-            y,
-            w,
-            h,
-        }
+        Bounds { x, y, w, h }
     }
 }
 
