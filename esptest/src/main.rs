@@ -172,7 +172,7 @@ fn main() -> ! {
 
 fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
     let mut scene: Scene<Rgb565, MonoFont> = Scene::new_with_bounds(Bounds::new(0,0,320,240));
-    let rootname = scene.rootId.clone();
+    let rootname = scene.root_id.clone();
 
     let mut panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
 
