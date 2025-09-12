@@ -101,3 +101,25 @@ impl Bounds {
         false
     }
 }
+
+mod tests {
+    use crate::geom::{Bounds, Point};
+
+    #[test]
+    fn test_geometry() {
+        let bounds = Bounds {
+            x: 0,
+            y: 0,
+            w: 100,
+            h: 100,
+        };
+        assert_eq!(bounds.contains(&Point::new(10, 10)), true);
+        assert_eq!(bounds.contains(&Point::new(-1, -1)), false);
+
+        let b2 = Bounds::new(140, 180, 80, 30);
+        let b3 = Bounds::new(140, 180, 80, 30);
+        // INFO - union Bounds { x: 140, y: 180, w: 80, h: 30 } Bounds { x: 140, y: 180, w: 80, h: 30 }
+        assert_eq!(b2.union(b3), b2.clone());
+    }
+
+}

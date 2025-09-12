@@ -20,6 +20,11 @@ pub enum HAlign {
     Center,
     Right,
 }
+pub enum VAlign {
+    Top,
+    Center,
+    Bottom,
+}
 pub trait DrawingContext<C, F> {
     fn clear(&mut self, color: &C);
     fn fill_rect(&mut self, bounds: &Bounds, color: &C);
@@ -508,13 +513,13 @@ mod tests {
 
     pub fn initialize() {
         INIT.call_once(|| {
-            env_logger::Builder::new()
-                // .format(|f, record| {
-                //     writeln!(f,"[{}] - {}",record.level(),record.args())
-                // })
-                .target(env_logger::Target::Stdout) // <-- redirects to stdout
-                .filter(None, LevelFilter::Info)
-                .init();
+            // env_logger::Builder::new()
+            //     // .format(|f, record| {
+            //     //     writeln!(f,"[{}] - {}",record.level(),record.args())
+            //     // })
+            //     .target(env_logger::Target::Stdout) // <-- redirects to stdout
+            //     .filter(None, LevelFilter::Info)
+            //     .init();
         });
     }
     fn draw_generic_view<C, F>(
