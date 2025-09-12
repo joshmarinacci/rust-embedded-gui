@@ -36,13 +36,10 @@ fn draw_button<C, F>(e:&mut DrawEvent<C, F>) {
 
 fn input_button<C, F>(event:&mut GuiEvent<C, F>) -> Option<Action> {
     // warn!("button got input {:?} {:?}", event.target, event.event_type);
-    match &event.event_type {
-        EventType::Tap(_pt) => {
-            event.scene.set_focused(event.target);
-            event.scene.mark_dirty_view(event.target);
-            return Some(Action::Generic)
-        }
-        _ => {}
+    if let EventType::Tap(_pt) = &event.event_type {
+        event.scene.set_focused(event.target);
+        event.scene.mark_dirty_view(event.target);
+        return Some(Action::Generic)
     }
     None
 }

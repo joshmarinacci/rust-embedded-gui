@@ -22,10 +22,10 @@ impl Bounds {
     pub fn y2(&self) -> i32 { self.y + self.h }
     pub fn union(&self, b: Bounds) -> Bounds {
         if self.is_empty() {
-            return b.clone();
+            return b;
         }
         if b.is_empty() {
-            return self.clone();
+            return *self;
         }
         Bounds::from_xyxy2(
             self.x.min(b.x),

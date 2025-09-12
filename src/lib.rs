@@ -122,7 +122,7 @@ impl<C, F> Scene<C, F> {
         self.mark_dirty_view(name);
     }
     pub fn mark_dirty_all(&mut self) {
-        self.dirty_rect = self.bounds.clone();
+        self.dirty_rect = self.bounds;
         self.dirty = true;
     }
     pub fn mark_dirty_view(&mut self, name:&str) {
@@ -198,7 +198,7 @@ impl<C, F> Scene<C, F> {
         let root = View {
             name: "root".to_string(),
             title: "root".to_string(),
-            bounds: bounds.clone(),
+            bounds,
             visible: true,
             draw: Some(draw_root_view),
             input: None,
@@ -215,7 +215,7 @@ impl<C, F> Scene<C, F> {
             dirty: true,
             root_id,
             focused: None,
-            dirty_rect: bounds.clone(),
+            dirty_rect: bounds,
             children: HashMap::new(),
         }
     }
@@ -379,7 +379,7 @@ pub fn find_children<C, F>(scene: &Scene<C, F>, parent: &str) -> Vec<String> {
 pub fn layout_vbox<C, F>(scene: &mut Scene<C, F>, name: &str) {
     if let Some(parent) = scene.get_view_mut(name) {
         let mut y = 0;
-        let bounds = parent.bounds.clone();
+        let bounds = parent.bounds;
         let kids = find_children(scene, name);
         for kid in kids {
             if let Some(ch) = scene.get_view_mut(&kid) {
@@ -439,7 +439,7 @@ pub fn draw_view<C, F>(
     if let Some(view) = scene.get_view_mut(name) {
         if view.visible {
             if let Some(draw) = view.draw {
-                draw(view, ctx, &theme);
+                draw(view, ctx, theme);
             }
             if let Some(draw2) = view.draw2 {
                 let mut de:DrawEvent<C, F> = DrawEvent {
@@ -454,7 +454,7 @@ pub fn draw_view<C, F>(
         }
     }
     if let Some(view) = scene.get_view(name) {
-        for kid in find_children(&scene, &view.name) {
+        for kid in find_children(scene, &view.name) {
             draw_view(scene, ctx, theme, &kid);
         }
     }
@@ -662,7 +662,7 @@ mod tests {
     }
     #[test]
     fn basic_add_remove() {
-        let mut scene: Scene<String, String> = Scene::new();
+        let mut scene: Scene<String, String> = Scene::new_with_bounds(Bounds::new(0, 0, 100, 30));
         assert_eq!(scene.viewcount(), 1);
         let view= make_simple_view("foo");
         assert_eq!(scene.viewcount(), 1);
