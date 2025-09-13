@@ -35,7 +35,7 @@ use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{connect_parent_child, draw_button_view, draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, Scene, Theme, View};
+use gui2::{draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, Scene, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
@@ -355,11 +355,11 @@ fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
             }
             None
         }),
-        layout: Some(|scene, name|{
-            if let Some(parent) = scene.get_view_mut(name) {
+        layout: Some(|event|{
+            if let Some(parent) = event.scene.get_view_mut(event.target) {
                 if let Some(state) = &parent.state {
                     if let Some(state) = state.downcast_ref::<MenuState>() {
-                        parent.bounds.h = vh * (state.data.len() as i32)
+                        parent.bounds.h = vh * (state.data.len() as i32);
                     }
                 }
             };

@@ -14,6 +14,7 @@ use log::info;
 
 pub mod comps;
 pub mod geom;
+mod form;
 
 pub enum HAlign {
     Left,
@@ -48,7 +49,7 @@ pub enum Action {
 pub type DrawFn<C, F> =
     fn(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>);
 pub type DrawFn2<C, F> = fn(event: &mut DrawEvent<C, F>);
-pub type LayoutFn<C, F> = fn(scene: &mut Scene<C, F>, name: &str);
+pub type LayoutFn<C, F> = fn(event: &mut LayoutEvent<C, F>);
 pub type InputFn<C, F> = fn(event: &mut GuiEvent<C, F>) -> Option<Action>;
 
 pub struct Theme<C, F> {
@@ -170,6 +171,12 @@ pub struct GuiEvent<'a, C, F> {
     pub target: &'a str,
     pub event_type: EventType,
     pub action: Option<Action>,
+}
+
+#[derive(Debug)]
+pub struct LayoutEvent<'a, C, F> {
+    pub scene: &'a mut Scene<C, F>,
+    pub target: &'a str,
 }
 
 impl<C, F> Scene<C, F> {
@@ -295,7 +302,7 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
 pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
-        let mut event: GuiEvent<C, F> = GuiEvent {
+         let mut event: GuiEvent<C, F> = GuiEvent {
             scene,
             target: &focused,
             event_type: EventType::Keyboard(key),
@@ -385,13 +392,13 @@ pub fn find_children<C, F>(scene: &Scene<C, F>, parent: &str) -> Vec<String> {
     }
 }
 
-pub fn layout_vbox<C, F>(scene: &mut Scene<C, F>, name: &str) {
-    if let Some(parent) = scene.get_view_mut(name) {
+pub fn layout_vbox<C, F>(evt: &mut LayoutEvent<C,F>) {
+    if let Some(parent) = evt.scene.get_view_mut(evt.target) {
         let mut y = 0;
         let bounds = parent.bounds;
-        let kids = find_children(scene, name);
+        let kids = find_children(evt.scene, evt.target);
         for kid in kids {
-            if let Some(ch) = scene.get_view_mut(&kid) {
+            if let Some(ch) = evt.scene.get_view_mut(&kid) {
                 ch.bounds.x = 0;
                 ch.bounds.y = y;
                 ch.bounds.w = bounds.w;
@@ -408,23 +415,6 @@ fn get_child_count<C, F>(scene: &mut Scene<C, F>, name: &str) -> usize {
     }
 }
 
-fn repaint(scene: &mut Scene<String, String>) {
-    let theme: Theme<String, String> = Theme {
-        bg: "white".into(),
-        fg: "black".into(),
-        panel_bg: "grey".into(),
-        font: "plain".into(),
-        bold_font: "bold".into(),
-    };
-
-    let mut ctx: MockDrawingContext<String, String> = MockDrawingContext {
-        bg: String::new(),
-        font: String::new(),
-        clip: scene.dirty_rect,
-    };
-    draw_scene(scene, &mut ctx, &theme);
-    scene.dirty_rect = Bounds::new_empty();
-}
 
 pub fn draw_scene<C, F>(
     scene: &mut Scene<C, F>,
@@ -476,6 +466,30 @@ pub fn draw_view<C, F>(
     }
 }
 
+
+pub fn layout_scene<C,F>(scene: &mut Scene<C,F>) {
+    let root_id = scene.root_id.clone();
+    layout_view(scene,&root_id);
+}
+
+pub fn layout_view<C,F>(scene: &mut Scene<C,F>, name:&str) {
+    let mut evt:LayoutEvent<C, F> = LayoutEvent {
+        scene,
+        target:name,
+    };
+    if let Some(form) = evt.scene.get_view(name) {
+        if let Some(layout) = &form.layout {
+            layout(&mut evt);
+        }
+    }
+    if let Some(view) = scene.get_view(name) {
+        for kid in find_children(scene, &view.name) {
+            layout_view(scene,&kid);
+        }
+    }
+}
+
+
 fn draw_root_view<C, F>(
     view: &mut View<C, F>,
     ctx: &mut dyn DrawingContext<C, F>,
@@ -483,15 +497,15 @@ fn draw_root_view<C, F>(
 ) {
     ctx.fill_rect(&view.bounds, &theme.panel_bg)
 }
-pub fn draw_button_view<C, F>(
-    view: &View<C, F>,
-    ctx: &mut dyn DrawingContext<C, F>,
-    theme: &Theme<C, F>,
-) {
-    ctx.fill_rect(&view.bounds, &theme.bg);
-    ctx.stroke_rect(&view.bounds, &theme.fg);
-    ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
-}
+// pub fn draw_button_view<C, F>(
+//     view: &View<C, F>,
+//     ctx: &mut dyn DrawingContext<C, F>,
+//     theme: &Theme<C, F>,
+// ) {
+//     ctx.fill_rect(&view.bounds, &theme.bg);
+//     ctx.stroke_rect(&view.bounds, &theme.fg);
+//     ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
+// }
 pub fn draw_panel_view<C, F>(
     view: &mut View<C, F>,
     ctx: &mut dyn DrawingContext<C, F>,
@@ -679,6 +693,24 @@ mod tests {
             .drawn
     }
 
+    fn repaint(scene: &mut Scene<String, String>) {
+        let theme: Theme<String, String> = Theme {
+            bg: "white".into(),
+            fg: "black".into(),
+            panel_bg: "grey".into(),
+            font: "plain".into(),
+            bold_font: "bold".into(),
+        };
+
+        let mut ctx: MockDrawingContext<String, String> = MockDrawingContext {
+            bg: String::new(),
+            font: String::new(),
+            clip: scene.dirty_rect,
+        };
+        draw_scene(scene, &mut ctx, &theme);
+        scene.dirty_rect = Bounds::new_empty();
+    }
+
     #[test]
     fn test_geometry() {
         initialize();
@@ -785,7 +817,10 @@ mod tests {
         connect_parent_child(&mut scene, "parent", "button1");
         connect_parent_child(&mut scene, "parent", "button2");
         // layout
-        layout_vbox(&mut scene, "parent");
+        layout_vbox(&mut LayoutEvent {
+            scene: &mut scene,
+            target: "parent"
+        });
         assert_eq!(
             get_bounds(&scene, "parent"),
             Some(Bounds {
