@@ -15,6 +15,7 @@ use log::info;
 pub mod comps;
 pub mod geom;
 pub mod form;
+pub mod toggle_button;
 
 pub enum HAlign {
     Left,

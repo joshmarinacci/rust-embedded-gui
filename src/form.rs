@@ -113,7 +113,7 @@ mod tests {
     use hashbrown::HashMap;
 
     #[test]
-    fn test_layout() {
+    fn test_form_layout() {
         let theme: Theme<String, String> = Theme {
             bg: "white".into(),
             fg: "black".into(),
