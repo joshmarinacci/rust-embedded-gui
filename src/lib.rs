@@ -254,11 +254,15 @@ impl<C, F> Scene<C, F> {
         self.mark_dirty_view(&name);
     }
     pub fn add_view_to_root(&mut self, view: View<C, F>) {
-        connect_parent_child(self, &self.root_id.clone(), &view.name);
-        self.add_view(view);
+        self.add_view_to_parent(view, &self.root_id.clone());
     }
     pub fn add_view_to_parent(&mut self, view: View<C, F>, parent: &str) {
-        connect_parent_child(self, parent, &view.name);
+        if !self.children.contains_key(parent) {
+            self.children.insert(parent.to_string(), vec![]);
+        }
+        if let Some(children) = self.children.get_mut(parent) {
+            children.push(view.name.to_string());
+        }
         self.add_view(view);
     }
     pub fn remove_parent_and_children(&mut self, name: &str) {
@@ -271,14 +275,14 @@ impl<C, F> Scene<C, F> {
     }
 }
 
-pub fn connect_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
-    if !scene.children.contains_key(parent) {
-        scene.children.insert(parent.to_string(), vec![]);
-    }
-    if let Some(children) = scene.children.get_mut(parent) {
-        children.push(child.to_string());
-    }
-}
+// pub fn connect_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
+//     if !scene.children.contains_key(parent) {
+//         scene.children.insert(parent.to_string(), vec![]);
+//     }
+//     if let Some(children) = scene.children.get_mut(parent) {
+//         children.push(child.to_string());
+//     }
+// }
 pub fn remove_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
     if let Some(children) = scene.children.get_mut(parent) {
         if let Some(n) = children.iter().position(|name| name == child) {
@@ -801,12 +805,9 @@ mod tests {
             },
         ));
         // add button 1
-        scene.add_view(make_test_button("button1"));
+        scene.add_view_to_parent(make_test_button("button1"),"parent");
         // add button 2
-        scene.add_view(make_label("button2"));
-        // connect
-        connect_parent_child(&mut scene, "parent", "button1");
-        connect_parent_child(&mut scene, "parent", "button2");
+        scene.add_view_to_parent(make_label("button2"),"parent");
         // layout
         layout_vbox(&mut LayoutEvent {
             scene: &mut scene,
@@ -927,8 +928,7 @@ mod tests {
             state: Some(Box::new(String::from("disabled"))),
             layout: None,
         };
-        scene.add_view(button);
-        connect_parent_child(&mut scene, "root", "toggle");
+        scene.add_view_to_root(button);
         // repaint
         repaint(&mut scene);
         assert_eq!(scene.get_view("toggle").unwrap().visible, true);
@@ -971,16 +971,14 @@ mod tests {
         // create button 1
         let mut button1 = make_test_button("button1");
         button1.visible = true;
-        connect_parent_child(&mut scene, &rootid, &button1.name);
-        scene.add_view(button1);
+        scene.add_view_to_root(button1);
 
         // create button 2
         let mut button2 = make_test_button("button2");
         button2.bounds.x = 100;
         // make button 2 invisible
         button2.visible = false;
-        connect_parent_child(&mut scene, &rootid, &button2.name);
-        scene.add_view(button2);
+        scene.add_view_to_root(button2);
 
         assert_eq!(was_button_clicked(&mut scene, "button1"), false);
         assert_eq!(was_button_drawn(&mut scene, "button1"), false);
@@ -1023,8 +1021,7 @@ mod tests {
 
         // make text box
         let text_box = make_text_box("textbox1", "foo");
-        connect_parent_child(&mut scene, &rootid, &text_box.name);
-        scene.add_view(text_box);
+        scene.add_view_to_root(text_box);
         // confirm text is correct
         assert_eq!(get_view_title(&scene, "textbox1"), "foo");
         // set text box as focused
