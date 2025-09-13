@@ -419,10 +419,10 @@ pub fn draw_scene<C, F>(
     theme: &Theme<C, F>,
 ) {
     if scene.dirty {
-        info!(
-            "draw scene: {} {:?} {:?}",
-            scene.dirty, scene.bounds, scene.dirty_rect
-        );
+        // info!(
+        //     "draw scene: {} {:?} {:?}",
+        //     scene.dirty, scene.bounds, scene.dirty_rect
+        // );
         ctx.fill_rect(&scene.bounds, &theme.panel_bg);
         let name = scene.root_id.clone();
         draw_view(scene, ctx, theme, &name);
