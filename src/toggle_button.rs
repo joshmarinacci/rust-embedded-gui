@@ -19,7 +19,7 @@ pub fn make_toggle_button<C, F>(name: &str, title: &str) -> View<C, F> {
 }
 
 pub struct SelectedState {
-    selected: bool,
+    pub selected: bool,
 }
 
 impl SelectedState {

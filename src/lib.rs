@@ -16,6 +16,7 @@ pub mod comps;
 pub mod geom;
 pub mod form;
 pub mod toggle_button;
+pub mod toggle_group;
 
 pub enum HAlign {
     Left,
