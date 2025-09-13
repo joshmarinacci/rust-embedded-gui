@@ -805,9 +805,9 @@ mod tests {
             },
         ));
         // add button 1
-        scene.add_view_to_parent(make_test_button("button1"),"parent");
+        scene.add_view_to_parent(make_test_button("button1"), "parent");
         // add button 2
-        scene.add_view_to_parent(make_label("button2"),"parent");
+        scene.add_view_to_parent(make_label("button2"), "parent");
         // layout
         layout_vbox(&mut LayoutEvent {
             scene: &mut scene,
@@ -966,7 +966,6 @@ mod tests {
         // create scene
         initialize();
         let mut scene = Scene::new();
-        let rootid = scene.root_id.clone();
 
         // create button 1
         let mut button1 = make_test_button("button1");
