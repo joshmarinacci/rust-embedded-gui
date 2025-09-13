@@ -46,9 +46,7 @@ fn input_toggle_group<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
                     let n = x / cell_width;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;
-                        return Some(Action::Command(
-                            state.items[state.selected].clone(),
-                        ));
+                        return Some(Action::Command(state.items[state.selected].clone()));
                     }
                 }
             }

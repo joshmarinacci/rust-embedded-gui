@@ -105,7 +105,7 @@ pub struct Scene<C, F> {
 }
 
 impl<C, F> Scene<C, F> {
-    pub(crate) fn get_children(&self, name: &str) -> Vec<String>  {
+    pub(crate) fn get_children(&self, name: &str) -> Vec<String> {
         if let Some(children) = self.children.get(name) {
             children.clone()
         } else {
