@@ -1,8 +1,7 @@
 use crate::geom::Bounds;
-use crate::{DrawEvent, HAlign, LayoutEvent, VAlign, View, find_children};
+use crate::{DrawEvent, HAlign, LayoutEvent, VAlign, View};
 use alloc::boxed::Box;
 use alloc::string::String;
-use core::any::Any;
 use hashbrown::HashMap;
 
 pub struct FormLayoutState {
@@ -54,8 +53,8 @@ pub struct LayoutConstraint {
 impl LayoutConstraint {
     pub fn at_row_column(row: usize, col: usize) -> LayoutConstraint {
         LayoutConstraint {
-            col: col as usize,
-            row: row as usize,
+            col,
+            row,
             col_span: 1,
             row_span: 1,
             h_align: HAlign::Center,
@@ -91,8 +90,8 @@ fn common_draw_panel<C, F>(evt: &mut DrawEvent<C, F>) {
 
 fn layout_form<C, F>(evt: &mut LayoutEvent<C, F>) {
     if let Some(view) = evt.scene.get_view(evt.target) {
-        let parent_bounds = view.bounds.clone();
-        let kids = find_children(evt.scene, evt.target);
+        let parent_bounds = view.bounds;
+        let kids = evt.scene.get_children(evt.target);
         for kid in kids {
             if let Some(state) = evt.scene.get_view_state::<FormLayoutState>(evt.target) {
                 let bounds = if let Some(cons) = &state.constraints.get(&kid) {
@@ -119,7 +118,6 @@ mod tests {
     use crate::{MockDrawingContext, Scene, Theme, draw_scene, layout_scene};
     use alloc::boxed::Box;
     use alloc::string::String;
-    use hashbrown::HashMap;
 
     #[test]
     fn test_form_layout() {

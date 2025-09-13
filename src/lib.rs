@@ -105,6 +105,16 @@ pub struct Scene<C, F> {
 }
 
 impl<C, F> Scene<C, F> {
+    pub(crate) fn get_children(&self, name: &str) -> Vec<String>  {
+        if let Some(children) = self.children.get(name) {
+            children.clone()
+        } else {
+            Vec::new()
+        }
+    }
+}
+
+impl<C, F> Scene<C, F> {
     pub fn set_focused(&mut self, name: &str) {
         if self.focused.is_some() {
             let fo = self.focused.as_ref().unwrap().clone();
@@ -182,9 +192,6 @@ pub struct LayoutEvent<'a, C, F> {
 }
 
 impl<C, F> Scene<C, F> {
-    pub(crate) fn has_view(&self, name: &str) -> bool {
-        self.keys.get(name).is_some()
-    }
     pub fn get_view(&self, name: &str) -> Option<&View<C, F>> {
         self.keys.get(name)
     }
@@ -255,7 +262,7 @@ impl<C, F> Scene<C, F> {
         self.add_view(view);
     }
     pub fn remove_parent_and_children(&mut self, name: &str) {
-        let kids = find_children(self, name);
+        let kids = self.get_children(name);
         for kid in kids {
             self.remove_view(&kid);
             self.remove_child(name, &kid);
@@ -378,7 +385,7 @@ fn pick_at_view<C, F>(scene: &Scene<C, F>, pt: &Point, name: &str) -> Vec<String
                 x: pt.x - view.bounds.x,
                 y: pt.y - view.bounds.y,
             };
-            for kid in find_children(scene, &view.name) {
+            for kid in scene.get_children(&view.name) {
                 let mut coll2 = pick_at_view(scene, &pt2, &kid);
                 coll.append(&mut coll2);
             }
@@ -386,19 +393,11 @@ fn pick_at_view<C, F>(scene: &Scene<C, F>, pt: &Point, name: &str) -> Vec<String
     }
     coll
 }
-pub fn find_children<C, F>(scene: &Scene<C, F>, parent: &str) -> Vec<String> {
-    if let Some(children) = scene.children.get(parent) {
-        children.clone()
-    } else {
-        vec![]
-    }
-}
-
 pub fn layout_vbox<C, F>(evt: &mut LayoutEvent<C, F>) {
     if let Some(parent) = evt.scene.get_view_mut(evt.target) {
         let mut y = 0;
         let bounds = parent.bounds;
-        let kids = find_children(evt.scene, evt.target);
+        let kids = evt.scene.get_children(evt.target);
         for kid in kids {
             if let Some(ch) = evt.scene.get_view_mut(&kid) {
                 ch.bounds.x = 0;
@@ -407,13 +406,6 @@ pub fn layout_vbox<C, F>(evt: &mut LayoutEvent<C, F>) {
                 y += ch.bounds.h;
             }
         }
-    }
-}
-fn get_child_count<C, F>(scene: &mut Scene<C, F>, name: &str) -> usize {
-    if let Some(children) = scene.children.get(name) {
-        children.len()
-    } else {
-        0
     }
 }
 
@@ -461,7 +453,7 @@ pub fn draw_view<C, F>(
         }
     }
     if let Some(view) = scene.get_view(name) {
-        for kid in find_children(scene, &view.name) {
+        for kid in scene.get_children(&view.name) {
             draw_view(scene, ctx, theme, &kid);
         }
     }
@@ -483,7 +475,7 @@ pub fn layout_view<C, F>(scene: &mut Scene<C, F>, name: &str) {
         }
     }
     if let Some(view) = scene.get_view(name) {
-        for kid in find_children(scene, &view.name) {
+        for kid in scene.get_children(&view.name) {
             layout_view(scene, &kid);
         }
     }
@@ -735,7 +727,7 @@ mod tests {
         assert_eq!(scene.viewcount(), 1);
         scene.add_view(view);
         assert_eq!(scene.viewcount(), 2);
-        assert_eq!(scene.has_view("foo"), true);
+        assert!(scene.get_view("foo").is_some());
         let res = scene.remove_view("foo");
         assert_eq!(res.is_some(), true);
         assert_eq!(scene.viewcount(), 1);
@@ -747,22 +739,22 @@ mod tests {
         let mut scene: Scene<String, String> = Scene::new();
         scene.add_view(make_simple_view("parent"));
         scene.add_view(make_simple_view("child"));
-        assert_eq!(get_child_count(&mut scene, "parent"), 0);
+        assert_eq!(scene.get_children("parent").len(), 0);
         assert_eq!(scene.viewcount(), 3);
         scene.add_child("parent", "child");
-        assert_eq!(get_child_count(&mut scene, "parent"), 1);
+        assert_eq!(scene.get_children("parent").len(), 1);
         scene.remove_child("parent", "child");
-        assert_eq!(get_child_count(&mut scene, "parent"), 0);
+        assert_eq!(scene.get_children("parent").len(), 0);
 
         scene.add_child("parent", "child");
-        assert_eq!(get_child_count(&mut scene, "parent"), 1);
+        assert_eq!(scene.get_children("parent").len(), 1);
         let child2 = make_simple_view("child2");
         scene.add_view_to_parent(child2, "parent");
-        assert_eq!(get_child_count(&mut scene, "parent"), 2);
+        assert_eq!(scene.get_children("parent").len(), 2);
         assert_eq!(scene.viewcount(), 4);
 
         scene.remove_parent_and_children("parent");
-        assert_eq!(get_child_count(&mut scene, "parent"), 0);
+        assert_eq!(scene.get_children("parent").len(), 0);
         assert_eq!(scene.viewcount(), 1);
     }
     #[test]

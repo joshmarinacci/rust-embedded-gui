@@ -10,7 +10,7 @@ pub fn make_toggle_button<C, F>(name: &str, title: &str) -> View<C, F> {
         title: title.into(),
         bounds: Bounds::new(0, 0, 80, 30),
         visible: true,
-        state: Some(SelectedState::new()),
+        state: Some(Box::new(SelectedState::new())),
         draw: Some(draw_toggle_button),
         draw2: None,
         layout: None,
@@ -23,8 +23,8 @@ pub struct SelectedState {
 }
 
 impl SelectedState {
-    pub fn new() -> Box<dyn Any> {
-        Box::new(SelectedState { selected: false })
+    pub fn new() -> SelectedState {
+        SelectedState { selected: false }
     }
 }
 
@@ -57,8 +57,6 @@ fn input_toggle_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
 }
 
 mod tests {
-    use crate::comps::make_label;
-    use crate::form::{FormLayoutState, make_form};
     use crate::geom::{Bounds, Point};
     use crate::toggle_button::{SelectedState, make_toggle_button};
     use crate::{MockDrawingContext, Scene, Theme, click_at, draw_scene, layout_scene};

@@ -43,11 +43,11 @@ fn input_toggle_group<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
                 if let Some(state) = view.get_state::<SelectOneOfState>() {
                     let cell_width = bounds.w / (state.items.len() as i32);
                     let x = pt.x - bounds.x;
-                    let n = x / cell_width as i32;
+                    let n = x / cell_width;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;
                         return Some(Action::Command(
-                            state.items[state.selected as usize].clone(),
+                            state.items[state.selected].clone(),
                         ));
                     }
                 }
@@ -63,7 +63,7 @@ fn draw_toggle_group<C, F>(
     ctx: &mut dyn DrawingContext<C, F>,
     theme: &Theme<C, F>,
 ) {
-    let bounds = view.bounds.clone();
+    let bounds = view.bounds;
     ctx.fill_rect(&view.bounds, &theme.bg);
     ctx.stroke_rect(&view.bounds, &theme.fg);
     if let Some(state) = view.get_state::<SelectOneOfState>() {

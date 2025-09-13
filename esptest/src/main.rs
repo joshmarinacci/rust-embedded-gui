@@ -35,7 +35,7 @@ use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{draw_panel_view, draw_scene, draw_view, find_children, layout_vbox, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, Scene, Theme, View};
+use gui2::{draw_panel_view, draw_scene, draw_view, layout_vbox, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, Scene, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
