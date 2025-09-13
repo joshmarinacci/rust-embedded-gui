@@ -53,9 +53,7 @@ fn input_toggle_group<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
                 }
             }
         }
-        _ => {
-
-        }
+        _ => {}
     }
     None
 }
@@ -84,17 +82,15 @@ fn draw_toggle_group<C, F>(
             );
             ctx.fill_rect(&bds, fill);
             ctx.stroke_rect(&bds, &theme.fg);
-            ctx.fill_text(&bds, item, color,&HAlign::Center);
+            ctx.fill_text(&bds, item, color, &HAlign::Center);
         }
     }
 }
 
-
-
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
-    use crate::{click_at, draw_scene, layout_scene, MockDrawingContext, Scene, Theme};
+    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
+    use crate::{MockDrawingContext, Scene, Theme, click_at, draw_scene, layout_scene};
     use alloc::string::String;
     use alloc::vec;
 
@@ -109,12 +105,10 @@ mod tests {
         };
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
-            let group = make_toggle_group("group",vec!["A","B","C"],0);
+            let group = make_toggle_group("group", vec!["A", "B", "C"], 0);
             scene.add_view_to_root(group);
         }
         layout_scene(&mut scene);
-
-
 
         {
             let mut group = scene.get_view_mut("group").unwrap();
@@ -139,10 +133,8 @@ mod tests {
             clip: scene.dirty_rect,
         };
 
-        assert_eq!(scene.dirty,true);
+        assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);
-        assert_eq!(scene.dirty,false);
-
+        assert_eq!(scene.dirty, false);
     }
-
 }

@@ -1,5 +1,5 @@
 use crate::geom::Bounds;
-use crate::{find_children, DrawEvent, HAlign, LayoutEvent, VAlign, View};
+use crate::{DrawEvent, HAlign, LayoutEvent, VAlign, View, find_children};
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::any::Any;
@@ -14,7 +14,12 @@ pub struct FormLayoutState {
 }
 
 impl FormLayoutState {
-    pub fn new_row_column(row_count: usize, row_height: usize, col_count: usize, col_width: usize) -> FormLayoutState {
+    pub fn new_row_column(
+        row_count: usize,
+        row_height: usize,
+        col_count: usize,
+        col_width: usize,
+    ) -> FormLayoutState {
         FormLayoutState {
             constraints: HashMap::new(),
             col_count,
@@ -26,8 +31,14 @@ impl FormLayoutState {
 }
 
 impl FormLayoutState {
-    pub fn place_at_row_column(&mut self, name: &str, row: usize, col: usize) -> Option<LayoutConstraint> {
-        self.constraints.insert(name.into(),LayoutConstraint::at_row_column(row,col))
+    pub fn place_at_row_column(
+        &mut self,
+        name: &str,
+        row: usize,
+        col: usize,
+    ) -> Option<LayoutConstraint> {
+        self.constraints
+            .insert(name.into(), LayoutConstraint::at_row_column(row, col))
     }
 }
 
@@ -78,7 +89,7 @@ fn common_draw_panel<C, F>(evt: &mut DrawEvent<C, F>) {
     evt.ctx.stroke_rect(&evt.view.bounds, &evt.theme.fg);
 }
 
-fn layout_form<C, F>(evt:&mut LayoutEvent<C, F>) {
+fn layout_form<C, F>(evt: &mut LayoutEvent<C, F>) {
     if let Some(view) = evt.scene.get_view(evt.target) {
         let parent_bounds = view.bounds.clone();
         let kids = find_children(evt.scene, evt.target);
@@ -101,13 +112,11 @@ fn layout_form<C, F>(evt:&mut LayoutEvent<C, F>) {
     }
 }
 
-
-
 mod tests {
     use crate::comps::make_label;
-    use crate::form::{make_form, FormLayoutState};
+    use crate::form::{FormLayoutState, make_form};
     use crate::geom::Bounds;
-    use crate::{draw_scene, layout_scene, MockDrawingContext, Scene, Theme};
+    use crate::{MockDrawingContext, Scene, Theme, draw_scene, layout_scene};
     use alloc::boxed::Box;
     use alloc::string::String;
     use hashbrown::HashMap;
@@ -127,7 +136,7 @@ mod tests {
         form.bounds.y = 40;
         form.bounds.w = 200;
         form.bounds.h = 200;
-        let mut layout = FormLayoutState::new_row_column(2,30,2,100);
+        let mut layout = FormLayoutState::new_row_column(2, 30, 2, 100);
 
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
@@ -143,8 +152,6 @@ mod tests {
         layout.place_at_row_column(&label3.name, 1, 0);
         scene.add_view_to_parent(label3, &form.name);
 
-
-
         form.state = Some(Box::new(layout));
         scene.add_view_to_root(form);
 
@@ -152,7 +159,7 @@ mod tests {
 
         {
             let label1 = scene.get_view("label1").unwrap();
-            assert_eq!(label1.name,"label1");
+            assert_eq!(label1.name, "label1");
             assert_eq!(label1.bounds, Bounds::new(40, 40, 100, 30));
 
             let label2 = scene.get_view("label2").unwrap();
@@ -162,9 +169,7 @@ mod tests {
             let label3 = scene.get_view("label3").unwrap();
             assert_eq!(label3.name, "label3");
             assert_eq!(label3.bounds, Bounds::new(40, 70, 100, 30));
-
         }
-
 
         let mut ctx: MockDrawingContext<String, String> = MockDrawingContext {
             bg: String::new(),
@@ -172,10 +177,8 @@ mod tests {
             clip: scene.dirty_rect,
         };
 
-        assert_eq!(scene.dirty,true);
+        assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);
-        assert_eq!(scene.dirty,false);
-
+        assert_eq!(scene.dirty, false);
     }
-
 }

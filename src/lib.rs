@@ -13,8 +13,8 @@ use hashbrown::HashMap;
 use log::info;
 
 pub mod comps;
-pub mod geom;
 pub mod form;
+pub mod geom;
 pub mod toggle_button;
 pub mod toggle_group;
 
@@ -304,7 +304,7 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
 pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
-         let mut event: GuiEvent<C, F> = GuiEvent {
+        let mut event: GuiEvent<C, F> = GuiEvent {
             scene,
             target: &focused,
             event_type: EventType::Keyboard(key),
@@ -394,7 +394,7 @@ pub fn find_children<C, F>(scene: &Scene<C, F>, parent: &str) -> Vec<String> {
     }
 }
 
-pub fn layout_vbox<C, F>(evt: &mut LayoutEvent<C,F>) {
+pub fn layout_vbox<C, F>(evt: &mut LayoutEvent<C, F>) {
     if let Some(parent) = evt.scene.get_view_mut(evt.target) {
         let mut y = 0;
         let bounds = parent.bounds;
@@ -416,7 +416,6 @@ fn get_child_count<C, F>(scene: &mut Scene<C, F>, name: &str) -> usize {
         0
     }
 }
-
 
 pub fn draw_scene<C, F>(
     scene: &mut Scene<C, F>,
@@ -468,16 +467,15 @@ pub fn draw_view<C, F>(
     }
 }
 
-
-pub fn layout_scene<C,F>(scene: &mut Scene<C,F>) {
+pub fn layout_scene<C, F>(scene: &mut Scene<C, F>) {
     let root_id = scene.root_id.clone();
-    layout_view(scene,&root_id);
+    layout_view(scene, &root_id);
 }
 
-pub fn layout_view<C,F>(scene: &mut Scene<C,F>, name:&str) {
-    let mut evt:LayoutEvent<C, F> = LayoutEvent {
+pub fn layout_view<C, F>(scene: &mut Scene<C, F>, name: &str) {
+    let mut evt: LayoutEvent<C, F> = LayoutEvent {
         scene,
-        target:name,
+        target: name,
     };
     if let Some(form) = evt.scene.get_view(name) {
         if let Some(layout) = &form.layout {
@@ -486,11 +484,10 @@ pub fn layout_view<C,F>(scene: &mut Scene<C,F>, name:&str) {
     }
     if let Some(view) = scene.get_view(name) {
         for kid in find_children(scene, &view.name) {
-            layout_view(scene,&kid);
+            layout_view(scene, &kid);
         }
     }
 }
-
 
 fn draw_root_view<C, F>(
     view: &mut View<C, F>,
@@ -821,7 +818,7 @@ mod tests {
         // layout
         layout_vbox(&mut LayoutEvent {
             scene: &mut scene,
-            target: "parent"
+            target: "parent",
         });
         assert_eq!(
             get_bounds(&scene, "parent"),

@@ -1,8 +1,8 @@
-use core::option::Option::*;
-use alloc::boxed::Box;
-use core::any::Any;
 use crate::geom::Bounds;
 use crate::{Action, DrawingContext, GuiEvent, HAlign, Theme, View};
+use alloc::boxed::Box;
+use core::any::Any;
+use core::option::Option::*;
 
 pub fn make_toggle_button<C, F>(name: &str, title: &str) -> View<C, F> {
     View {
@@ -56,19 +56,16 @@ fn input_toggle_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
     None
 }
 
-
-
-
 mod tests {
     use crate::comps::make_label;
-    use crate::form::{make_form, FormLayoutState};
+    use crate::form::{FormLayoutState, make_form};
     use crate::geom::{Bounds, Point};
-    use crate::{click_at, draw_scene, layout_scene, MockDrawingContext, Scene, Theme};
+    use crate::toggle_button::{SelectedState, make_toggle_button};
+    use crate::{MockDrawingContext, Scene, Theme, click_at, draw_scene, layout_scene};
     use alloc::boxed::Box;
     use alloc::string::String;
     use alloc::vec;
     use hashbrown::HashMap;
-    use crate::toggle_button::{make_toggle_button, SelectedState};
 
     #[test]
     fn test_toggle_button() {
@@ -86,11 +83,9 @@ mod tests {
         }
         layout_scene(&mut scene);
 
-
-
         {
             let mut button = scene.get_view_mut("toggle").unwrap();
-            assert_eq!(button.name,"toggle");
+            assert_eq!(button.name, "toggle");
             assert_eq!(button.bounds, Bounds::new(0, 0, 80, 30));
             let state = &mut button.get_state::<SelectedState>().unwrap();
             assert_eq!(state.selected, false);
@@ -109,10 +104,8 @@ mod tests {
             clip: scene.dirty_rect,
         };
 
-        assert_eq!(scene.dirty,true);
+        assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);
-        assert_eq!(scene.dirty,false);
-
+        assert_eq!(scene.dirty, false);
     }
-
 }

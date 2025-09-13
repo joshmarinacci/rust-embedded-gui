@@ -121,5 +121,4 @@ mod tests {
         // INFO - union Bounds { x: 140, y: 180, w: 80, h: 30 } Bounds { x: 140, y: 180, w: 80, h: 30 }
         assert_eq!(b2.union(b3), b2.clone());
     }
-
 }
