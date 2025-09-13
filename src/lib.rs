@@ -14,7 +14,7 @@ use log::info;
 
 pub mod comps;
 pub mod geom;
-mod form;
+pub mod form;
 
 pub enum HAlign {
     Left,

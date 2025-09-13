@@ -1,11 +1,11 @@
+use crate::geom::Bounds;
+use crate::{find_children, DrawEvent, HAlign, LayoutEvent, VAlign, View};
 use alloc::boxed::Box;
 use alloc::string::String;
+use core::any::Any;
 use hashbrown::HashMap;
-use log::{error, info};
-use crate::{find_children, DrawEvent, HAlign, LayoutEvent, Scene, VAlign, View};
-use crate::geom::Bounds;
 
-struct FormLayoutState {
+pub struct FormLayoutState {
     pub constraints: HashMap<String, LayoutConstraint>,
     row_count: usize,
     col_count: usize,
@@ -14,12 +14,24 @@ struct FormLayoutState {
 }
 
 impl FormLayoutState {
+    pub fn new_row_column(row_count: usize, row_height: usize, col_count: usize, col_width: usize) -> FormLayoutState {
+        FormLayoutState {
+            constraints: HashMap::new(),
+            col_count,
+            row_count,
+            col_width,
+            row_height,
+        }
+    }
+}
+
+impl FormLayoutState {
     pub fn place_at_row_column(&mut self, name: &str, row: usize, col: usize) -> Option<LayoutConstraint> {
         self.constraints.insert(name.into(),LayoutConstraint::at_row_column(row,col))
     }
 }
 
-struct LayoutConstraint {
+pub struct LayoutConstraint {
     col: usize,
     row: usize,
     col_span: usize,
@@ -92,14 +104,13 @@ fn layout_form<C, F>(evt:&mut LayoutEvent<C, F>) {
 
 
 mod tests {
+    use crate::comps::make_label;
+    use crate::form::{make_form, FormLayoutState};
+    use crate::geom::Bounds;
+    use crate::{draw_scene, layout_scene, MockDrawingContext, Scene, Theme};
     use alloc::boxed::Box;
     use alloc::string::String;
     use hashbrown::HashMap;
-    use log::info;
-    use crate::comps::make_label;
-    use crate::form::{make_form, FormLayoutState, LayoutConstraint};
-    use crate::geom::{Bounds, Point};
-    use crate::{draw_scene, draw_view, find_children, layout_scene, DrawingContext, HAlign, LayoutEvent, MockDrawingContext, Scene, Theme, VAlign};
 
     #[test]
     fn test_layout() {
@@ -116,13 +127,7 @@ mod tests {
         form.bounds.y = 40;
         form.bounds.w = 200;
         form.bounds.h = 200;
-        let mut layout = FormLayoutState {
-            constraints: HashMap::new(),
-            col_count: 2,
-            row_count: 2,
-            col_width: 100,
-            row_height: 30,
-        };
+        let mut layout = FormLayoutState::new_row_column(2,30,2,100);
 
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
