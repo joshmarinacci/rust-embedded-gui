@@ -169,6 +169,13 @@ impl<C, F> Scene<C, F> {
     pub fn is_focused(&self, name: &str) -> bool {
         self.focused.as_ref().is_some_and(|focused| focused == name)
     }
+    pub fn is_visible(&self, name: &str) -> bool {
+        if let Some(view) = self.get_view(name) {
+            view.visible
+        } else {
+            false
+        }
+    }
     pub fn show_view(&mut self, name: &str) {
         if let Some(view) = self.get_view_mut(name) {
             view.visible = true;
@@ -263,11 +270,13 @@ impl<C, F> Scene<C, F> {
             title: "root".to_string(),
             bounds,
             visible: true,
-            draw: Some(draw_root_view),
+            draw: None,
             input: None,
             state: None,
             layout: None,
-            draw2: None,
+            draw2: Some(|e|{
+                e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)
+            }),
         };
         let root_id = String::from("root");
         let mut keys: HashMap<String, View<C, F>> = HashMap::new();
@@ -318,22 +327,14 @@ impl<C, F> Scene<C, F> {
     }
 }
 
-// pub fn connect_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
-//     if !scene.children.contains_key(parent) {
-//         scene.children.insert(parent.to_string(), vec![]);
-//     }
+// pub fn remove_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
 //     if let Some(children) = scene.children.get_mut(parent) {
-//         children.push(child.to_string());
+//         if let Some(n) = children.iter().position(|name| name == child) {
+//             children.remove(n);
+//         }
 //     }
 // }
-pub fn remove_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
-    if let Some(children) = scene.children.get_mut(parent) {
-        if let Some(n) = children.iter().position(|name| name == child) {
-            children.remove(n);
-        }
-    }
-}
-pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, pt: Point) {
+pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, pt: Point) -> Option<(String, Action)> {
     // info!("picking at {:?}", pt);
     let targets = pick_at(scene, &pt);
     if let Some(target) = targets.last() {
@@ -353,9 +354,13 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
         for cb in handlers {
             cb(&mut event);
         }
+        if let Some(action) = event.action {
+            return Some((target.into(),action));
+        }
     }
+    None
 }
-pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) {
+pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) -> Option<(String, Action)> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -371,8 +376,12 @@ pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C,
             for cb in handlers {
                 cb(&mut event);
             }
+            if let Some(action) = event.action {
+                return Some((focused,action));
+            }
         }
     }
+    None
 }
 
 pub fn scroll_at_focused<C, F>(
@@ -380,7 +389,7 @@ pub fn scroll_at_focused<C, F>(
     handlers: &Vec<Callback<C, F>>,
     dx: i32,
     dy: i32,
-) {
+) -> Option<(String, Action)> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -396,8 +405,12 @@ pub fn scroll_at_focused<C, F>(
             for cb in handlers {
                 cb(&mut event);
             }
+            if let Some(action) = event.action {
+                return Some((focused,action));
+            }
         }
     }
+    None
 }
 
 pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>) -> Option<(String, Action)> {
@@ -532,22 +545,6 @@ pub fn layout_view<C, F>(scene: &mut Scene<C, F>, name: &str) {
     }
 }
 
-fn draw_root_view<C, F>(
-    view: &mut View<C, F>,
-    ctx: &mut dyn DrawingContext<C, F>,
-    theme: &Theme<C, F>,
-) {
-    ctx.fill_rect(&view.bounds, &theme.panel_bg)
-}
-// pub fn draw_button_view<C, F>(
-//     view: &View<C, F>,
-//     ctx: &mut dyn DrawingContext<C, F>,
-//     theme: &Theme<C, F>,
-// ) {
-//     ctx.fill_rect(&view.bounds, &theme.bg);
-//     ctx.stroke_rect(&view.bounds, &theme.fg);
-//     ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
-// }
 pub fn draw_panel_view<C, F>(
     view: &mut View<C, F>,
     ctx: &mut dyn DrawingContext<C, F>,
