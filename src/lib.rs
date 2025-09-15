@@ -163,6 +163,9 @@ impl<C, F> Scene<C, F> {
         self.focused = Some(name.into());
         self.mark_dirty_view(name);
     }
+    pub fn get_focused(&self) -> Option<String> {
+        self.focused.clone()
+    }
     pub fn is_focused(&self, name: &str) -> bool {
         self.focused.as_ref().is_some_and(|focused| focused == name)
     }
@@ -397,7 +400,7 @@ pub fn scroll_at_focused<C, F>(
     }
 }
 
-pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>) {
+pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>) -> Option<(String, Action)> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -413,8 +416,12 @@ pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<
             for cb in handlers {
                 cb(&mut event);
             }
+            if let Some(action) = event.action {
+                return Some((focused,action));
+            }
         }
     }
+    None
 }
 
 pub fn pick_at<C, F>(scene: &mut Scene<C, F>, pt: &Point) -> Vec<String> {
