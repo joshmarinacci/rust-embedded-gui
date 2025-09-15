@@ -133,7 +133,7 @@ pub struct LayoutEvent<'a, C, F> {
 mod tests {
     use super::*;
     use crate::comps::make_button;
-    use crate::scene::{click_at, draw_scene, pick_at, type_at_focused};
+    use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
     use log::LevelFilter;
     use std::sync::Once;
 
@@ -658,11 +658,10 @@ mod tests {
         assert_eq!(was_button_drawn(&mut scene, "button2"), true);
     }
     #[test]
-    fn test_keyboard_evnts() {
+    fn test_keyboard_events() {
         // make scene
         initialize();
-        let mut scene = Scene::new();
-        let rootid = scene.root_id.clone();
+        let mut scene:Scene<String,String> = Scene::new();
 
         // make text box
         let text_box = make_text_box("textbox1", "foo");
@@ -673,8 +672,7 @@ mod tests {
         scene.focused = Some("textbox1".into());
 
         // send keyboard event
-        let handlers: Vec<Callback<String, String>> = vec![];
-        type_at_focused(&mut scene, &handlers, b'X');
+        event_at_focused(&mut scene, EventType::Keyboard(b'X'));
         // confirm text is updated
         assert_eq!(get_view_title(&scene, "textbox1"), "fooX");
     }

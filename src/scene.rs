@@ -176,10 +176,8 @@ pub fn click_at<C, F>(
     handlers: &Vec<Callback<C, F>>,
     pt: Point,
 ) -> Option<EventResult> {
-    // info!("picking at {:?}", pt);
     let targets = pick_at(scene, &pt);
     if let Some(target) = targets.last() {
-        // info!("doing the target {}", target);
         let mut event: GuiEvent<C, F> = GuiEvent {
             scene,
             target,
@@ -187,7 +185,6 @@ pub fn click_at<C, F>(
             action: None,
         };
         if let Some(view) = event.scene.get_view(target) {
-            // info!("got the view {:?}", view.name);
             if let Some(input) = view.input {
                 event.action = input(&mut event);
             }
@@ -202,81 +199,21 @@ pub fn click_at<C, F>(
     None
 }
 
-pub fn type_at_focused<C, F>(
+pub fn event_at_focused<C,F>(
     scene: &mut Scene<C, F>,
-    handlers: &Vec<Callback<C, F>>,
-    key: u8,
+    event_type:EventType,
 ) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
             scene,
             target: &focused,
-            event_type: EventType::Keyboard(key),
+            event_type: event_type,
             action: None,
         };
         if let Some(view) = event.scene.get_view(&focused) {
             if let Some(input) = view.input {
                 event.action = input(&mut event);
-            }
-            for cb in handlers {
-                cb(&mut event);
-            }
-            if let Some(action) = event.action {
-                return Some((focused, action));
-            }
-        }
-    }
-    None
-}
-
-pub fn scroll_at_focused<C, F>(
-    scene: &mut Scene<C, F>,
-    handlers: &Vec<Callback<C, F>>,
-    dx: i32,
-    dy: i32,
-) -> Option<EventResult> {
-    if scene.focused.is_some() {
-        let focused = scene.focused.as_ref().unwrap().clone();
-        let mut event: GuiEvent<C, F> = GuiEvent {
-            scene,
-            target: &focused,
-            event_type: EventType::Scroll(dx, dy),
-            action: None,
-        };
-        if let Some(view) = event.scene.get_view(&focused) {
-            if let Some(input) = view.input {
-                event.action = input(&mut event);
-            }
-            for cb in handlers {
-                cb(&mut event);
-            }
-            if let Some(action) = event.action {
-                return Some((focused, action));
-            }
-        }
-    }
-    None
-}
-
-pub fn action_at_focused<C, F>(
-    scene: &mut Scene<C, F>,
-    handlers: &Vec<Callback<C, F>>,
-) -> Option<EventResult> {
-    if scene.focused.is_some() {
-        let focused = scene.focused.as_ref().unwrap().clone();
-        let mut event: GuiEvent<C, F> = GuiEvent {
-            scene,
-            target: &focused,
-            event_type: EventType::Action(),
-            action: None,
-        };
-        if let Some(view) = &event.scene.get_view(&focused) {
-            if let Some(input) = view.input {
-                event.action = input(&mut event);
-            }
-            for cb in handlers {
-                cb(&mut event);
             }
             if let Some(action) = event.action {
                 return Some((focused, action));
