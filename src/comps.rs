@@ -1,7 +1,8 @@
 use crate::geom::Bounds;
-use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme, VAlign, View};
+use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme, VAlign};
 use alloc::string::ToString;
 use log::info;
+use crate::view::View;
 
 fn draw_panel<C, F>(
     view: &mut View<C, F>,

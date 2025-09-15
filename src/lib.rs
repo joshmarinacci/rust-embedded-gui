@@ -9,14 +9,17 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::any::Any;
 use geom::{Bounds, Point};
-use hashbrown::HashMap;
 use log::info;
+use view::View;
+use crate::scene::Scene;
 
 pub mod comps;
 pub mod form;
 pub mod geom;
 pub mod toggle_button;
 pub mod toggle_group;
+pub mod scene;
+pub mod view;
 
 #[derive(Copy, Clone)]
 pub enum HAlign {
@@ -102,118 +105,6 @@ pub struct Theme<C, F> {
     pub bold_font: F,
 }
 
-#[derive(Debug)]
-pub struct View<C, F> {
-    pub name: String,
-    pub title: String,
-    pub bounds: Bounds,
-    pub visible: bool,
-    pub draw: Option<DrawFn<C, F>>,
-    pub input: Option<InputFn<C, F>>,
-    pub state: Option<Box<dyn Any>>,
-    pub layout: Option<LayoutFn<C, F>>,
-    pub draw2: Option<DrawFn2<C, F>>,
-}
-
-impl<C, F> View<C, F> {
-    pub fn position_at(mut self, x: i32, y: i32) -> View<C, F> {
-        self.bounds.x = x;
-        self.bounds.y = y;
-        self
-    }
-    pub fn hide(mut self) -> View<C, F> {
-        self.visible = false;
-        self
-    }
-    pub fn get_state<T: 'static>(&mut self) -> Option<&mut T> {
-        if let Some(view) = &mut self.state {
-            return view.downcast_mut::<T>();
-        }
-        None
-    }
-}
-
-#[derive(Debug)]
-pub struct Scene<C, F> {
-    keys: HashMap<String, View<C, F>>,
-    children: HashMap<String, Vec<String>>,
-    dirty: bool,
-    pub bounds: Bounds,
-    pub dirty_rect: Bounds,
-    pub root_id: String,
-    focused: Option<String>,
-}
-
-impl<C, F> Scene<C, F> {
-    pub fn set_focused(&mut self, name: &str) {
-        if self.focused.is_some() {
-            let fo = self.focused.as_ref().unwrap().clone();
-            self.mark_dirty_view(&fo);
-        }
-        self.focused = Some(name.into());
-        self.mark_dirty_view(name);
-    }
-    pub fn get_focused(&self) -> Option<String> {
-        self.focused.clone()
-    }
-    pub fn is_focused(&self, name: &str) -> bool {
-        self.focused.as_ref().is_some_and(|focused| focused == name)
-    }
-    pub fn is_visible(&self, name: &str) -> bool {
-        if let Some(view) = self.get_view(name) {
-            view.visible
-        } else {
-            false
-        }
-    }
-    pub fn show_view(&mut self, name: &str) {
-        if let Some(view) = self.get_view_mut(name) {
-            view.visible = true;
-        }
-        self.mark_dirty_view(name);
-    }
-    pub fn hide_view(&mut self, name: &str) {
-        if let Some(view) = self.get_view_mut(name) {
-            view.visible = false;
-        }
-        self.mark_dirty_view(name);
-    }
-    pub fn mark_dirty_all(&mut self) {
-        self.dirty_rect = self.bounds;
-        self.dirty = true;
-    }
-    pub fn mark_dirty_view(&mut self, name: &str) {
-        // info!("Marking dirty view {}", name);
-        if let Some(view) = self.get_view(name) {
-            self.dirty_rect = self.dirty_rect.union(view.bounds);
-            // info!("dirty rect now {:?}", self.dirty_rect);
-            self.dirty = true;
-        }
-    }
-    pub fn remove_child(&mut self, parent: &str, child: &str) {
-        if let Some(children) = self.children.get_mut(parent) {
-            if let Some(n) = children.iter().position(|name| name == child) {
-                children.remove(n);
-            }
-        }
-    }
-    pub fn add_child(&mut self, parent: &str, child: &str) {
-        if !self.children.contains_key(parent) {
-            self.children.insert(parent.to_string(), vec![]);
-        }
-        if let Some(children) = self.children.get_mut(parent) {
-            children.push(child.to_string());
-        }
-    }
-    pub fn get_children(&self, name: &str) -> Vec<String> {
-        if let Some(children) = self.children.get(name) {
-            children.clone()
-        } else {
-            Vec::new()
-        }
-    }
-}
-
 pub type Callback<C, F> = fn(event: &mut GuiEvent<C, F>);
 
 #[derive(Debug)]
@@ -236,92 +127,6 @@ pub struct GuiEvent<'a, C, F> {
 pub struct LayoutEvent<'a, C, F> {
     pub scene: &'a mut Scene<C, F>,
     pub target: &'a str,
-}
-
-impl<C, F> Scene<C, F> {
-    pub fn get_view(&self, name: &str) -> Option<&View<C, F>> {
-        self.keys.get(name)
-    }
-    pub fn get_view_mut(&mut self, name: &str) -> Option<&mut View<C, F>> {
-        self.keys.get_mut(name)
-    }
-    pub fn get_view_state<T: 'static>(&mut self, name: &str) -> Option<&mut T> {
-        if let Some(view) = self.get_view_mut(name) {
-            if let Some(view) = &mut view.state {
-                return view.downcast_mut::<T>();
-            }
-        }
-        None
-    }
-
-    pub(crate) fn viewcount(&self) -> usize {
-        self.keys.len()
-    }
-    pub fn remove_view(&mut self, name: &str) -> Option<View<C, F>> {
-        self.mark_dirty_view(name);
-        self.keys.remove(name)
-    }
-    pub fn new_with_bounds(bounds: Bounds) -> Scene<C, F> {
-        let root = View {
-            name: "root".to_string(),
-            title: "root".to_string(),
-            bounds,
-            visible: true,
-            draw: None,
-            input: None,
-            state: None,
-            layout: None,
-            draw2: Some(|e|{
-                e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)
-            }),
-        };
-        let root_id = String::from("root");
-        let mut keys: HashMap<String, View<C, F>> = HashMap::new();
-        keys.insert(root_id.clone(), root);
-        Scene {
-            bounds,
-            keys,
-            dirty: true,
-            root_id,
-            focused: None,
-            dirty_rect: bounds,
-            children: HashMap::new(),
-        }
-    }
-    pub fn new() -> Scene<C, F> {
-        let bounds = Bounds {
-            x: 0,
-            y: 0,
-            w: 200,
-            h: 200,
-        };
-        Self::new_with_bounds(bounds)
-    }
-    pub fn add_view(&mut self, view: View<C, F>) {
-        let name = view.name.clone();
-        self.keys.insert(name.clone(), view);
-        self.mark_dirty_view(&name);
-    }
-    pub fn add_view_to_root(&mut self, view: View<C, F>) {
-        self.add_view_to_parent(view, &self.root_id.clone());
-    }
-    pub fn add_view_to_parent(&mut self, view: View<C, F>, parent: &str) {
-        if !self.children.contains_key(parent) {
-            self.children.insert(parent.to_string(), vec![]);
-        }
-        if let Some(children) = self.children.get_mut(parent) {
-            children.push(view.name.to_string());
-        }
-        self.add_view(view);
-    }
-    pub fn remove_parent_and_children(&mut self, name: &str) {
-        let kids = self.get_children(name);
-        for kid in kids {
-            self.remove_view(&kid);
-            self.remove_child(name, &kid);
-        }
-        self.remove_view(name);
-    }
 }
 
 pub type EventResult = (String, Action);

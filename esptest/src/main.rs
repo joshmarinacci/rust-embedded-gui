@@ -30,15 +30,18 @@ use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::geometry::{Point, Size};
 use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD, FONT_9X15};
 use embedded_graphics::mono_font::MonoFont;
-use esp_hal::i2c::master::{BusTimeout, I2c, Config as I2CConfig};
+use esp_hal::i2c::master::{BusTimeout, Config as I2CConfig, I2c};
 use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{draw_panel_view, draw_scene, draw_view, layout_vbox, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, Scene, TextStyle, Theme, View};
+
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
+use gui2::scene::Scene;
+use gui2::{draw_scene, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme};
+use gui2::view::View;
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
@@ -276,11 +279,27 @@ fn make_vbox<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
         title: name.to_string(),
         bounds,
         visible: true,
-        draw: Some(draw_panel_view),
-        draw2: None,
+        draw: None,
+        draw2: Some(|e|{
+            e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg);
+        }),
         input: None,
         state: None,
-        layout: Some(layout_vbox),
+        layout: Some(|evt|{
+                if let Some(parent) = evt.scene.get_view_mut(evt.target) {
+                    let mut y = 0;
+                    let bounds = parent.bounds;
+                    let kids = evt.scene.get_children(evt.target);
+                    for kid in kids {
+                        if let Some(ch) = evt.scene.get_view_mut(&kid) {
+                            ch.bounds.x = 0;
+                            ch.bounds.y = y;
+                            ch.bounds.w = bounds.w;
+                            y += ch.bounds.h;
+                        }
+                    }
+                }
+        }),
     }
 }
 

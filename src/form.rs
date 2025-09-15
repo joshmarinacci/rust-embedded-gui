@@ -1,8 +1,9 @@
 use crate::geom::Bounds;
-use crate::{DrawEvent, HAlign, LayoutEvent, VAlign, View};
+use crate::{DrawEvent, HAlign, LayoutEvent, VAlign};
 use alloc::boxed::Box;
 use alloc::string::String;
 use hashbrown::HashMap;
+use crate::view::View;
 
 pub struct FormLayoutState {
     pub constraints: HashMap<String, LayoutConstraint>,
@@ -113,11 +114,12 @@ fn layout_form<C, F>(evt: &mut LayoutEvent<C, F>) {
 
 mod tests {
     use crate::comps::make_label;
-    use crate::form::{FormLayoutState, make_form};
+    use crate::form::{make_form, FormLayoutState};
     use crate::geom::Bounds;
-    use crate::{MockDrawingContext, Scene, Theme, draw_scene, layout_scene};
+    use crate::{draw_scene, layout_scene, MockDrawingContext, Theme};
     use alloc::boxed::Box;
     use alloc::string::String;
+    use crate::scene::Scene;
 
     #[test]
     fn test_form_layout() {

@@ -1,8 +1,9 @@
 use crate::geom::Bounds;
-use crate::{Action, DrawingContext, GuiEvent, HAlign, TextStyle, Theme, View};
+use crate::{Action, DrawingContext, GuiEvent, TextStyle, Theme};
 use alloc::boxed::Box;
 use core::any::Any;
 use core::option::Option::*;
+use crate::view::View;
 
 pub fn make_toggle_button<C, F>(name: &str, title: &str) -> View<C, F> {
     View {
@@ -59,12 +60,11 @@ fn input_toggle_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
 
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::toggle_button::{SelectedState, make_toggle_button};
-    use crate::{MockDrawingContext, Scene, Theme, click_at, draw_scene, layout_scene};
-    use alloc::boxed::Box;
+    use crate::toggle_button::{make_toggle_button, SelectedState};
+    use crate::{click_at, draw_scene, layout_scene, MockDrawingContext, Theme};
     use alloc::string::String;
     use alloc::vec;
-    use hashbrown::HashMap;
+    use crate::scene::Scene;
 
     #[test]
     fn test_toggle_button() {
