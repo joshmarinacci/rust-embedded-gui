@@ -145,16 +145,6 @@ pub struct Scene<C, F> {
 }
 
 impl<C, F> Scene<C, F> {
-    pub(crate) fn get_children(&self, name: &str) -> Vec<String> {
-        if let Some(children) = self.children.get(name) {
-            children.clone()
-        } else {
-            Vec::new()
-        }
-    }
-}
-
-impl<C, F> Scene<C, F> {
     pub fn set_focused(&mut self, name: &str) {
         if self.focused.is_some() {
             let fo = self.focused.as_ref().unwrap().clone();
@@ -213,6 +203,13 @@ impl<C, F> Scene<C, F> {
         }
         if let Some(children) = self.children.get_mut(parent) {
             children.push(child.to_string());
+        }
+    }
+    pub fn get_children(&self, name: &str) -> Vec<String> {
+        if let Some(children) = self.children.get(name) {
+            children.clone()
+        } else {
+            Vec::new()
         }
     }
 }
@@ -327,7 +324,9 @@ impl<C, F> Scene<C, F> {
     }
 }
 
-pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, pt: Point) -> Option<(String, Action)> {
+pub type EventResult = (String, Action);
+
+pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, pt: Point) -> Option<EventResult> {
     // info!("picking at {:?}", pt);
     let targets = pick_at(scene, &pt);
     if let Some(target) = targets.last() {
@@ -353,7 +352,7 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
     }
     None
 }
-pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) -> Option<(String, Action)> {
+pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -382,7 +381,7 @@ pub fn scroll_at_focused<C, F>(
     handlers: &Vec<Callback<C, F>>,
     dx: i32,
     dy: i32,
-) -> Option<(String, Action)> {
+) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -406,7 +405,7 @@ pub fn scroll_at_focused<C, F>(
     None
 }
 
-pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>) -> Option<(String, Action)> {
+pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -450,21 +449,6 @@ fn pick_at_view<C, F>(scene: &Scene<C, F>, pt: &Point, name: &str) -> Vec<String
     }
     coll
 }
-pub fn layout_vbox<C, F>(evt: &mut LayoutEvent<C, F>) {
-    if let Some(parent) = evt.scene.get_view_mut(evt.target) {
-        let mut y = 0;
-        let bounds = parent.bounds;
-        let kids = evt.scene.get_children(evt.target);
-        for kid in kids {
-            if let Some(ch) = evt.scene.get_view_mut(&kid) {
-                ch.bounds.x = 0;
-                ch.bounds.y = y;
-                ch.bounds.w = bounds.w;
-                y += ch.bounds.h;
-            }
-        }
-    }
-}
 
 pub fn draw_scene<C, F>(
     scene: &mut Scene<C, F>,
@@ -484,7 +468,7 @@ pub fn draw_scene<C, F>(
     }
 }
 
-pub fn draw_view<C, F>(
+fn draw_view<C, F>(
     scene: &mut Scene<C, F>,
     ctx: &mut dyn DrawingContext<C, F>,
     theme: &Theme<C, F>,
@@ -521,7 +505,7 @@ pub fn layout_scene<C, F>(scene: &mut Scene<C, F>) {
     layout_view(scene, &root_id);
 }
 
-pub fn layout_view<C, F>(scene: &mut Scene<C, F>, name: &str) {
+fn layout_view<C, F>(scene: &mut Scene<C, F>, name: &str) {
     let mut evt: LayoutEvent<C, F> = LayoutEvent {
         scene,
         target: name,
@@ -536,14 +520,6 @@ pub fn layout_view<C, F>(scene: &mut Scene<C, F>, name: &str) {
             layout_view(scene, &kid);
         }
     }
-}
-
-pub fn draw_panel_view<C, F>(
-    view: &mut View<C, F>,
-    ctx: &mut dyn DrawingContext<C, F>,
-    theme: &Theme<C, F>,
-) {
-    ctx.fill_rect(&view.bounds, &theme.panel_bg);
 }
 
 #[cfg(test)]
@@ -593,14 +569,31 @@ mod tests {
             layout: None,
         }
     }
+    fn layout_vbox<C, F>(evt: &mut LayoutEvent<C, F>) {
+        if let Some(parent) = evt.scene.get_view_mut(evt.target) {
+            let mut y = 0;
+            let bounds = parent.bounds;
+            let kids = evt.scene.get_children(evt.target);
+            for kid in kids {
+                if let Some(ch) = evt.scene.get_view_mut(&kid) {
+                    ch.bounds.x = 0;
+                    ch.bounds.y = y;
+                    ch.bounds.w = bounds.w;
+                    y += ch.bounds.h;
+                }
+            }
+        }
+    }
     fn make_vbox<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
         View {
             name: name.to_string(),
             title: name.to_string(),
             bounds,
             visible: true,
-            draw: Some(draw_panel_view),
-            draw2: None,
+            draw2: Some(|e|{
+                e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg);
+            }),
+            draw: None,
             input: None,
             state: None,
             layout: Some(layout_vbox),

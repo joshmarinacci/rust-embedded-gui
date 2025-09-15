@@ -134,23 +134,23 @@ mod tests {
         form.bounds.y = 40;
         form.bounds.w = 200;
         form.bounds.h = 200;
-        let mut layout = FormLayoutState::new_row_column(2, 30, 2, 100);
+        let mut form_layout = FormLayoutState::new_row_column(2, 30, 2, 100);
 
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
         let label1 = make_label("label1", "Label 1");
-        layout.place_at_row_column(&label1.name, 0, 0);
+        form_layout.place_at_row_column(&label1.name, 0, 0);
         scene.add_view_to_parent(label1, &form.name);
 
         let label2 = make_label("label2", "Label 2");
-        layout.place_at_row_column(&label2.name, 0, 1);
+        form_layout.place_at_row_column(&label2.name, 0, 1);
         scene.add_view_to_parent(label2, &form.name);
 
         let label3 = make_label("label3", "Label 3");
-        layout.place_at_row_column(&label3.name, 1, 0);
+        form_layout.place_at_row_column(&label3.name, 1, 0);
         scene.add_view_to_parent(label3, &form.name);
 
-        form.state = Some(Box::new(layout));
+        form.state = Some(Box::new(form_layout));
         scene.add_view_to_root(form);
 
         layout_scene(&mut scene);
