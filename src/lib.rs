@@ -28,11 +28,38 @@ pub enum VAlign {
     Center,
     Bottom,
 }
+pub struct TextStyle<'a, C, F> {
+    halign: HAlign,
+    valign: VAlign,
+    underline: bool,
+    pub font: &'a F,
+    pub color: &'a C,
+}
+
+impl<'a, C, F> TextStyle<'a, C, F> {
+    pub fn with_halign(mut self, p0: HAlign) -> Self {
+        self.halign = p0;
+        self
+    }
+}
+
+impl<'a, C, F> TextStyle<'a, C, F> {
+    pub fn font_color(font:&'a F, color: &'a C) -> TextStyle<'a, C,F> {
+        TextStyle {
+            font: font,
+            color: color,
+            underline: false,
+            valign: VAlign::Center,
+            halign: HAlign::Center,
+        }
+    }
+}
+
 pub trait DrawingContext<C, F> {
     fn clear(&mut self, color: &C);
     fn fill_rect(&mut self, bounds: &Bounds, color: &C);
     fn stroke_rect(&mut self, bounds: &Bounds, color: &C);
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, color: &C, align: &HAlign);
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle<C, F>);
 }
 
 pub struct DrawEvent<'a, C, F> {
@@ -638,7 +665,7 @@ mod tests {
         ctx: &mut dyn DrawingContext<C, F>,
         theme: &Theme<C, F>,
     ) {
-        ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Left);
+        ctx.fill_text(&view.bounds, &view.title, &TextStyle::font_color(&theme.font, &theme.fg));
     }
     fn make_label<C, F>(name: &str) -> View<C, F> {
         View {
@@ -898,7 +925,7 @@ mod tests {
         initialize();
         let mut scene = Scene::new();
         // add toggle button
-        let button = View {
+        let button:View<String,String> = View {
             name: String::from("toggle"),
             title: String::from("Off"),
             visible: true,
@@ -914,11 +941,13 @@ mod tests {
                         if state == "enabled" {
                             ctx.fill_rect(&view.bounds, &theme.fg);
                             ctx.stroke_rect(&view.bounds, &theme.bg);
-                            ctx.fill_text(&view.bounds, &view.title, &theme.bg, &HAlign::Center);
+                            let style = TextStyle::font_color(&theme.font, &theme.bg).with_halign(HAlign::Center);
+                            ctx.fill_text(&view.bounds, &view.title, &style);
                         } else {
                             ctx.fill_rect(&view.bounds, &theme.bg);
                             ctx.stroke_rect(&view.bounds, &theme.fg);
-                            ctx.fill_text(&view.bounds, &view.title, &theme.fg, &HAlign::Center);
+                            let style = TextStyle::font_color(&theme.font, &theme.fg).with_halign(HAlign::Center);
+                            ctx.fill_text(&view.bounds, &view.title, &style);
                         }
                     }
                 }
@@ -1106,5 +1135,5 @@ impl DrawingContext<String, String> for MockDrawingContext<String, String> {
 
     fn stroke_rect(&mut self, _bounds: &Bounds, _color: &String) {}
 
-    fn fill_text(&mut self, _bounds: &Bounds, _text: &str, _color: &String, _align: &HAlign) {}
+    fn fill_text(&mut self, _bounds: &Bounds, _text: &str, _style:&TextStyle<String,String>) {}
 }

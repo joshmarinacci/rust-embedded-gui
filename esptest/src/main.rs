@@ -28,14 +28,14 @@ use embedded_graphics::{
 };
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::geometry::{Point, Size};
-use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
+use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD, FONT_9X15};
 use embedded_graphics::mono_font::MonoFont;
 use esp_hal::i2c::master::{BusTimeout, I2c, Config as I2CConfig};
 use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
-use gui2::{draw_panel_view, draw_scene, draw_view, layout_vbox, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, Scene, Theme, View};
+use gui2::{draw_panel_view, draw_scene, draw_view, layout_vbox, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, Scene, TextStyle, Theme, View};
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
@@ -116,7 +116,7 @@ fn main() -> ! {
         bg: Rgb565::WHITE,
         fg: Rgb565::BLACK,
         panel_bg: Rgb565::CSS_LIGHT_GRAY,
-        font: FONT_7X13,
+        font: FONT_6X10,
         bold_font: FONT_7X13_BOLD,
     };
 
@@ -256,12 +256,13 @@ impl DrawingContext<Rgb565, MonoFont<'static>> for EmbeddedDrawingContext {
             .draw(&mut self.display).unwrap();
     }
 
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, color: &Rgb565, halign: &HAlign) {
-        let style = MonoTextStyle::new(&FONT_6X10, *color);
+    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle<C, F>);
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle<Rgb565, MonoFont<'static>>) {
+        let style = MonoTextStyle::new(&style.font, *style.color);
         let mut pt = Point::new(bounds.x, bounds.y);
         pt.y += bounds.h / 2;
-        pt.y += (FONT_6X10.baseline as i32)/2;
-        let w = (FONT_6X10.character_size.width as i32) * (text.len() as i32);
+        pt.y += (style.font.baseline as i32)/2;
+        let w = (style.font.character_size.width as i32) * (text.len() as i32);
         pt.x += (bounds.w - w) / 2;
         Text::new(text, pt, style)
             .draw(&mut self.display)
@@ -313,10 +314,10 @@ fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
                         };
                         if state.selected == i {
                             ctx.fill_rect(&b, &theme.fg);
-                            ctx.fill_text(&b, item.as_str(), &theme.bg, &HAlign::Center);
+                            ctx.fill_text(&b, item.as_str(), &TextStyle::font_color(&theme.font, &theme.bg).with_halign(HAlign::Center));
                         }else {
                             ctx.fill_rect(&b, &theme.bg);
-                            ctx.fill_text(&b, item.as_str(), &theme.fg, &HAlign::Center);
+                            ctx.fill_text(&b, item.as_str(), &TextStyle::font_color(&theme.font, &theme.fg).with_halign(HAlign::Center));
                         }
                     }
                 }

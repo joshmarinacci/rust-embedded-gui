@@ -1,5 +1,5 @@
 use crate::geom::Bounds;
-use crate::{Action, DrawingContext, GuiEvent, HAlign, Theme, View};
+use crate::{Action, DrawingContext, GuiEvent, HAlign, TextStyle, Theme, View};
 use alloc::boxed::Box;
 use core::any::Any;
 use core::option::Option::*;
@@ -45,7 +45,8 @@ fn draw_toggle_button<C, F>(
 
     ctx.fill_rect(&view.bounds, button_fill);
     ctx.stroke_rect(&view.bounds, &theme.fg);
-    ctx.fill_text(&view.bounds, &view.title, button_color, &HAlign::Center);
+    let style = TextStyle::font_color(&theme.font, button_color);
+    ctx.fill_text(&view.bounds, &view.title, &style);
 }
 
 fn input_toggle_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {

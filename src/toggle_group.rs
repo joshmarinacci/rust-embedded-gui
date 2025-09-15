@@ -1,5 +1,5 @@
 use crate::geom::Bounds;
-use crate::{Action, DrawingContext, EventType, GuiEvent, HAlign, Theme, View};
+use crate::{Action, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme, View};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -80,7 +80,8 @@ fn draw_toggle_group<C, F>(
             );
             ctx.fill_rect(&bds, fill);
             ctx.stroke_rect(&bds, &theme.fg);
-            ctx.fill_text(&bds, item, color, &HAlign::Center);
+            let style = TextStyle::font_color(&theme.font, color).with_halign(HAlign::Center);
+            ctx.fill_text(&bds, item, &style);
         }
     }
 }
