@@ -327,13 +327,6 @@ impl<C, F> Scene<C, F> {
     }
 }
 
-// pub fn remove_parent_child<C, F>(scene: &mut Scene<C, F>, parent: &str, child: &str) {
-//     if let Some(children) = scene.children.get_mut(parent) {
-//         if let Some(n) = children.iter().position(|name| name == child) {
-//             children.remove(n);
-//         }
-//     }
-// }
 pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, pt: Point) -> Option<(String, Action)> {
     // info!("picking at {:?}", pt);
     let targets = pick_at(scene, &pt);
