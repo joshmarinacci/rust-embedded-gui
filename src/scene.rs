@@ -114,11 +114,10 @@ impl<C, F> Scene<C, F> {
             title: "root".to_string(),
             bounds,
             visible: true,
-            draw: None,
             input: None,
             state: None,
             layout: None,
-            draw2: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
+            draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
         };
         let root_id = String::from("root");
         let mut keys: HashMap<String, View<C, F>> = HashMap::new();
@@ -273,10 +272,7 @@ fn draw_view<C, F>(
     let bounds = &scene.bounds.clone();
     if let Some(view) = scene.get_view_mut(name) {
         if view.visible {
-            if let Some(draw) = view.draw {
-                draw(view, ctx, theme);
-            }
-            if let Some(draw2) = view.draw2 {
+            if let Some(draw2) = view.draw {
                 let mut de: DrawEvent<C, F> = DrawEvent {
                     theme,
                     view,

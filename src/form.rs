@@ -78,8 +78,7 @@ pub fn make_form<C, F>(name: &str) -> View<C, F> {
             row_height: 30,
         })),
         layout: Some(layout_form),
-        draw: None,
-        draw2: Some(common_draw_panel),
+        draw: Some(common_draw_panel),
         visible: true,
     }
 }

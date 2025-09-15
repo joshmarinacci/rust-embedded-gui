@@ -1,6 +1,6 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{Action, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme};
+use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -13,10 +13,9 @@ pub fn make_toggle_group<C, F>(name: &str, data: Vec<&str>, selected: usize) -> 
         title: name.into(),
         bounds: Bounds::new(0, 0, (data.len() * 60) as i32, 30),
         state: Some(SelectOneOfState::new_with(data, selected)),
-        draw: Some(draw_toggle_group),
         input: Some(input_toggle_group),
         layout: None,
-        draw2: None,
+        draw: Some(draw_toggle_group),
         visible: true,
     }
 }
@@ -58,20 +57,18 @@ fn input_toggle_group<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
 }
 
 fn draw_toggle_group<C, F>(
-    view: &mut View<C, F>,
-    ctx: &mut dyn DrawingContext<C, F>,
-    theme: &Theme<C, F>,
+    e: &mut DrawEvent<C, F>
 ) {
-    let bounds = view.bounds;
-    ctx.fill_rect(&view.bounds, &theme.bg);
-    ctx.stroke_rect(&view.bounds, &theme.fg);
-    if let Some(state) = view.get_state::<SelectOneOfState>() {
+    let bounds = e.view.bounds;
+    e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+    if let Some(state) = e.view.get_state::<SelectOneOfState>() {
         let cell_width = bounds.w / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
             let (fill, color) = if i == state.selected {
-                (&theme.fg, &theme.bg)
+                (&e.theme.fg, &e.theme.bg)
             } else {
-                (&theme.bg, &theme.fg)
+                (&e.theme.bg, &e.theme.fg)
             };
             let bds = Bounds::new(
                 bounds.x + (i as i32) * cell_width,
@@ -79,10 +76,10 @@ fn draw_toggle_group<C, F>(
                 cell_width,
                 bounds.h,
             );
-            ctx.fill_rect(&bds, fill);
-            ctx.stroke_rect(&bds, &theme.fg);
-            let style = TextStyle::new(&theme.font, color).with_halign(HAlign::Center);
-            ctx.fill_text(&bds, item, &style);
+            e.ctx.fill_rect(&bds, fill);
+            e.ctx.stroke_rect(&bds, &e.theme.fg);
+            let style = TextStyle::new(&e.theme.font, color).with_halign(HAlign::Center);
+            e.ctx.fill_text(&bds, item, &style);
         }
     }
 }

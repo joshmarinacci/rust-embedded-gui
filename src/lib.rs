@@ -82,7 +82,7 @@ pub struct DrawEvent<'a, C, F> {
     pub ctx: &'a mut dyn DrawingContext<C, F>,
     pub theme: &'a Theme<C, F>,
     pub focused: &'a Option<String>,
-    pub view: &'a View<C, F>,
+    pub view: &'a mut View<C, F>,
     pub bounds: &'a Bounds,
 }
 
@@ -152,13 +152,6 @@ mod tests {
             //     .init();
         });
     }
-    fn draw_generic_view<C, F>(
-        view: &mut View<C, F>,
-        ctx: &mut dyn DrawingContext<C, F>,
-        theme: &Theme<C, F>,
-    ) {
-        ctx.fill_rect(&view.bounds, &theme.bg)
-    }
     fn make_simple_view<C, F>(name: &str) -> View<C, F> {
         View {
             name: name.to_string(),
@@ -170,8 +163,9 @@ mod tests {
                 h: 10,
             },
             visible: true,
-            draw: Some(draw_generic_view),
-            draw2: None,
+            draw: Some(|e|{
+                e.ctx.fill_rect(&e.view.bounds, &e.theme.bg)
+            }),
             input: None,
             state: None,
             layout: None,
@@ -198,10 +192,9 @@ mod tests {
             title: name.to_string(),
             bounds,
             visible: true,
-            draw2: Some(|e| {
+            draw: Some(|e| {
                 e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg);
             }),
-            draw: None,
             input: None,
             state: None,
             layout: Some(layout_vbox),
@@ -222,14 +215,13 @@ mod tests {
                 h: 20,
             },
             visible: true,
-            draw: Some(|view, _ctx, _theme| {
-                if let Some(state) = &mut view.state {
+            draw:Some(|e| {
+                if let Some(state) = &mut e.view.state {
                     if let Some(state) = state.downcast_mut::<TestButtonState>() {
                         state.drawn = true;
                     }
                 }
             }),
-            draw2: None,
             input: Some(|e| {
                 if let Some(view) = e.scene.get_view_mut(e.target) {
                     if let Some(state) = &mut view.state {
@@ -255,7 +247,6 @@ mod tests {
             visible: true,
             state: None,
             draw: None,
-            draw2: None,
             layout: None,
             input: Some(|e| {
                 match e.event_type {
@@ -272,14 +263,12 @@ mod tests {
         }
     }
     fn draw_label_view<C, F>(
-        view: &mut View<C, F>,
-        ctx: &mut dyn DrawingContext<C, F>,
-        theme: &Theme<C, F>,
+        e: &mut DrawEvent<C, F>,
     ) {
-        ctx.fill_text(
-            &view.bounds,
-            &view.title,
-            &TextStyle::new(&theme.font, &theme.fg),
+        e.ctx.fill_text(
+            &e.view.bounds,
+            &e.view.title,
+            &TextStyle::new(&e.theme.font, &e.theme.fg),
         );
     }
     fn make_label<C, F>(name: &str) -> View<C, F> {
@@ -294,7 +283,6 @@ mod tests {
             },
             visible: true,
             draw: Some(draw_label_view),
-            draw2: None,
             input: None,
             state: None,
             layout: None,
@@ -550,26 +538,25 @@ mod tests {
                 w: 20,
                 h: 20,
             },
-            draw: Some(|view, ctx, theme| {
-                if let Some(state) = &view.state {
+            draw: Some(|e| {
+                if let Some(state) = &e.view.state {
                     if let Some(state) = state.downcast_ref::<String>() {
                         if state == "enabled" {
-                            ctx.fill_rect(&view.bounds, &theme.fg);
-                            ctx.stroke_rect(&view.bounds, &theme.bg);
+                            e.ctx.fill_rect(&e.view.bounds, &e.theme.fg);
+                            e.ctx.stroke_rect(&e.view.bounds, &e.theme.bg);
                             let style =
-                                TextStyle::new(&theme.font, &theme.bg).with_halign(HAlign::Center);
-                            ctx.fill_text(&view.bounds, &view.title, &style);
+                                TextStyle::new(&e.theme.font, &e.theme.bg).with_halign(HAlign::Center);
+                            e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
                         } else {
-                            ctx.fill_rect(&view.bounds, &theme.bg);
-                            ctx.stroke_rect(&view.bounds, &theme.fg);
+                            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+                            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
                             let style =
-                                TextStyle::new(&theme.font, &theme.fg).with_halign(HAlign::Center);
-                            ctx.fill_text(&view.bounds, &view.title, &style);
+                                TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(HAlign::Center);
+                            e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
                         }
                     }
                 }
             }),
-            draw2: None,
             input: Some(handle_toggle_button_input),
             state: Some(Box::new(String::from("disabled"))),
             layout: None,
@@ -686,7 +673,7 @@ mod tests {
             title: "view".into(),
             bounds: Bounds::new(0, 0, 10, 10),
             visible: true,
-            draw2: Some(|e| {
+            draw: Some(|e| {
                 let mut color = &e.theme.fg;
                 if e.focused.is_some() && e.view.name.eq(e.focused.as_ref().unwrap()) {
                     color = &e.theme.bg;
@@ -694,7 +681,6 @@ mod tests {
                 e.ctx.fill_rect(&e.view.bounds, color);
             }),
             state: None,
-            draw: None,
             input: None,
             layout: None,
         };

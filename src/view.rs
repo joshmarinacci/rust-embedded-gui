@@ -10,11 +10,10 @@ pub struct View<C, F> {
     pub title: String,
     pub bounds: Bounds,
     pub visible: bool,
-    pub draw: Option<DrawFn<C, F>>,
     pub input: Option<InputFn<C, F>>,
     pub state: Option<Box<dyn Any>>,
     pub layout: Option<LayoutFn<C, F>>,
-    pub draw2: Option<DrawFn2<C, F>>,
+    pub draw: Option<DrawFn2<C, F>>,
 }
 
 impl<C, F> View<C, F> {

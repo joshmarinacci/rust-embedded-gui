@@ -28,7 +28,7 @@ use embedded_graphics::{
 };
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::geometry::{Point, Size};
-use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD, FONT_9X15};
+use embedded_graphics::mono_font::ascii::{FONT_7X13_BOLD, FONT_9X15};
 use embedded_graphics::mono_font::MonoFont;
 use esp_hal::i2c::master::{BusTimeout, Config as I2CConfig, I2c};
 use mipidsi::interface::SpiInterface;
@@ -279,8 +279,7 @@ fn make_vbox<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
         title: name.to_string(),
         bounds,
         visible: true,
-        draw: None,
-        draw2: Some(|e|{
+        draw: Some(|e|{
             e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg);
         }),
         input: None,
@@ -319,31 +318,30 @@ fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
             h:(data.len() as i32) * vh,
         },
         visible:true,
-        draw: Some(|view, ctx, theme| {
-            ctx.fill_rect(&view.bounds, &theme.bg);
-            if let Some(state) = &view.state {
+        draw: Some(|e| {
+            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+            if let Some(state) = &e.view.state {
                 if let Some(state) = state.downcast_ref::<MenuState>() {
                     info!("menu state is {:?} {}",state.data, state.selected);
                     for (i,item) in (&state.data).iter().enumerate() {
                         let b = Bounds {
-                            x: view.bounds.x+1,
-                            y: view.bounds.y + (i as i32) * vh + 1,
-                            w: view.bounds.w -2,
+                            x: e.view.bounds.x+1,
+                            y: e.view.bounds.y + (i as i32) * vh + 1,
+                            w: e.view.bounds.w -2,
                             h: vh,
                         };
                         if state.selected == i {
-                            ctx.fill_rect(&b, &theme.fg);
-                            ctx.fill_text(&b, item.as_str(), &TextStyle::new(&theme.font, &theme.bg).with_halign(HAlign::Center));
+                            e.ctx.fill_rect(&b, &e.theme.fg);
+                            e.ctx.fill_text(&b, item.as_str(), &TextStyle::new(&e.theme.font, &e.theme.bg).with_halign(HAlign::Center));
                         }else {
-                            ctx.fill_rect(&b, &theme.bg);
-                            ctx.fill_text(&b, item.as_str(), &TextStyle::new(&theme.font, &theme.fg).with_halign(HAlign::Center));
+                            e.ctx.fill_rect(&b, &e.theme.bg);
+                            e.ctx.fill_text(&b, item.as_str(), &TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(HAlign::Center));
                         }
                     }
                 }
             }
-            ctx.stroke_rect(&view.bounds, &theme.fg);
+            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
         }),
-        draw2: None,
         input: Some(|event|{
             // info!("menu clicked at");
             match &event.event_type {

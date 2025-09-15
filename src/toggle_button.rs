@@ -1,6 +1,6 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{Action, DrawingContext, GuiEvent, TextStyle, Theme};
+use crate::{Action, DrawEvent, DrawingContext, GuiEvent, TextStyle, Theme};
 use alloc::boxed::Box;
 use core::any::Any;
 use core::option::Option::*;
@@ -13,7 +13,6 @@ pub fn make_toggle_button<C, F>(name: &str, title: &str) -> View<C, F> {
         visible: true,
         state: Some(Box::new(SelectedState::new())),
         draw: Some(draw_toggle_button),
-        draw2: None,
         layout: None,
         input: Some(input_toggle_button),
     }
@@ -30,24 +29,22 @@ impl SelectedState {
 }
 
 fn draw_toggle_button<C, F>(
-    view: &mut View<C, F>,
-    ctx: &mut dyn DrawingContext<C, F>,
-    theme: &Theme<C, F>,
+    e: &mut DrawEvent<C, F>,
 ) {
-    let (button_fill, button_color) = if let Some(state) = view.get_state::<SelectedState>() {
+    let (button_fill, button_color) = if let Some(state) = e.view.get_state::<SelectedState>() {
         if state.selected {
-            (&theme.fg, &theme.bg)
+            (&e.theme.fg, &e.theme.bg)
         } else {
-            (&theme.bg, &theme.fg)
+            (&e.theme.bg, &e.theme.fg)
         }
     } else {
-        (&theme.bg, &theme.fg)
+        (&e.theme.bg, &e.theme.fg)
     };
 
-    ctx.fill_rect(&view.bounds, button_fill);
-    ctx.stroke_rect(&view.bounds, &theme.fg);
-    let style = TextStyle::new(&theme.font, button_color);
-    ctx.fill_text(&view.bounds, &view.title, &style);
+    e.ctx.fill_rect(&e.view.bounds, button_fill);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+    let style = TextStyle::new(&e.theme.font, button_color);
+    e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 }
 
 fn input_toggle_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
