@@ -1,5 +1,5 @@
 use crate::geom::Bounds;
-use crate::{DrawFn, DrawFn2, InputFn, LayoutFn};
+use crate::{DrawFn, InputFn, LayoutFn};
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::any::Any;
@@ -13,7 +13,7 @@ pub struct View<C, F> {
     pub input: Option<InputFn<C, F>>,
     pub state: Option<Box<dyn Any>>,
     pub layout: Option<LayoutFn<C, F>>,
-    pub draw: Option<DrawFn2<C, F>>,
+    pub draw: Option<DrawFn<C, F>>,
 }
 
 impl<C, F> View<C, F> {

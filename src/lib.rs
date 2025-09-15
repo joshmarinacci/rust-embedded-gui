@@ -91,9 +91,7 @@ pub enum Action {
     Generic,
     Command(String),
 }
-pub type DrawFn<C, F> =
-    fn(view: &mut View<C, F>, ctx: &mut dyn DrawingContext<C, F>, theme: &Theme<C, F>);
-pub type DrawFn2<C, F> = fn(event: &mut DrawEvent<C, F>);
+pub type DrawFn<C, F> = fn(event: &mut DrawEvent<C, F>);
 pub type LayoutFn<C, F> = fn(event: &mut LayoutEvent<C, F>);
 pub type InputFn<C, F> = fn(event: &mut GuiEvent<C, F>) -> Option<Action>;
 
