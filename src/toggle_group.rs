@@ -80,7 +80,7 @@ fn draw_toggle_group<C, F>(
             );
             ctx.fill_rect(&bds, fill);
             ctx.stroke_rect(&bds, &theme.fg);
-            let style = TextStyle::font_color(&theme.font, color).with_halign(HAlign::Center);
+            let style = TextStyle::new(&theme.font, color).with_halign(HAlign::Center);
             ctx.fill_text(&bds, item, &style);
         }
     }

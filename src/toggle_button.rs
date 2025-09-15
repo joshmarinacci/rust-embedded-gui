@@ -45,7 +45,7 @@ fn draw_toggle_button<C, F>(
 
     ctx.fill_rect(&view.bounds, button_fill);
     ctx.stroke_rect(&view.bounds, &theme.fg);
-    let style = TextStyle::font_color(&theme.font, button_color);
+    let style = TextStyle::new(&theme.font, button_color);
     ctx.fill_text(&view.bounds, &view.title, &style);
 }
 

@@ -314,10 +314,10 @@ fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
                         };
                         if state.selected == i {
                             ctx.fill_rect(&b, &theme.fg);
-                            ctx.fill_text(&b, item.as_str(), &TextStyle::font_color(&theme.font, &theme.bg).with_halign(HAlign::Center));
+                            ctx.fill_text(&b, item.as_str(), &TextStyle::new(&theme.font, &theme.bg).with_halign(HAlign::Center));
                         }else {
                             ctx.fill_rect(&b, &theme.bg);
-                            ctx.fill_text(&b, item.as_str(), &TextStyle::font_color(&theme.font, &theme.fg).with_halign(HAlign::Center));
+                            ctx.fill_text(&b, item.as_str(), &TextStyle::new(&theme.font, &theme.fg).with_halign(HAlign::Center));
                         }
                     }
                 }

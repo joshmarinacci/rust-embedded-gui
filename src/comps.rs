@@ -76,7 +76,7 @@ fn draw_label<C, F>(
     ctx: &mut dyn DrawingContext<C, F>,
     theme: &Theme<C, F>,
 ) {
-    let style = TextStyle::font_color(&theme.font, &theme.fg);
+    let style = TextStyle::new(&theme.font, &theme.fg);
     ctx.fill_text(&view.bounds, &view.title, &style);
 }
 pub fn make_label<C, F>(name: &str, title: &str) -> View<C, F> {
@@ -106,7 +106,7 @@ fn draw_text_input<C, F>(e: &mut DrawEvent<C, F>) {
             e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
         }
     }
-    let style = TextStyle::font_color(&e.theme.font, &e.theme.fg);
+    let style = TextStyle::new(&e.theme.font, &e.theme.fg);
     e.ctx
         .fill_text(&e.view.bounds, &e.view.title, &style);
 }

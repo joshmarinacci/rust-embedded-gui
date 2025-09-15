@@ -18,39 +18,52 @@ pub mod geom;
 pub mod toggle_button;
 pub mod toggle_group;
 
+#[derive(Copy, Clone)]
 pub enum HAlign {
     Left,
     Center,
     Right,
 }
+#[derive(Copy, Clone)]
 pub enum VAlign {
     Top,
     Center,
     Bottom,
 }
 pub struct TextStyle<'a, C, F> {
-    halign: HAlign,
-    valign: VAlign,
-    underline: bool,
+    pub halign: HAlign,
+    pub valign: VAlign,
+    pub underline: bool,
     pub font: &'a F,
     pub color: &'a C,
 }
 
 impl<'a, C, F> TextStyle<'a, C, F> {
-    pub fn with_halign(mut self, p0: HAlign) -> Self {
-        self.halign = p0;
-        self
-    }
-}
-
-impl<'a, C, F> TextStyle<'a, C, F> {
-    pub fn font_color(font:&'a F, color: &'a C) -> TextStyle<'a, C,F> {
+    pub fn new(font:&'a F, color: &'a C) -> TextStyle<'a, C,F> {
         TextStyle {
-            font: font,
-            color: color,
+            font,
+            color,
             underline: false,
             valign: VAlign::Center,
-            halign: HAlign::Center,
+            halign: HAlign::Left,
+        }
+    }
+    pub fn with_underline(&self, underline: bool) -> Self {
+        TextStyle {
+            color: self.color,
+            font: self.font,
+            underline,
+            halign: self.halign,
+            valign: self.valign
+        }
+    }
+    pub fn with_halign(&self, halign: HAlign) -> Self {
+        TextStyle {
+            color: self.color,
+            font: self.font,
+            underline: self.underline,
+            halign,
+            valign: self.valign
         }
     }
 }
@@ -665,7 +678,7 @@ mod tests {
         ctx: &mut dyn DrawingContext<C, F>,
         theme: &Theme<C, F>,
     ) {
-        ctx.fill_text(&view.bounds, &view.title, &TextStyle::font_color(&theme.font, &theme.fg));
+        ctx.fill_text(&view.bounds, &view.title, &TextStyle::new(&theme.font, &theme.fg));
     }
     fn make_label<C, F>(name: &str) -> View<C, F> {
         View {
@@ -941,12 +954,12 @@ mod tests {
                         if state == "enabled" {
                             ctx.fill_rect(&view.bounds, &theme.fg);
                             ctx.stroke_rect(&view.bounds, &theme.bg);
-                            let style = TextStyle::font_color(&theme.font, &theme.bg).with_halign(HAlign::Center);
+                            let style = TextStyle::new(&theme.font, &theme.bg).with_halign(HAlign::Center);
                             ctx.fill_text(&view.bounds, &view.title, &style);
                         } else {
                             ctx.fill_rect(&view.bounds, &theme.bg);
                             ctx.stroke_rect(&view.bounds, &theme.fg);
-                            let style = TextStyle::font_color(&theme.font, &theme.fg).with_halign(HAlign::Center);
+                            let style = TextStyle::new(&theme.font, &theme.fg).with_halign(HAlign::Center);
                             ctx.fill_text(&view.bounds, &view.title, &style);
                         }
                     }
