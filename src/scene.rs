@@ -1,10 +1,10 @@
-use alloc::string::{String, ToString};
-use hashbrown::HashMap;
-use alloc::vec;
-use alloc::vec::Vec;
-use crate::{Action, Callback, DrawEvent, DrawingContext, EventType, GuiEvent, LayoutEvent, Theme};
 use crate::geom::{Bounds, Point};
 use crate::view::View;
+use crate::{Action, Callback, DrawEvent, DrawingContext, EventType, GuiEvent, LayoutEvent, Theme};
+use alloc::string::{String, ToString};
+use alloc::vec;
+use alloc::vec::Vec;
+use hashbrown::HashMap;
 
 #[derive(Debug)]
 pub struct Scene<C, F> {
@@ -118,9 +118,7 @@ impl<C, F> Scene<C, F> {
             input: None,
             state: None,
             layout: None,
-            draw2: Some(|e|{
-                e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)
-            }),
+            draw2: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
         };
         let root_id = String::from("root");
         let mut keys: HashMap<String, View<C, F>> = HashMap::new();
@@ -173,7 +171,11 @@ impl<C, F> Scene<C, F> {
 
 pub type EventResult = (String, Action);
 
-pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, pt: Point) -> Option<EventResult> {
+pub fn click_at<C, F>(
+    scene: &mut Scene<C, F>,
+    handlers: &Vec<Callback<C, F>>,
+    pt: Point,
+) -> Option<EventResult> {
     // info!("picking at {:?}", pt);
     let targets = pick_at(scene, &pt);
     if let Some(target) = targets.last() {
@@ -194,13 +196,17 @@ pub fn click_at<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, p
             cb(&mut event);
         }
         if let Some(action) = event.action {
-            return Some((target.into(),action));
+            return Some((target.into(), action));
         }
     }
     None
 }
 
-pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>, key: u8) -> Option<EventResult> {
+pub fn type_at_focused<C, F>(
+    scene: &mut Scene<C, F>,
+    handlers: &Vec<Callback<C, F>>,
+    key: u8,
+) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -217,7 +223,7 @@ pub fn type_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C,
                 cb(&mut event);
             }
             if let Some(action) = event.action {
-                return Some((focused,action));
+                return Some((focused, action));
             }
         }
     }
@@ -246,14 +252,17 @@ pub fn scroll_at_focused<C, F>(
                 cb(&mut event);
             }
             if let Some(action) = event.action {
-                return Some((focused,action));
+                return Some((focused, action));
             }
         }
     }
     None
 }
 
-pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<C, F>>) -> Option<EventResult> {
+pub fn action_at_focused<C, F>(
+    scene: &mut Scene<C, F>,
+    handlers: &Vec<Callback<C, F>>,
+) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent<C, F> = GuiEvent {
@@ -270,7 +279,7 @@ pub fn action_at_focused<C, F>(scene: &mut Scene<C, F>, handlers: &Vec<Callback<
                 cb(&mut event);
             }
             if let Some(action) = event.action {
-                return Some((focused,action));
+                return Some((focused, action));
             }
         }
     }

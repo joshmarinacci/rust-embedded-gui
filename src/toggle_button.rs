@@ -1,9 +1,9 @@
 use crate::geom::Bounds;
+use crate::view::View;
 use crate::{Action, DrawingContext, GuiEvent, TextStyle, Theme};
 use alloc::boxed::Box;
 use core::any::Any;
 use core::option::Option::*;
-use crate::view::View;
 
 pub fn make_toggle_button<C, F>(name: &str, title: &str) -> View<C, F> {
     View {
@@ -60,21 +60,15 @@ fn input_toggle_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
 
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::toggle_button::{make_toggle_button, SelectedState};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::toggle_button::{SelectedState, make_toggle_button};
     use crate::{MockDrawingContext, Theme};
     use alloc::string::String;
     use alloc::vec;
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
 
     #[test]
     fn test_toggle_button() {
-        let theme: Theme<String, String> = Theme {
-            bg: "white".into(),
-            fg: "black".into(),
-            panel_bg: "grey".into(),
-            font: "plain".into(),
-            bold_font: "bold".into(),
-        };
+        let theme = make_mock_theme();
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
             let mut button = make_toggle_button("toggle", "Toggle");
@@ -106,5 +100,15 @@ mod tests {
         assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);
         assert_eq!(scene.dirty, false);
+    }
+
+    fn make_mock_theme() -> Theme<String, String> {
+        Theme {
+            bg: "white".into(),
+            fg: "black".into(),
+            panel_bg: "grey".into(),
+            font: "plain".into(),
+            bold_font: "bold".into(),
+        }
     }
 }

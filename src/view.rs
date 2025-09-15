@@ -1,8 +1,8 @@
-use alloc::string::String;
-use alloc::boxed::Box;
-use core::any::Any;
-use crate::{DrawFn, DrawFn2, InputFn, LayoutFn};
 use crate::geom::Bounds;
+use crate::{DrawFn, DrawFn2, InputFn, LayoutFn};
+use alloc::boxed::Box;
+use alloc::string::String;
+use core::any::Any;
 
 #[derive(Debug)]
 pub struct View<C, F> {

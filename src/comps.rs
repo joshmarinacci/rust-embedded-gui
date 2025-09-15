@@ -1,8 +1,10 @@
 use crate::geom::Bounds;
-use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme, VAlign};
+use crate::view::View;
+use crate::{
+    Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme, VAlign,
+};
 use alloc::string::ToString;
 use log::info;
-use crate::view::View;
 
 fn draw_panel<C, F>(
     view: &mut View<C, F>,
@@ -34,14 +36,17 @@ fn draw_button<C, F>(e: &mut DrawEvent<C, F>) {
             e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
         }
     }
-    e.ctx
-        .fill_text(&e.view.bounds, &e.view.title, &TextStyle{
+    e.ctx.fill_text(
+        &e.view.bounds,
+        &e.view.title,
+        &TextStyle {
             font: &e.theme.font,
             halign: HAlign::Center,
             color: &e.theme.fg,
             underline: false,
             valign: VAlign::Center,
-        });
+        },
+    );
 }
 
 fn input_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
@@ -108,8 +113,7 @@ fn draw_text_input<C, F>(e: &mut DrawEvent<C, F>) {
         }
     }
     let style = TextStyle::new(&e.theme.font, &e.theme.fg);
-    e.ctx
-        .fill_text(&e.view.bounds, &e.view.title, &style);
+    e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 }
 
 fn input_text_input<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {

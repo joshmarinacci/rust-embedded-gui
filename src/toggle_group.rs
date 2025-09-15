@@ -1,11 +1,11 @@
 use crate::geom::Bounds;
+use crate::view::View;
 use crate::{Action, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
-use crate::view::View;
 
 pub fn make_toggle_group<C, F>(name: &str, data: Vec<&str>, selected: usize) -> View<C, F> {
     View {
@@ -89,11 +89,11 @@ fn draw_toggle_group<C, F>(
 
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
     use crate::{MockDrawingContext, Theme};
     use alloc::string::String;
     use alloc::vec;
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
 
     #[test]
     fn test_toggle_group() {

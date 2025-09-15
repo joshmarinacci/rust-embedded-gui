@@ -3,6 +3,7 @@
 extern crate alloc;
 extern crate core;
 
+use crate::scene::Scene;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
@@ -11,14 +12,13 @@ use core::any::Any;
 use geom::{Bounds, Point};
 use log::info;
 use view::View;
-use crate::scene::Scene;
 
 pub mod comps;
 pub mod form;
 pub mod geom;
+pub mod scene;
 pub mod toggle_button;
 pub mod toggle_group;
-pub mod scene;
 pub mod view;
 
 #[derive(Copy, Clone)]
@@ -42,7 +42,7 @@ pub struct TextStyle<'a, C, F> {
 }
 
 impl<'a, C, F> TextStyle<'a, C, F> {
-    pub fn new(font:&'a F, color: &'a C) -> TextStyle<'a, C,F> {
+    pub fn new(font: &'a F, color: &'a C) -> TextStyle<'a, C, F> {
         TextStyle {
             font,
             color,
@@ -57,7 +57,7 @@ impl<'a, C, F> TextStyle<'a, C, F> {
             font: self.font,
             underline,
             halign: self.halign,
-            valign: self.valign
+            valign: self.valign,
         }
     }
     pub fn with_halign(&self, halign: HAlign) -> Self {
@@ -66,7 +66,7 @@ impl<'a, C, F> TextStyle<'a, C, F> {
             font: self.font,
             underline: self.underline,
             halign,
-            valign: self.valign
+            valign: self.valign,
         }
     }
 }
@@ -133,9 +133,9 @@ pub struct LayoutEvent<'a, C, F> {
 mod tests {
     use super::*;
     use crate::comps::make_button;
+    use crate::scene::{click_at, draw_scene, pick_at, type_at_focused};
     use log::LevelFilter;
     use std::sync::Once;
-    use crate::scene::{click_at, draw_scene, pick_at, type_at_focused};
 
     extern crate std;
 
@@ -198,7 +198,7 @@ mod tests {
             title: name.to_string(),
             bounds,
             visible: true,
-            draw2: Some(|e|{
+            draw2: Some(|e| {
                 e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg);
             }),
             draw: None,
@@ -276,7 +276,11 @@ mod tests {
         ctx: &mut dyn DrawingContext<C, F>,
         theme: &Theme<C, F>,
     ) {
-        ctx.fill_text(&view.bounds, &view.title, &TextStyle::new(&theme.font, &theme.fg));
+        ctx.fill_text(
+            &view.bounds,
+            &view.title,
+            &TextStyle::new(&theme.font, &theme.fg),
+        );
     }
     fn make_label<C, F>(name: &str) -> View<C, F> {
         View {
@@ -536,7 +540,7 @@ mod tests {
         initialize();
         let mut scene = Scene::new();
         // add toggle button
-        let button:View<String,String> = View {
+        let button: View<String, String> = View {
             name: String::from("toggle"),
             title: String::from("Off"),
             visible: true,
@@ -552,12 +556,14 @@ mod tests {
                         if state == "enabled" {
                             ctx.fill_rect(&view.bounds, &theme.fg);
                             ctx.stroke_rect(&view.bounds, &theme.bg);
-                            let style = TextStyle::new(&theme.font, &theme.bg).with_halign(HAlign::Center);
+                            let style =
+                                TextStyle::new(&theme.font, &theme.bg).with_halign(HAlign::Center);
                             ctx.fill_text(&view.bounds, &view.title, &style);
                         } else {
                             ctx.fill_rect(&view.bounds, &theme.bg);
                             ctx.stroke_rect(&view.bounds, &theme.fg);
-                            let style = TextStyle::new(&theme.font, &theme.fg).with_halign(HAlign::Center);
+                            let style =
+                                TextStyle::new(&theme.font, &theme.fg).with_halign(HAlign::Center);
                             ctx.fill_text(&view.bounds, &view.title, &style);
                         }
                     }
@@ -746,5 +752,5 @@ impl DrawingContext<String, String> for MockDrawingContext<String, String> {
 
     fn stroke_rect(&mut self, _bounds: &Bounds, _color: &String) {}
 
-    fn fill_text(&mut self, _bounds: &Bounds, _text: &str, _style:&TextStyle<String,String>) {}
+    fn fill_text(&mut self, _bounds: &Bounds, _text: &str, _style: &TextStyle<String, String>) {}
 }
