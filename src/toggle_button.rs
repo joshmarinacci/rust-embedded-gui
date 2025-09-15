@@ -61,10 +61,10 @@ fn input_toggle_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
 mod tests {
     use crate::geom::{Bounds, Point};
     use crate::toggle_button::{make_toggle_button, SelectedState};
-    use crate::{click_at, draw_scene, layout_scene, MockDrawingContext, Theme};
+    use crate::{MockDrawingContext, Theme};
     use alloc::string::String;
     use alloc::vec;
-    use crate::scene::Scene;
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
 
     #[test]
     fn test_toggle_button() {

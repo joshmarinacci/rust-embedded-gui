@@ -116,10 +116,10 @@ mod tests {
     use crate::comps::make_label;
     use crate::form::{make_form, FormLayoutState};
     use crate::geom::Bounds;
-    use crate::{draw_scene, layout_scene, MockDrawingContext, Theme};
+    use crate::{MockDrawingContext, Theme};
     use alloc::boxed::Box;
     use alloc::string::String;
-    use crate::scene::Scene;
+    use crate::scene::{draw_scene, layout_scene, Scene};
 
     #[test]
     fn test_form_layout() {

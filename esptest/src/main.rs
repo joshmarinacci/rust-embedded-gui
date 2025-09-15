@@ -39,8 +39,8 @@ use static_cell::StaticCell;
 use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
-use gui2::scene::Scene;
-use gui2::{draw_scene, pick_at, Action, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme};
+use gui2::scene::{draw_scene, pick_at, Scene};
+use gui2::{Action, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme};
 use gui2::view::View;
 
 #[panic_handler]

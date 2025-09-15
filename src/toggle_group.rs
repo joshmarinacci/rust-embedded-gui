@@ -90,10 +90,10 @@ fn draw_toggle_group<C, F>(
 mod tests {
     use crate::geom::{Bounds, Point};
     use crate::toggle_group::{make_toggle_group, SelectOneOfState};
-    use crate::{click_at, draw_scene, layout_scene, MockDrawingContext, Theme};
+    use crate::{MockDrawingContext, Theme};
     use alloc::string::String;
     use alloc::vec;
-    use crate::scene::Scene;
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
 
     #[test]
     fn test_toggle_group() {
