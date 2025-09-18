@@ -8,7 +8,6 @@ use embedded_graphics::{
 use embedded_graphics::geometry::{Point, Size};
 use embedded_graphics::mono_font::ascii::{FONT_6X10, FONT_7X13_BOLD};
 use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
-use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
