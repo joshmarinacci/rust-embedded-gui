@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use core::any::Any;
 use core::option::Option::*;
 
-pub fn make_toggle_button<C, F>(name: &str, title: &str) -> View<C, F> {
+pub fn make_toggle_button(name: &str, title: &str) -> View {
     View {
         name: name.into(),
         title: title.into(),
@@ -28,7 +28,7 @@ impl SelectedState {
     }
 }
 
-fn draw_toggle_button<C, F>(e: &mut DrawEvent<C, F>) {
+fn draw_toggle_button(e: &mut DrawEvent) {
     let (button_fill, button_color) = if let Some(state) = e.view.get_state::<SelectedState>() {
         if state.selected {
             (&e.theme.fg, &e.theme.bg)
@@ -45,7 +45,7 @@ fn draw_toggle_button<C, F>(e: &mut DrawEvent<C, F>) {
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 }
 
-fn input_toggle_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
+fn input_toggle_button(event: &mut GuiEvent) -> Option<Action> {
     if let Some(state) = event.scene.get_view_state::<SelectedState>(event.target) {
         state.selected = !state.selected;
     }

@@ -112,10 +112,10 @@ fn main() -> ! {
     info!("Display initialized");
 
     let mut ctx:EmbeddedDrawingContext = EmbeddedDrawingContext::new(display);
-    let mut scene: Scene<Rgb565, MonoFont> = make_gui_scene();
+    let mut scene = make_gui_scene();
 
 
-    let theme:Theme<Rgb565, MonoFont> = Theme {
+    let theme = Theme {
         bg: Rgb565::WHITE,
         fg: Rgb565::BLACK,
         panel_bg: Rgb565::CSS_LIGHT_GRAY,
@@ -149,7 +149,7 @@ fn main() -> ! {
                 let targets = pick_at(&mut scene, &pt);
                 info!("clicked on targets {:?}", targets);
                 if let Some(target) =  targets.last() {
-                    let mut evt:GuiEvent<Rgb565, MonoFont> = GuiEvent {
+                    let mut evt = GuiEvent {
                         scene: &mut scene,
                         target,
                         event_type: EventType::Tap(pt),
@@ -173,8 +173,8 @@ fn main() -> ! {
 }
 
 
-fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
-    let mut scene: Scene<Rgb565, MonoFont> = Scene::new_with_bounds(Bounds::new(0,0,320,240));
+fn make_gui_scene() -> Scene {
+    let mut scene = Scene::new_with_bounds(Bounds::new(0,0,320,240));
     let rootname = scene.root_id.clone();
 
     let mut panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
@@ -237,12 +237,7 @@ fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
                    Size::new(bounds.w as u32,bounds.h as u32))
 }
 
-impl DrawingContext<Rgb565, MonoFont<'static>> for EmbeddedDrawingContext {
-    fn clear(&mut self, color: &Rgb565) {
-        error!("clear {:?}", color);
-        self.display.clear(*color).unwrap();
-    }
-
+impl DrawingContext for EmbeddedDrawingContext {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
         // info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
         bounds_to_rect(bounds)
@@ -259,8 +254,8 @@ impl DrawingContext<Rgb565, MonoFont<'static>> for EmbeddedDrawingContext {
             .draw(&mut self.display).unwrap();
     }
 
-    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle<C, F>);
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle<Rgb565, MonoFont<'static>>) {
+    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
         let style = MonoTextStyle::new(&style.font, *style.color);
         let mut pt = Point::new(bounds.x, bounds.y);
         pt.y += bounds.h / 2;
@@ -273,7 +268,7 @@ impl DrawingContext<Rgb565, MonoFont<'static>> for EmbeddedDrawingContext {
     }
 }
 
-fn make_vbox<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
+fn make_vbox(name: &str, bounds: Bounds) -> View {
     View {
         name: name.to_string(),
         title: name.to_string(),
@@ -307,7 +302,7 @@ struct MenuState {
     selected:usize,
 }
 const vh:i32 = 30;
-fn make_menuview<C, F>(name:&str, data:Vec<String>) -> View<C, F> {
+fn make_menuview(name:&str, data:Vec<String>) -> View {
     View {
         name: name.into(),
         title: name.into(),

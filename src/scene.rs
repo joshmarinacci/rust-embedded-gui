@@ -7,8 +7,8 @@ use alloc::vec::Vec;
 use hashbrown::HashMap;
 
 #[derive(Debug)]
-pub struct Scene<C, F> {
-    pub(crate) keys: HashMap<String, View<C, F>>,
+pub struct Scene {
+    pub(crate) keys: HashMap<String, View>,
     children: HashMap<String, Vec<String>>,
     pub(crate) dirty: bool,
     pub bounds: Bounds,
@@ -17,7 +17,7 @@ pub struct Scene<C, F> {
     pub(crate) focused: Option<String>,
 }
 
-impl<C, F> Scene<C, F> {
+impl Scene {
     pub fn set_focused(&mut self, name: &str) {
         if self.focused.is_some() {
             let fo = self.focused.as_ref().unwrap().clone();
@@ -86,10 +86,10 @@ impl<C, F> Scene<C, F> {
         }
     }
 
-    pub fn get_view(&self, name: &str) -> Option<&View<C, F>> {
+    pub fn get_view(&self, name: &str) -> Option<&View> {
         self.keys.get(name)
     }
-    pub fn get_view_mut(&mut self, name: &str) -> Option<&mut View<C, F>> {
+    pub fn get_view_mut(&mut self, name: &str) -> Option<&mut View> {
         self.keys.get_mut(name)
     }
     pub fn get_view_state<T: 'static>(&mut self, name: &str) -> Option<&mut T> {
@@ -104,11 +104,11 @@ impl<C, F> Scene<C, F> {
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
     }
-    pub fn remove_view(&mut self, name: &str) -> Option<View<C, F>> {
+    pub fn remove_view(&mut self, name: &str) -> Option<View> {
         self.mark_dirty_view(name);
         self.keys.remove(name)
     }
-    pub fn new_with_bounds(bounds: Bounds) -> Scene<C, F> {
+    pub fn new_with_bounds(bounds: Bounds) -> Scene {
         let root = View {
             name: "root".to_string(),
             title: "root".to_string(),
@@ -120,7 +120,7 @@ impl<C, F> Scene<C, F> {
             draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
         };
         let root_id = String::from("root");
-        let mut keys: HashMap<String, View<C, F>> = HashMap::new();
+        let mut keys: HashMap<String, View> = HashMap::new();
         keys.insert(root_id.clone(), root);
         Scene {
             bounds,
@@ -132,7 +132,7 @@ impl<C, F> Scene<C, F> {
             children: HashMap::new(),
         }
     }
-    pub fn new() -> Scene<C, F> {
+    pub fn new() -> Scene {
         let bounds = Bounds {
             x: 0,
             y: 0,
@@ -141,15 +141,15 @@ impl<C, F> Scene<C, F> {
         };
         Self::new_with_bounds(bounds)
     }
-    pub fn add_view(&mut self, view: View<C, F>) {
+    pub fn add_view(&mut self, view: View) {
         let name = view.name.clone();
         self.keys.insert(name.clone(), view);
         self.mark_dirty_view(&name);
     }
-    pub fn add_view_to_root(&mut self, view: View<C, F>) {
+    pub fn add_view_to_root(&mut self, view: View) {
         self.add_view_to_parent(view, &self.root_id.clone());
     }
-    pub fn add_view_to_parent(&mut self, view: View<C, F>, parent: &str) {
+    pub fn add_view_to_parent(&mut self, view: View, parent: &str) {
         if !self.children.contains_key(parent) {
             self.children.insert(parent.to_string(), vec![]);
         }
@@ -170,14 +170,14 @@ impl<C, F> Scene<C, F> {
 
 pub type EventResult = (String, Action);
 
-pub fn click_at<C, F>(
-    scene: &mut Scene<C, F>,
-    handlers: &Vec<Callback<C, F>>,
+pub fn click_at(
+    scene: &mut Scene,
+    handlers: &Vec<Callback>,
     pt: Point,
 ) -> Option<EventResult> {
     let targets = pick_at(scene, &pt);
     if let Some(target) = targets.last() {
-        let mut event: GuiEvent<C, F> = GuiEvent {
+        let mut event: GuiEvent = GuiEvent {
             scene,
             target,
             event_type: EventType::Tap(pt),
@@ -198,13 +198,13 @@ pub fn click_at<C, F>(
     None
 }
 
-pub fn event_at_focused<C, F>(
-    scene: &mut Scene<C, F>,
+pub fn event_at_focused(
+    scene: &mut Scene,
     event_type: EventType,
 ) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
-        let mut event: GuiEvent<C, F> = GuiEvent {
+        let mut event: GuiEvent = GuiEvent {
             scene,
             target: &focused,
             event_type: event_type,
@@ -222,11 +222,11 @@ pub fn event_at_focused<C, F>(
     None
 }
 
-pub fn pick_at<C, F>(scene: &mut Scene<C, F>, pt: &Point) -> Vec<String> {
+pub fn pick_at(scene: &mut Scene, pt: &Point) -> Vec<String> {
     pick_at_view(scene, pt, &scene.root_id)
 }
 
-fn pick_at_view<C, F>(scene: &Scene<C, F>, pt: &Point, name: &str) -> Vec<String> {
+fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<String> {
     let mut coll: Vec<String> = vec![];
     if let Some(view) = scene.keys.get(name) {
         if view.bounds.contains(pt) && view.visible {
@@ -244,10 +244,10 @@ fn pick_at_view<C, F>(scene: &Scene<C, F>, pt: &Point, name: &str) -> Vec<String
     coll
 }
 
-pub fn draw_scene<C, F>(
-    scene: &mut Scene<C, F>,
-    ctx: &mut dyn DrawingContext<C, F>,
-    theme: &Theme<C, F>,
+pub fn draw_scene(
+    scene: &mut Scene,
+    ctx: &mut dyn DrawingContext,
+    theme: &Theme
 ) {
     if scene.dirty {
         // info!(
@@ -262,10 +262,10 @@ pub fn draw_scene<C, F>(
     }
 }
 
-fn draw_view<C, F>(
-    scene: &mut Scene<C, F>,
-    ctx: &mut dyn DrawingContext<C, F>,
-    theme: &Theme<C, F>,
+fn draw_view(
+    scene: &mut Scene,
+    ctx: &mut dyn DrawingContext,
+    theme: &Theme,
     name: &str,
 ) {
     let focused = &scene.focused.clone();
@@ -273,7 +273,7 @@ fn draw_view<C, F>(
     if let Some(view) = scene.get_view_mut(name) {
         if view.visible {
             if let Some(draw2) = view.draw {
-                let mut de: DrawEvent<C, F> = DrawEvent {
+                let mut de: DrawEvent = DrawEvent {
                     theme,
                     view,
                     ctx,
@@ -291,13 +291,13 @@ fn draw_view<C, F>(
     }
 }
 
-pub fn layout_scene<C, F>(scene: &mut Scene<C, F>) {
+pub fn layout_scene(scene: &mut Scene) {
     let root_id = scene.root_id.clone();
     layout_view(scene, &root_id);
 }
 
-fn layout_view<C, F>(scene: &mut Scene<C, F>, name: &str) {
-    let mut evt: LayoutEvent<C, F> = LayoutEvent {
+fn layout_view(scene: &mut Scene, name: &str) {
+    let mut evt: LayoutEvent = LayoutEvent {
         scene,
         target: name,
     };

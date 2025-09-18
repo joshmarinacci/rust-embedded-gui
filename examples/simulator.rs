@@ -18,10 +18,10 @@ use gui2::scene::{Scene, draw_scene};
 use gui2::{DrawingContext, TextStyle, Theme};
 use log::error;
 
-fn make_gui_scene() -> Scene<Rgb565, MonoFont<'static>> {
-    let mut scene: Scene<Rgb565, MonoFont> = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
+fn make_gui_scene() -> Scene {
+    let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
-    let mut panel = make_panel(
+    let panel = make_panel(
         "panel",
         Bounds {
             x: 20,
@@ -72,12 +72,7 @@ fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
     )
 }
 
-impl DrawingContext<Rgb565, MonoFont<'static>> for SimulatorDrawingContext {
-    fn clear(&mut self, color: &Rgb565) {
-        error!("clear {:?}", color);
-        self.display.clear(*color).unwrap();
-    }
-
+impl DrawingContext for SimulatorDrawingContext {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
         // info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
         bounds_to_rect(bounds)
@@ -100,7 +95,7 @@ impl DrawingContext<Rgb565, MonoFont<'static>> for SimulatorDrawingContext {
         &mut self,
         bounds: &Bounds,
         text: &str,
-        style: &TextStyle<Rgb565, MonoFont<'static>>,
+        style: &TextStyle,
     ) {
         let style = MonoTextStyle::new(&style.font, *style.color);
         let mut pt = Point::new(bounds.x, bounds.y);
@@ -118,7 +113,7 @@ fn main() -> Result<(), std::convert::Infallible> {
     let mut ctx: SimulatorDrawingContext = SimulatorDrawingContext::new(display);
 
     let mut scene = make_gui_scene();
-    let theme: Theme<Rgb565, MonoFont> = Theme {
+    let theme = Theme {
         bg: Rgb565::WHITE,
         fg: Rgb565::BLACK,
         panel_bg: Rgb565::CSS_LIGHT_GRAY,

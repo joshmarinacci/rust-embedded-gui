@@ -64,7 +64,7 @@ impl LayoutConstraint {
     }
 }
 
-pub fn make_form<C, F>(name: &str) -> View<C, F> {
+pub fn make_form(name: &str) -> View {
     View {
         name: name.into(),
         title: name.into(),
@@ -83,12 +83,12 @@ pub fn make_form<C, F>(name: &str) -> View<C, F> {
     }
 }
 
-fn common_draw_panel<C, F>(evt: &mut DrawEvent<C, F>) {
+fn common_draw_panel(evt: &mut DrawEvent) {
     evt.ctx.fill_rect(&evt.view.bounds, &evt.theme.bg);
     evt.ctx.stroke_rect(&evt.view.bounds, &evt.theme.fg);
 }
 
-fn layout_form<C, F>(evt: &mut LayoutEvent<C, F>) {
+fn layout_form(evt: &mut LayoutEvent) {
     if let Some(view) = evt.scene.get_view(evt.target) {
         let parent_bounds = view.bounds;
         let kids = evt.scene.get_children(evt.target);

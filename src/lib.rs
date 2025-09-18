@@ -41,16 +41,16 @@ pub enum VAlign {
     Center,
     Bottom,
 }
-pub struct TextStyle<'a, C, F> {
+pub struct TextStyle<'a> {
     pub halign: HAlign,
     pub valign: VAlign,
     pub underline: bool,
-    pub font: &'a F,
-    pub color: &'a C,
+    pub font: &'a MonoFont<'static>,
+    pub color: &'a Rgb565,
 }
 
-impl<'a, C, F> TextStyle<'a, C, F> {
-    pub fn new(font: &'a F, color: &'a C) -> TextStyle<'a, C, F> {
+impl<'a> TextStyle<'a> {
+    pub fn new(font: &'a MonoFont<'static>, color: &'a Rgb565) -> TextStyle<'a> {
         TextStyle {
             font,
             color,
@@ -79,18 +79,17 @@ impl<'a, C, F> TextStyle<'a, C, F> {
     }
 }
 
-pub trait DrawingContext<C, F> {
-    fn clear(&mut self, color: &C);
-    fn fill_rect(&mut self, bounds: &Bounds, color: &C);
-    fn stroke_rect(&mut self, bounds: &Bounds, color: &C);
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle<C, F>);
+pub trait DrawingContext {
+    fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565);
+    fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565);
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
 }
 
-pub struct DrawEvent<'a, C, F> {
-    pub ctx: &'a mut dyn DrawingContext<C, F>,
-    pub theme: &'a Theme<C, F>,
+pub struct DrawEvent<'a> {
+    pub ctx: &'a mut dyn DrawingContext,
+    pub theme: &'a Theme,
     pub focused: &'a Option<String>,
-    pub view: &'a mut View<C, F>,
+    pub view: &'a mut View,
     pub bounds: &'a Bounds,
 }
 
@@ -99,19 +98,19 @@ pub enum Action {
     Generic,
     Command(String),
 }
-pub type DrawFn<C, F> = fn(event: &mut DrawEvent<C, F>);
-pub type LayoutFn<C, F> = fn(event: &mut LayoutEvent<C, F>);
-pub type InputFn<C, F> = fn(event: &mut GuiEvent<C, F>) -> Option<Action>;
+pub type DrawFn = fn(event: &mut DrawEvent);
+pub type LayoutFn = fn(event: &mut LayoutEvent);
+pub type InputFn = fn(event: &mut GuiEvent) -> Option<Action>;
 
-pub struct Theme<C, F> {
-    pub bg: C,
-    pub fg: C,
-    pub panel_bg: C,
-    pub font: F,
-    pub bold_font: F,
+pub struct Theme {
+    pub bg: Rgb565,
+    pub fg: Rgb565,
+    pub panel_bg: Rgb565,
+    pub font: MonoFont<'static>,
+    pub bold_font: MonoFont<'static>,
 }
 
-pub type Callback<C, F> = fn(event: &mut GuiEvent<C, F>);
+pub type Callback = fn(event: &mut GuiEvent);
 
 #[derive(Debug)]
 pub enum EventType {
@@ -122,16 +121,16 @@ pub enum EventType {
     Action(),
 }
 #[derive(Debug)]
-pub struct GuiEvent<'a, C, F> {
-    pub scene: &'a mut Scene<C, F>,
+pub struct GuiEvent<'a> {
+    pub scene: &'a mut Scene,
     pub target: &'a str,
     pub event_type: EventType,
     pub action: Option<Action>,
 }
 
 #[derive(Debug)]
-pub struct LayoutEvent<'a, C, F> {
-    pub scene: &'a mut Scene<C, F>,
+pub struct LayoutEvent<'a> {
+    pub scene: &'a mut Scene,
     pub target: &'a str,
 }
 
@@ -159,7 +158,7 @@ mod tests {
                 .init();
         });
     }
-    fn make_simple_view<C, F>(name: &str) -> View<C, F> {
+    fn make_simple_view(name: &str) -> View {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -176,7 +175,7 @@ mod tests {
             layout: None,
         }
     }
-    fn layout_vbox<C, F>(evt: &mut LayoutEvent<C, F>) {
+    fn layout_vbox(evt: &mut LayoutEvent) {
         if let Some(parent) = evt.scene.get_view_mut(evt.target) {
             let mut y = 0;
             let bounds = parent.bounds;
@@ -191,7 +190,7 @@ mod tests {
             }
         }
     }
-    fn make_vbox<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
+    fn make_vbox(name: &str, bounds: Bounds) -> View {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -209,7 +208,7 @@ mod tests {
         drawn: bool,
         got_input: bool,
     }
-    fn make_test_button<C, F>(name: &str) -> View<C, F> {
+    fn make_test_button(name: &str) -> View {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -244,7 +243,7 @@ mod tests {
             layout: None,
         }
     }
-    fn make_text_box<C, F>(name: &str, title: &str) -> View<C, F> {
+    fn make_text_box(name: &str, title: &str) -> View {
         View {
             name: name.into(),
             title: title.into(),
@@ -267,14 +266,14 @@ mod tests {
             }),
         }
     }
-    fn draw_label_view<C, F>(e: &mut DrawEvent<C, F>) {
+    fn draw_label_view(e: &mut DrawEvent) {
         e.ctx.fill_text(
             &e.view.bounds,
             &e.view.title,
             &TextStyle::new(&e.theme.font, &e.theme.fg),
         );
     }
-    fn make_label<C, F>(name: &str) -> View<C, F> {
+    fn make_label(name: &str) -> View {
         View {
             name: name.to_string(),
             title: name.to_string(),
@@ -291,14 +290,14 @@ mod tests {
             layout: None,
         }
     }
-    fn get_bounds<C, F>(scene: &Scene<C, F>, name: &str) -> Option<Bounds> {
+    fn get_bounds(scene: &Scene, name: &str) -> Option<Bounds> {
         if let Some(view) = scene.keys.get(name) {
             Some(view.bounds)
         } else {
             None
         }
     }
-    fn was_button_clicked<C, F>(scene: &mut Scene<C, F>, name: &str) -> bool {
+    fn was_button_clicked(scene: &mut Scene, name: &str) -> bool {
         scene
             .get_view(name)
             .unwrap()
@@ -309,7 +308,7 @@ mod tests {
             .unwrap()
             .got_input
     }
-    fn was_button_drawn<C, F>(scene: &mut Scene<C, F>, name: &str) -> bool {
+    fn was_button_drawn(scene: &mut Scene, name: &str) -> bool {
         scene
             .get_view(name)
             .unwrap()
@@ -321,7 +320,7 @@ mod tests {
             .drawn
     }
 
-    fn repaint(scene: &mut Scene<Rgb565, MonoFont<'static>>) {
+    fn repaint(scene: &mut Scene) {
         let theme = MockDrawingContext::make_mock_theme();
         let mut ctx = MockDrawingContext::new(scene);
         draw_scene(scene, &mut ctx, &theme);
@@ -347,7 +346,7 @@ mod tests {
     }
     #[test]
     fn basic_add_remove() {
-        let mut scene: Scene<String, String> = Scene::new_with_bounds(Bounds::new(0, 0, 100, 30));
+        let mut scene: Scene = Scene::new_with_bounds(Bounds::new(0, 0, 100, 30));
         assert_eq!(scene.viewcount(), 1);
         let view = make_simple_view("foo");
         assert_eq!(scene.viewcount(), 1);
@@ -362,7 +361,7 @@ mod tests {
     }
     #[test]
     fn parent_child() {
-        let mut scene: Scene<String, String> = Scene::new();
+        let mut scene: Scene = Scene::new();
         scene.add_view(make_simple_view("parent"));
         scene.add_view(make_simple_view("child"));
         assert_eq!(scene.get_children("parent").len(), 0);
@@ -386,7 +385,7 @@ mod tests {
     #[test]
     fn test_pick_at() {
         initialize();
-        let mut scene: Scene<String, String> = Scene::new();
+        let mut scene: Scene = Scene::new();
         let vbox = make_vbox(
             "parent",
             Bounds {
@@ -415,7 +414,7 @@ mod tests {
     }
     #[test]
     fn test_layout() {
-        let mut scene: Scene<String, String> = Scene::new();
+        let mut scene: Scene = Scene::new();
         // add panel
         scene.add_view(make_vbox(
             "parent",
@@ -487,8 +486,8 @@ mod tests {
     }
     #[test]
     fn test_events() {
-        let mut scene: Scene<String, String> = Scene::new();
-        let mut handlers: Vec<Callback<String, String>> = vec![];
+        let mut scene: Scene = Scene::new();
+        let mut handlers: Vec<Callback> = vec![];
         handlers.push(|event| {
             info!("got an event {:?}", event);
             if let Some(view) = event.scene.get_view_mut(event.target) {
@@ -508,7 +507,7 @@ mod tests {
         click_at(&mut scene, &handlers, Point::new(5, 5));
         assert_eq!(scene.get_view("root").unwrap().visible, false);
     }
-    fn handle_toggle_button_input<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
+    fn handle_toggle_button_input(event: &mut GuiEvent) -> Option<Action> {
         // info!("view clicked {:?}", event.event_type);
         if let Some(view) = event.scene.get_view_mut(event.target) {
             view.state.insert(Box::new(String::from("enabled")));
@@ -614,7 +613,7 @@ mod tests {
         assert_eq!(was_button_drawn(&mut scene, "button1"), true);
         assert_eq!(was_button_drawn(&mut scene, "button2"), false);
 
-        let mut handlers: Vec<Callback<Rgb565, MonoFont<'static>>> = vec![];
+        let mut handlers: Vec<Callback> = vec![];
         handlers.push(|e| {
             info!("clicked on {}", e.target);
             if let Some(view) = e.scene.get_view_mut("button2") {
@@ -640,7 +639,7 @@ mod tests {
     fn test_keyboard_events() {
         // make scene
         initialize();
-        let mut scene: Scene<String, String> = Scene::new();
+        let mut scene: Scene = Scene::new();
 
         // make text box
         let text_box = make_text_box("textbox1", "foo");
@@ -710,7 +709,7 @@ mod tests {
         // check that button was redrawn
     }
 
-    fn get_view_title<C, F>(scene: &Scene<C, F>, name: &str) -> String {
+    fn get_view_title(scene: &Scene, name: &str) -> String {
         scene.get_view(name).unwrap().title.clone()
     }
 }
@@ -721,7 +720,7 @@ pub struct MockDrawingContext {
 }
 
 impl MockDrawingContext {
-    pub fn new(scene:&Scene<Rgb565, MonoFont<'static>>) -> MockDrawingContext {
+    pub fn new(scene:&Scene) -> MockDrawingContext {
         let mut ctx: MockDrawingContext = MockDrawingContext {
             clip_rect: scene.dirty_rect,
             display: MockDisplay::new(),
@@ -730,8 +729,8 @@ impl MockDrawingContext {
         ctx.display.set_allow_overdraw(true);
         return ctx;
     }
-    pub fn make_mock_theme() -> Theme<Rgb565, MonoFont<'static>> {
-        let theme: Theme<Rgb565, MonoFont<'static>> = Theme {
+    pub fn make_mock_theme() -> Theme {
+        let theme: Theme = Theme {
             bg: Rgb565::WHITE,
             fg: Rgb565::BLACK,
             panel_bg: Rgb565::CSS_GRAY,
@@ -753,11 +752,7 @@ fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
     )
 }
 
-impl DrawingContext<Rgb565, MonoFont<'static>> for MockDrawingContext {
-    fn clear(&mut self, color: &Rgb565) {
-        error!("clear {:?}", color);
-        // self.display.clear(*color).unwrap();
-    }
+impl DrawingContext for MockDrawingContext {
 
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
         info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
@@ -776,12 +771,12 @@ impl DrawingContext<Rgb565, MonoFont<'static>> for MockDrawingContext {
             .unwrap();
     }
 
-    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle<C, F>);
+    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
     fn fill_text(
         &mut self,
         bounds: &Bounds,
         text: &str,
-        style: &TextStyle<Rgb565, MonoFont<'static>>,
+        style: &TextStyle,
     ) {
         let style = MonoTextStyle::new(&style.font, *style.color);
         let mut pt = embedded_graphics::geometry::Point::new(bounds.x, bounds.y);

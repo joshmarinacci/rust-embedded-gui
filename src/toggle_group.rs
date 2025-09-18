@@ -7,7 +7,7 @@ use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
 
-pub fn make_toggle_group<C, F>(name: &str, data: Vec<&str>, selected: usize) -> View<C, F> {
+pub fn make_toggle_group(name: &str, data: Vec<&str>, selected: usize) -> View {
     View {
         name: name.into(),
         title: name.into(),
@@ -34,7 +34,7 @@ impl SelectOneOfState {
     }
 }
 
-fn input_toggle_group<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
+fn input_toggle_group(event: &mut GuiEvent) -> Option<Action> {
     match &event.event_type {
         EventType::Tap(pt) => {
             event.scene.mark_dirty_view(event.target);
@@ -56,7 +56,7 @@ fn input_toggle_group<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
     None
 }
 
-fn draw_toggle_group<C, F>(e: &mut DrawEvent<C, F>) {
+fn draw_toggle_group(e: &mut DrawEvent) {
     let bounds = e.view.bounds;
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
@@ -95,7 +95,7 @@ mod tests {
     #[test]
     fn test_toggle_group() {
         let theme = MockDrawingContext::make_mock_theme();
-        let mut scene:Scene<Rgb565, MonoFont<'static>> = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
+        let mut scene:Scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
             let group = make_toggle_group("group", vec!["A", "B", "C"], 0);
             scene.add_view_to_root(group);

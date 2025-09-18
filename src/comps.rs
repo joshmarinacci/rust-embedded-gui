@@ -6,7 +6,7 @@ use crate::{
 use alloc::string::ToString;
 use log::info;
 
-pub fn make_panel<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
+pub fn make_panel(name: &str, bounds: Bounds) -> View {
     View {
         name: name.into(),
         title: name.into(),
@@ -22,7 +22,7 @@ pub fn make_panel<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
     }
 }
 
-fn draw_button<C, F>(e: &mut DrawEvent<C, F>) {
+fn draw_button(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
     if let Some(focused) = e.focused {
@@ -43,7 +43,7 @@ fn draw_button<C, F>(e: &mut DrawEvent<C, F>) {
     );
 }
 
-fn input_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
+fn input_button(event: &mut GuiEvent) -> Option<Action> {
     // warn!("button got input {:?} {:?}", event.target, event.event_type);
     if let EventType::Tap(_pt) = &event.event_type {
         event.scene.set_focused(event.target);
@@ -52,7 +52,7 @@ fn input_button<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
     }
     None
 }
-pub fn make_button<C, F>(name: &str, title: &str) -> View<C, F> {
+pub fn make_button(name: &str, title: &str) -> View {
     View {
         name: name.to_string(),
         title: title.to_string(),
@@ -70,7 +70,7 @@ pub fn make_button<C, F>(name: &str, title: &str) -> View<C, F> {
     }
 }
 
-pub fn make_label<C, F>(name: &str, title: &str) -> View<C, F> {
+pub fn make_label(name: &str, title: &str) -> View {
     View {
         name: name.into(),
         title: title.into(),
@@ -91,7 +91,7 @@ pub fn make_label<C, F>(name: &str, title: &str) -> View<C, F> {
     }
 }
 
-fn draw_text_input<C, F>(e: &mut DrawEvent<C, F>) {
+fn draw_text_input(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
     if let Some(focused) = e.focused {
@@ -103,7 +103,7 @@ fn draw_text_input<C, F>(e: &mut DrawEvent<C, F>) {
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 }
 
-fn input_text_input<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
+fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
     info!("text input got event {:?}", event.event_type);
     match &event.event_type {
         EventType::Keyboard(key) => {
@@ -131,7 +131,7 @@ fn input_text_input<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
     }
     None
 }
-pub fn make_text_input<C, F>(name: &str, title: &str) -> View<C, F> {
+pub fn make_text_input(name: &str, title: &str) -> View {
     View {
         name: name.into(),
         title: title.into(),
