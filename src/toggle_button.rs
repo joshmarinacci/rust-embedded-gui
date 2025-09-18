@@ -28,9 +28,7 @@ impl SelectedState {
     }
 }
 
-fn draw_toggle_button<C, F>(
-    e: &mut DrawEvent<C, F>,
-) {
+fn draw_toggle_button<C, F>(e: &mut DrawEvent<C, F>) {
     let (button_fill, button_color) = if let Some(state) = e.view.get_state::<SelectedState>() {
         if state.selected {
             (&e.theme.fg, &e.theme.bg)

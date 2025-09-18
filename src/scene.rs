@@ -198,9 +198,9 @@ pub fn click_at<C, F>(
     None
 }
 
-pub fn event_at_focused<C,F>(
+pub fn event_at_focused<C, F>(
     scene: &mut Scene<C, F>,
-    event_type:EventType,
+    event_type: EventType,
 ) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();

@@ -12,7 +12,7 @@ pub fn make_panel<C, F>(name: &str, bounds: Bounds) -> View<C, F> {
         title: name.into(),
         bounds,
         visible: true,
-        draw: Some(|e|{
+        draw: Some(|e| {
             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
             e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
         }),
@@ -81,7 +81,7 @@ pub fn make_label<C, F>(name: &str, title: &str) -> View<C, F> {
             h: 30,
         },
         visible: true,
-        draw: Some(|e|{
+        draw: Some(|e| {
             let style = TextStyle::new(&e.theme.font, &e.theme.fg);
             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
         }),

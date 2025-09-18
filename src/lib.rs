@@ -161,9 +161,7 @@ mod tests {
                 h: 10,
             },
             visible: true,
-            draw: Some(|e|{
-                e.ctx.fill_rect(&e.view.bounds, &e.theme.bg)
-            }),
+            draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.bg)),
             input: None,
             state: None,
             layout: None,
@@ -213,7 +211,7 @@ mod tests {
                 h: 20,
             },
             visible: true,
-            draw:Some(|e| {
+            draw: Some(|e| {
                 if let Some(state) = &mut e.view.state {
                     if let Some(state) = state.downcast_mut::<TestButtonState>() {
                         state.drawn = true;
@@ -260,9 +258,7 @@ mod tests {
             }),
         }
     }
-    fn draw_label_view<C, F>(
-        e: &mut DrawEvent<C, F>,
-    ) {
+    fn draw_label_view<C, F>(e: &mut DrawEvent<C, F>) {
         e.ctx.fill_text(
             &e.view.bounds,
             &e.view.title,
@@ -542,14 +538,14 @@ mod tests {
                         if state == "enabled" {
                             e.ctx.fill_rect(&e.view.bounds, &e.theme.fg);
                             e.ctx.stroke_rect(&e.view.bounds, &e.theme.bg);
-                            let style =
-                                TextStyle::new(&e.theme.font, &e.theme.bg).with_halign(HAlign::Center);
+                            let style = TextStyle::new(&e.theme.font, &e.theme.bg)
+                                .with_halign(HAlign::Center);
                             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
                         } else {
                             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
                             e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-                            let style =
-                                TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(HAlign::Center);
+                            let style = TextStyle::new(&e.theme.font, &e.theme.fg)
+                                .with_halign(HAlign::Center);
                             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
                         }
                     }
@@ -646,7 +642,7 @@ mod tests {
     fn test_keyboard_events() {
         // make scene
         initialize();
-        let mut scene:Scene<String,String> = Scene::new();
+        let mut scene: Scene<String, String> = Scene::new();
 
         // make text box
         let text_box = make_text_box("textbox1", "foo");

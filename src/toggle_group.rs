@@ -56,9 +56,7 @@ fn input_toggle_group<C, F>(event: &mut GuiEvent<C, F>) -> Option<Action> {
     None
 }
 
-fn draw_toggle_group<C, F>(
-    e: &mut DrawEvent<C, F>
-) {
+fn draw_toggle_group<C, F>(e: &mut DrawEvent<C, F>) {
     let bounds = e.view.bounds;
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
