@@ -60,10 +60,14 @@ mod tests {
     use crate::{MockDrawingContext, Theme};
     use alloc::string::String;
     use alloc::vec;
+    use embedded_graphics::mock_display::MockDisplay;
+    use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
+    use embedded_graphics::mono_font::MonoFont;
+    use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
 
     #[test]
     fn test_toggle_button() {
-        let theme = make_mock_theme();
+        let theme = MockDrawingContext::make_mock_theme();
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
             let mut button = make_toggle_button("toggle", "Toggle");
@@ -85,25 +89,12 @@ mod tests {
             let state = scene.get_view_state::<SelectedState>("toggle").unwrap();
             assert_eq!(state.selected, true);
         }
-
-        let mut ctx: MockDrawingContext<String, String> = MockDrawingContext {
-            bg: String::new(),
-            font: String::new(),
-            clip: scene.dirty_rect,
-        };
+        
+        let mut ctx: MockDrawingContext = MockDrawingContext::new(&scene);
 
         assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);
         assert_eq!(scene.dirty, false);
     }
 
-    fn make_mock_theme() -> Theme<String, String> {
-        Theme {
-            bg: "white".into(),
-            fg: "black".into(),
-            panel_bg: "grey".into(),
-            font: "plain".into(),
-            bold_font: "bold".into(),
-        }
-    }
 }

@@ -10,7 +10,7 @@ use embedded_graphics::{
     primitives::{Circle, PrimitiveStyleBuilder, StrokeAlignment, Triangle},
 };
 use embedded_graphics_simulator::{
-    BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, Window,
+    OutputSettingsBuilder, SimulatorDisplay, Window,
 };
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
 use gui2::geom::Bounds;

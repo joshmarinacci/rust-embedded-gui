@@ -89,17 +89,13 @@ mod tests {
     use crate::{MockDrawingContext, Theme};
     use alloc::string::String;
     use alloc::vec;
+    use embedded_graphics::mono_font::MonoFont;
+    use embedded_graphics::pixelcolor::Rgb565;
 
     #[test]
     fn test_toggle_group() {
-        let theme: Theme<String, String> = Theme {
-            bg: "white".into(),
-            fg: "black".into(),
-            panel_bg: "grey".into(),
-            font: "plain".into(),
-            bold_font: "bold".into(),
-        };
-        let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
+        let theme = MockDrawingContext::make_mock_theme();
+        let mut scene:Scene<Rgb565, MonoFont<'static>> = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
             let group = make_toggle_group("group", vec!["A", "B", "C"], 0);
             scene.add_view_to_root(group);
@@ -123,12 +119,7 @@ mod tests {
             assert_eq!(state.selected, 1);
         }
 
-        let mut ctx: MockDrawingContext<String, String> = MockDrawingContext {
-            bg: String::new(),
-            font: String::new(),
-            clip: scene.dirty_rect,
-        };
-
+        let mut ctx = MockDrawingContext::new(&scene);
         assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);
         assert_eq!(scene.dirty, false);

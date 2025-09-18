@@ -119,16 +119,14 @@ mod tests {
     use crate::{MockDrawingContext, Theme};
     use alloc::boxed::Box;
     use alloc::string::String;
+    use embedded_graphics::mock_display::MockDisplay;
+    use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
+    use embedded_graphics::mono_font::MonoFont;
+    use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
 
     #[test]
     fn test_form_layout() {
-        let theme: Theme<String, String> = Theme {
-            bg: "white".into(),
-            fg: "black".into(),
-            panel_bg: "grey".into(),
-            font: "plain".into(),
-            bold_font: "bold".into(),
-        };
+        let theme = MockDrawingContext::make_mock_theme();
 
         let mut form = make_form("form");
         form.bounds.x = 40;
@@ -170,11 +168,7 @@ mod tests {
             assert_eq!(label3.bounds, Bounds::new(40, 70, 100, 30));
         }
 
-        let mut ctx: MockDrawingContext<String, String> = MockDrawingContext {
-            bg: String::new(),
-            font: String::new(),
-            clip: scene.dirty_rect,
-        };
+        let mut ctx = MockDrawingContext::new(&scene);
 
         assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);

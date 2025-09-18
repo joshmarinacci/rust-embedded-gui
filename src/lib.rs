@@ -9,8 +9,16 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::any::Any;
+use embedded_graphics::Drawable;
+use embedded_graphics::geometry::Size;
+use embedded_graphics::mock_display::MockDisplay;
+use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
+use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
+use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
+use embedded_graphics::primitives::{Primitive, PrimitiveStyle, Rectangle};
+use embedded_graphics::text::Text;
 use geom::{Bounds, Point};
-use log::info;
+use log::{error, info};
 use view::View;
 
 pub mod comps;
@@ -134,6 +142,7 @@ mod tests {
     use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
     use log::LevelFilter;
     use std::sync::Once;
+    use env_logger::Target;
 
     extern crate std;
 
@@ -141,13 +150,13 @@ mod tests {
 
     pub fn initialize() {
         INIT.call_once(|| {
-            // env_logger::Builder::new()
-            //     // .format(|f, record| {
-            //     //     writeln!(f,"[{}] - {}",record.level(),record.args())
-            //     // })
-            //     .target(env_logger::Target::Stdout) // <-- redirects to stdout
-            //     .filter(None, LevelFilter::Info)
-            //     .init();
+            env_logger::Builder::new()
+                // .format(|f, record| {
+                //     writeln!(f,"[{}] - {}",record.level(),record.args())
+                // })
+                .target(Target::Stdout) // <-- redirects to stdout
+                .filter(None, LevelFilter::Info)
+                .init();
         });
     }
     fn make_simple_view<C, F>(name: &str) -> View<C, F> {
@@ -312,20 +321,9 @@ mod tests {
             .drawn
     }
 
-    fn repaint(scene: &mut Scene<String, String>) {
-        let theme: Theme<String, String> = Theme {
-            bg: "white".into(),
-            fg: "black".into(),
-            panel_bg: "grey".into(),
-            font: "plain".into(),
-            bold_font: "bold".into(),
-        };
-
-        let mut ctx: MockDrawingContext<String, String> = MockDrawingContext {
-            bg: String::new(),
-            font: String::new(),
-            clip: scene.dirty_rect,
-        };
+    fn repaint(scene: &mut Scene<Rgb565, MonoFont<'static>>) {
+        let theme = MockDrawingContext::make_mock_theme();
+        let mut ctx = MockDrawingContext::new(scene);
         draw_scene(scene, &mut ctx, &theme);
         scene.dirty_rect = Bounds::new_empty();
     }
@@ -467,7 +465,7 @@ mod tests {
     }
     #[test]
     fn test_repaint() {
-        let mut scene: Scene<String, String> = Scene::new();
+        let mut scene = Scene::new();
         // add panel
         scene.add_view(make_vbox(
             "parent",
@@ -522,7 +520,7 @@ mod tests {
         initialize();
         let mut scene = Scene::new();
         // add toggle button
-        let button: View<String, String> = View {
+        let button = View {
             name: String::from("toggle"),
             title: String::from("Off"),
             visible: true,
@@ -572,7 +570,7 @@ mod tests {
             &"disabled"
         );
         // click at
-        let handlers: Vec<Callback<String, String>> = vec![];
+        let handlers = vec![];
         click_at(&mut scene, &handlers, Point::new(15, 15));
         // confirm toggle button state has changed to enabled
         assert_eq!(
@@ -616,7 +614,7 @@ mod tests {
         assert_eq!(was_button_drawn(&mut scene, "button1"), true);
         assert_eq!(was_button_drawn(&mut scene, "button2"), false);
 
-        let mut handlers: Vec<Callback<String, String>> = vec![];
+        let mut handlers: Vec<Callback<Rgb565, MonoFont<'static>>> = vec![];
         handlers.push(|e| {
             info!("clicked on {}", e.target);
             if let Some(view) = e.scene.get_view_mut("button2") {
@@ -662,7 +660,7 @@ mod tests {
     fn test_draw2() {
         initialize();
         let mut scene = Scene::new();
-        let view: View<String, String> = View {
+        let view = View {
             name: "view".into(),
             title: "view".into(),
             bounds: Bounds::new(0, 0, 10, 10),
@@ -687,7 +685,7 @@ mod tests {
     fn test_cliprect() {
         initialize();
         // make scene
-        let mut scene: Scene<String, String> = Scene::new();
+        let mut scene = Scene::new();
         // add button
         let button = make_button("button", "Button").position_at(20, 20);
         scene.add_view_to_root(button);
@@ -701,8 +699,7 @@ mod tests {
         assert_eq!(scene.dirty, false);
         assert_eq!(scene.dirty_rect.is_empty(), true);
         // send tap to button
-        let handlers: Vec<Callback<String, String>> = vec![];
-        click_at(&mut scene, &handlers, Point::new(30, 30));
+        click_at(&mut scene, &vec![], Point::new(30, 30));
         // check that dirty area is just for the button
         assert_eq!(scene.dirty, true);
         assert_eq!(scene.dirty_rect, scene.get_view("button").unwrap().bounds);
@@ -718,17 +715,80 @@ mod tests {
     }
 }
 
-pub struct MockDrawingContext<C, F> {
-    pub clip: Bounds,
-    pub bg: C,
-    pub font: F,
+pub struct MockDrawingContext {
+    pub clip_rect: Bounds,
+    pub display: MockDisplay<Rgb565>,
 }
-impl DrawingContext<String, String> for MockDrawingContext<String, String> {
-    fn clear(&mut self, _color: &String) {}
 
-    fn fill_rect(&mut self, _bounds: &Bounds, _color: &String) {}
+impl MockDrawingContext {
+    pub fn new(scene:&Scene<Rgb565, MonoFont<'static>>) -> MockDrawingContext {
+        let mut ctx: MockDrawingContext = MockDrawingContext {
+            clip_rect: scene.dirty_rect,
+            display: MockDisplay::new(),
+        };
+        ctx.display.set_allow_out_of_bounds_drawing(true);
+        ctx.display.set_allow_overdraw(true);
+        return ctx;
+    }
+    pub fn make_mock_theme() -> Theme<Rgb565, MonoFont<'static>> {
+        let theme: Theme<Rgb565, MonoFont<'static>> = Theme {
+            bg: Rgb565::WHITE,
+            fg: Rgb565::BLACK,
+            panel_bg: Rgb565::CSS_GRAY,
+            font: FONT_7X13,
+            bold_font: FONT_7X13_BOLD,
+        };
+        return theme;
+    }
 
-    fn stroke_rect(&mut self, _bounds: &Bounds, _color: &String) {}
+}
 
-    fn fill_text(&mut self, _bounds: &Bounds, _text: &str, _style: &TextStyle<String, String>) {}
+fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
+    if bounds.is_empty() {
+        return Rectangle::zero();
+    }
+    Rectangle::new(
+        embedded_graphics::geometry::Point::new(bounds.x, bounds.y),
+        Size::new(bounds.w as u32, bounds.h as u32),
+    )
+}
+
+impl DrawingContext<Rgb565, MonoFont<'static>> for MockDrawingContext {
+    fn clear(&mut self, color: &Rgb565) {
+        error!("clear {:?}", color);
+        // self.display.clear(*color).unwrap();
+    }
+
+    fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
+        info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
+        bounds_to_rect(bounds)
+            .intersection(&bounds_to_rect(&self.clip_rect))
+            .into_styled(PrimitiveStyle::with_fill(*color))
+            .draw(&mut self.display)
+            .unwrap();
+    }
+
+    fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
+        bounds_to_rect(bounds)
+            .intersection(&bounds_to_rect(&self.clip_rect))
+            .into_styled(PrimitiveStyle::with_stroke(*color, 1))
+            .draw(&mut self.display)
+            .unwrap();
+    }
+
+    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle<C, F>);
+    fn fill_text(
+        &mut self,
+        bounds: &Bounds,
+        text: &str,
+        style: &TextStyle<Rgb565, MonoFont<'static>>,
+    ) {
+        let style = MonoTextStyle::new(&style.font, *style.color);
+        let mut pt = embedded_graphics::geometry::Point::new(bounds.x, bounds.y);
+        pt.y += bounds.h / 2;
+        pt.y += (style.font.baseline as i32) / 2;
+        let w = (style.font.character_size.width as i32) * (text.len() as i32);
+        pt.x += (bounds.w - w) / 2;
+        Text::new(text, pt, style).draw(&mut self.display).unwrap();
+    }
 }

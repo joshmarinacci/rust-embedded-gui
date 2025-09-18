@@ -889,6 +889,7 @@ dependencies = [
 name = "gui2"
 version = "0.1.0"
 dependencies = [
+ "embedded-graphics",
  "hashbrown 0.16.0",
  "log",
 ]
