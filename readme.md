@@ -1,5 +1,7 @@
 # Untitled Embedded Rust GUI
 
+![screenshot](resources/screenshot-001.png)
+
 ## What is This?
 
 This is a new GUI library for no_std embedded Rust. I currently have it running on
