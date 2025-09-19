@@ -238,8 +238,8 @@ fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<String> {
         if view.bounds.contains(pt) && view.visible {
             coll.push(view.name.clone());
             let pt2 = Point {
-                x: pt.x - view.bounds.x,
-                y: pt.y - view.bounds.y,
+                x: pt.x, // - view.bounds.x,
+                y: pt.y,// - view.bounds.y,
             };
             for kid in scene.get_children(&view.name) {
                 let mut coll2 = pick_at_view(scene, &pt2, &kid);

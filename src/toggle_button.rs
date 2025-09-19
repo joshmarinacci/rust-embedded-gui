@@ -40,6 +40,12 @@ fn draw_toggle_button(e: &mut DrawEvent) {
 
     e.ctx.fill_rect(&e.view.bounds, button_fill);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+    if let Some(focused) = e.focused {
+        if focused == &e.view.name {
+            e.ctx.stroke_rect(&e.view.bounds.contract(2), button_color);
+        }
+    }
+
     let style = TextStyle::new(&e.theme.font, button_color);
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 }
@@ -47,8 +53,10 @@ fn draw_toggle_button(e: &mut DrawEvent) {
 fn input_toggle_button(event: &mut GuiEvent) -> Option<Action> {
     if let Some(state) = event.scene.get_view_state::<SelectedState>(event.target) {
         state.selected = !state.selected;
+        event.scene.set_focused(event.target);
+        event.scene.mark_dirty_view(event.target);
+        return Some(Action::Generic);
     }
-    event.scene.mark_dirty_view(event.target);
     None
 }
 

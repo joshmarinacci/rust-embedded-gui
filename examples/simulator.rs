@@ -65,7 +65,7 @@ fn make_scene() -> Scene {
     scene
 }
 struct SimulatorDrawingContext<'a> {
-    pub clip_rect: Bounds,
+    pub clip: Bounds,
     display: &'a mut SimulatorDisplay<Rgb565>,
 }
 
@@ -73,7 +73,7 @@ impl SimulatorDrawingContext<'_> {
     fn new(display: &mut SimulatorDisplay<Rgb565>) -> SimulatorDrawingContext {
         SimulatorDrawingContext {
             display,
-            clip_rect: Bounds::new_empty(),
+            clip: Bounds::new_empty(),
         }
     }
 }
@@ -87,31 +87,21 @@ fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
 
 impl DrawingContext for SimulatorDrawingContext<'_> {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        // info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
+        let mut display = self.display.clipped(&bounds_to_rect(&self.clip));
         bounds_to_rect(bounds)
-            .intersection(&bounds_to_rect(&self.clip_rect))
             .into_styled(PrimitiveStyle::with_fill(*color))
-            .draw(self.display)
+            .draw(&mut display)
             .unwrap();
     }
     fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
+        let mut display = self.display.clipped(&bounds_to_rect(&self.clip));
         bounds_to_rect(bounds)
-            .intersection(&bounds_to_rect(&self.clip_rect))
             .into_styled(PrimitiveStyle::with_stroke(*color, 1))
-            .draw(self.display)
+            .draw(&mut display)
             .unwrap();
     }
-    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
-    //     let style = MonoTextStyle::new(&style.font, *style.color);
-    //     let mut pt = Point::new(bounds.x, bounds.y);
-    //     pt.y += bounds.h / 2;
-    //     pt.y += (style.font.baseline as i32) / 2;
-    //     let w = (style.font.character_size.width as i32) * (text.len() as i32);
-    //     pt.x += (bounds.w - w) / 2;
-    //     Text::new(text, pt, style).draw(self.display).unwrap();
-    // }
     fn fill_text(&mut self, bounds: &Bounds, text: &str, text_style:&TextStyle) {
-        let mut display = self.display.clipped(&bounds_to_rect(&self.clip_rect));
+        let mut display = self.display.clipped(&bounds_to_rect(&self.clip));
 
         let mut text_builder = MonoTextStyleBuilder::new().font(text_style.font).text_color(*text_style.color);
         if text_style.underline {
@@ -136,7 +126,6 @@ impl DrawingContext for SimulatorDrawingContext<'_> {
 
         Text::new(text, pt, style).draw(&mut display).unwrap();
     }
-
 }
 
 fn main() -> Result<(), std::convert::Infallible> {
@@ -155,7 +144,7 @@ fn main() -> Result<(), std::convert::Infallible> {
     let mut window = Window::new("Simulator Test", &output_settings);
     'running: loop {
         let mut ctx: SimulatorDrawingContext = SimulatorDrawingContext::new(&mut display);
-        ctx.clip_rect = scene.dirty_rect.clone();
+        ctx.clip = scene.dirty_rect.clone();
         layout_scene(&mut scene, &theme);
         draw_scene(&mut scene, &mut ctx, &theme);
         window.update(&display);
