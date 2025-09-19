@@ -22,7 +22,10 @@ and be handled by processing actions emitted from the scene when events happen.
 
 Build the library with `cargo build`.
 
-Run the simulator example with `cargo run --example simulator --features std`.
+Run the simulator example with `cargo run --example simulator --features std`. Note that
+the simulator needs SDL2. [Install instructions](https://docs.rs/embedded-graphics-simulator/latest/embedded_graphics_simulator/).
+
+
 
 Run the unit tests with `cargo test --features std`.
 
