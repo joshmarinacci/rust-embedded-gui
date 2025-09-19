@@ -152,7 +152,7 @@ mod tests {
         form.state = Some(Box::new(form_layout));
         scene.add_view_to_root(form);
 
-        layout_scene(&mut scene);
+        layout_scene(&mut scene, &theme);
 
         {
             let label1 = scene.get_view("label1").unwrap();

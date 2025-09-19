@@ -1,8 +1,6 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{
-    Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme, VAlign,
-};
+use crate::{util, Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme, VAlign};
 use alloc::string::ToString;
 use log::info;
 
@@ -12,15 +10,16 @@ pub fn make_panel(name: &str, bounds: Bounds) -> View {
         title: name.into(),
         bounds,
         visible: true,
+        input: None,
+        state: None,
+        layout: None,
         draw: Some(|e| {
             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
             e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
         }),
-        input: None,
-        state: None,
-        layout: None,
     }
 }
+
 
 fn draw_button(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
@@ -43,15 +42,6 @@ fn draw_button(e: &mut DrawEvent) {
     );
 }
 
-fn input_button(event: &mut GuiEvent) -> Option<Action> {
-    // warn!("button got input {:?} {:?}", event.target, event.event_type);
-    if let EventType::Tap(_pt) = &event.event_type {
-        event.scene.set_focused(event.target);
-        event.scene.mark_dirty_view(event.target);
-        return Some(Action::Generic);
-    }
-    None
-}
 pub fn make_button(name: &str, title: &str) -> View {
     View {
         name: name.to_string(),
@@ -63,10 +53,21 @@ pub fn make_button(name: &str, title: &str) -> View {
             h: 30,
         },
         visible: true,
-        draw: Some(draw_button),
-        input: Some(input_button),
         state: None,
-        layout: None,
+        input: Some(|e|{
+            if let EventType::Tap(_pt) = &e.event_type {
+                e.scene.set_focused(e.target);
+                e.scene.mark_dirty_view(e.target);
+                return Some(Action::Generic);
+            }
+            None
+        }),
+        layout: Some(|e|{
+            if let Some(view) = e.scene.get_view_mut(e.target) {
+                view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
+            }
+        }),
+        draw: Some(draw_button),
     }
 }
 
@@ -81,13 +82,17 @@ pub fn make_label(name: &str, title: &str) -> View {
             h: 30,
         },
         visible: true,
+        state: None,
+        input: None,
         draw: Some(|e| {
             let style = TextStyle::new(&e.theme.font, &e.theme.fg);
             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
         }),
-        input: None,
-        state: None,
-        layout: None,
+        layout: Some(|e|{
+            if let Some(view) = e.scene.get_view_mut(e.target) {
+                view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
+            }
+        }),
     }
 }
 
@@ -142,9 +147,13 @@ pub fn make_text_input(name: &str, title: &str) -> View {
             h: 30,
         },
         visible: true,
-        draw: Some(draw_text_input),
-        input: Some(input_text_input),
         state: None,
-        layout: None,
+        input: Some(input_text_input),
+        layout: Some(|e|{
+            // if let Some(view) = e.scene.get_view_mut(e.target) {
+            //     view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
+            // }
+        }),
+        draw: Some(draw_text_input),
     }
 }

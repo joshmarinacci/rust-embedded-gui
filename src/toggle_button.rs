@@ -1,8 +1,7 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{Action, DrawEvent, DrawingContext, GuiEvent, TextStyle, Theme};
+use crate::{util, Action, DrawEvent, DrawingContext, GuiEvent, LayoutEvent, TextStyle};
 use alloc::boxed::Box;
-use core::any::Any;
 use core::option::Option::*;
 
 pub fn make_toggle_button(name: &str, title: &str) -> View {
@@ -13,7 +12,7 @@ pub fn make_toggle_button(name: &str, title: &str) -> View {
         visible: true,
         state: Some(Box::new(SelectedState::new())),
         draw: Some(draw_toggle_button),
-        layout: None,
+        layout: Some(layout_toggle_button),
         input: Some(input_toggle_button),
     }
 }
@@ -53,18 +52,18 @@ fn input_toggle_button(event: &mut GuiEvent) -> Option<Action> {
     None
 }
 
+fn layout_toggle_button(event: &mut LayoutEvent) {
+    if let Some(view) = event.scene.get_view_mut(event.target) {
+        view.bounds = util::calc_bounds(view.bounds, event.theme.font, &view.title);
+    }
+}
+
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
-    use crate::toggle_button::{SelectedState, make_toggle_button};
-    use crate::{MockDrawingContext, Theme};
-    use alloc::string::String;
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::toggle_button::{make_toggle_button, SelectedState};
+    use crate::MockDrawingContext;
     use alloc::vec;
-    use embedded_graphics::mock_display::MockDisplay;
-    use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
-    use embedded_graphics::mono_font::MonoFont;
-    use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
-
     #[test]
     fn test_toggle_button() {
         let theme = MockDrawingContext::make_mock_theme();
@@ -73,12 +72,15 @@ mod tests {
             let mut button = make_toggle_button("toggle", "Toggle");
             scene.add_view_to_root(button);
         }
-        layout_scene(&mut scene);
+        layout_scene(&mut scene, &theme);
 
         {
             let mut button = scene.get_view_mut("toggle").unwrap();
             assert_eq!(button.name, "toggle");
-            assert_eq!(button.bounds, Bounds::new(0, 0, 80, 30));
+            let ch_size = &theme.font.character_size;
+            assert_eq!(button.bounds, Bounds::new(0, 0,
+                                                  (("toggle".len() as u32) * ch_size.width + (ch_size.width / 2) * 2) as i32,
+                                                  (ch_size.height + (ch_size.height / 2) * 2) as i32));
             let state = &mut button.get_state::<SelectedState>().unwrap();
             assert_eq!(state.selected, false);
         }

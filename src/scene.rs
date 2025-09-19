@@ -5,6 +5,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use hashbrown::HashMap;
+use log::info;
 
 #[derive(Debug)]
 pub struct Scene {
@@ -15,6 +16,7 @@ pub struct Scene {
     pub dirty_rect: Bounds,
     pub root_id: String,
     pub(crate) focused: Option<String>,
+    pub layout_dirty: bool
 }
 
 impl Scene {
@@ -62,6 +64,9 @@ impl Scene {
             // info!("dirty rect now {:?}", self.dirty_rect);
             self.dirty = true;
         }
+    }
+    pub fn mark_layout_dirty(&mut self) {
+        self.layout_dirty = true;
     }
     pub fn remove_child(&mut self, parent: &str, child: &str) {
         if let Some(children) = self.children.get_mut(parent) {
@@ -126,6 +131,7 @@ impl Scene {
             bounds,
             keys,
             dirty: true,
+            layout_dirty: true,
             root_id,
             focused: None,
             dirty_rect: bounds,
@@ -291,15 +297,19 @@ fn draw_view(
     }
 }
 
-pub fn layout_scene(scene: &mut Scene) {
-    let root_id = scene.root_id.clone();
-    layout_view(scene, &root_id);
+pub fn layout_scene(scene: &mut Scene, theme: &Theme) {
+    if scene.layout_dirty {
+        let root_id = scene.root_id.clone();
+        layout_view(scene, &root_id, theme);
+        scene.layout_dirty = false;
+    }
 }
 
-fn layout_view(scene: &mut Scene, name: &str) {
+fn layout_view(scene: &mut Scene, name: &str, theme: &Theme) {
     let mut evt: LayoutEvent = LayoutEvent {
         scene,
         target: name,
+        theme: theme,
     };
     if let Some(form) = evt.scene.get_view(name) {
         if let Some(layout) = &form.layout {
@@ -308,7 +318,7 @@ fn layout_view(scene: &mut Scene, name: &str) {
     }
     if let Some(view) = scene.get_view(name) {
         for kid in scene.get_children(&view.name) {
-            layout_view(scene, &kid);
+            layout_view(scene, &kid, theme);
         }
     }
 }

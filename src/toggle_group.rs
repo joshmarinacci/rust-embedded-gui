@@ -100,7 +100,7 @@ mod tests {
             let group = make_toggle_group("group", vec!["A", "B", "C"], 0);
             scene.add_view_to_root(group);
         }
-        layout_scene(&mut scene);
+        layout_scene(&mut scene, &theme);
 
         {
             let mut group = scene.get_view_mut("group").unwrap();

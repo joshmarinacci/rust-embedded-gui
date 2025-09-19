@@ -1,0 +1,28 @@
+use embedded_graphics::mono_font::MonoFont;
+use log::info;
+use embedded_graphics::primitives::Rectangle;
+use embedded_graphics::geometry::Size;
+use crate::geom::Bounds;
+
+pub fn calc_bounds(bounds: Bounds, font:MonoFont<'static>, title:&str) -> Bounds {
+    let fsize = &font.character_size;
+    // info!("char size is {}", fsize);
+    let hpad = fsize.width;///2;
+    let vpad = fsize.height/2;
+    let mut width = fsize.width * title.len() as u32 ;
+    width += hpad*2;
+    let mut height = fsize.height;
+    height += vpad*2;
+    // info!("text is {:?} bounds = {} x {}", title, width, height);
+    Bounds::new(bounds.x, bounds.y, width as i32, height as i32)
+}
+
+pub fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
+    if bounds.is_empty() {
+        return Rectangle::zero();
+    }
+    Rectangle::new(
+        embedded_graphics::geometry::Point::new(bounds.x, bounds.y),
+        Size::new(bounds.w as u32, bounds.h as u32),
+    )
+}

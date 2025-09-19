@@ -14,6 +14,7 @@ use embedded_graphics::geometry::Size;
 use embedded_graphics::mock_display::MockDisplay;
 use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
 use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
+use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
 use embedded_graphics::primitives::{Primitive, PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
@@ -28,6 +29,7 @@ pub mod scene;
 pub mod toggle_button;
 pub mod toggle_group;
 pub mod view;
+pub mod util;
 
 #[derive(Copy, Clone)]
 pub enum HAlign {
@@ -102,6 +104,7 @@ pub type DrawFn = fn(event: &mut DrawEvent);
 pub type LayoutFn = fn(event: &mut LayoutEvent);
 pub type InputFn = fn(event: &mut GuiEvent) -> Option<Action>;
 
+#[derive(Debug)]
 pub struct Theme {
     pub bg: Rgb565,
     pub fg: Rgb565,
@@ -132,6 +135,7 @@ pub struct GuiEvent<'a> {
 pub struct LayoutEvent<'a> {
     pub scene: &'a mut Scene,
     pub target: &'a str,
+    pub theme: &'a Theme,
 }
 
 #[cfg(test)]
@@ -414,6 +418,7 @@ mod tests {
     }
     #[test]
     fn test_layout() {
+        let theme = MockDrawingContext::make_mock_theme();
         let mut scene: Scene = Scene::new();
         // add panel
         scene.add_view(make_vbox(
@@ -433,6 +438,7 @@ mod tests {
         layout_vbox(&mut LayoutEvent {
             scene: &mut scene,
             target: "parent",
+            theme: &theme,
         });
         assert_eq!(
             get_bounds(&scene, "parent"),
@@ -730,42 +736,31 @@ impl MockDrawingContext {
         return ctx;
     }
     pub fn make_mock_theme() -> Theme {
-        let theme: Theme = Theme {
+        Theme {
             bg: Rgb565::WHITE,
             fg: Rgb565::BLACK,
             panel_bg: Rgb565::CSS_GRAY,
-            font: FONT_7X13,
+            font: FONT_6X10,
             bold_font: FONT_7X13_BOLD,
-        };
-        return theme;
+        }
     }
 
-}
-
-fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
-    if bounds.is_empty() {
-        return Rectangle::zero();
-    }
-    Rectangle::new(
-        embedded_graphics::geometry::Point::new(bounds.x, bounds.y),
-        Size::new(bounds.w as u32, bounds.h as u32),
-    )
 }
 
 impl DrawingContext for MockDrawingContext {
 
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
-        bounds_to_rect(bounds)
-            .intersection(&bounds_to_rect(&self.clip_rect))
+        // info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
+        util::bounds_to_rect(bounds)
+            .intersection(&util::bounds_to_rect(&self.clip_rect))
             .into_styled(PrimitiveStyle::with_fill(*color))
             .draw(&mut self.display)
             .unwrap();
     }
 
     fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        bounds_to_rect(bounds)
-            .intersection(&bounds_to_rect(&self.clip_rect))
+        util::bounds_to_rect(bounds)
+            .intersection(&util::bounds_to_rect(&self.clip_rect))
             .into_styled(PrimitiveStyle::with_stroke(*color, 1))
             .draw(&mut self.display)
             .unwrap();
