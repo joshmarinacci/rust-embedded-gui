@@ -33,13 +33,13 @@ Run the unit tests with `cargo test --features std`.
 
 ## Roadmap
 
-[x] Remove generics for color and font. Just use embedded graphics directly.
-[ ] use simulator for interactive tests
-[ ] use MockDisplay for automated tests
-[ ] setup CI on github actions.
-[ ] add menu view
-[ ] add list view
-[ ] support layout using font size. needs padding in the widgets.
+- [x] Remove generics for color and font. Just use embedded graphics directly.
+- [x] use simulator for interactive tests
+- [x] use MockDisplay for automated tests
+- [ ] setup CI on github actions.
+- [ ] add menu view
+- [ ] add list view
+- [ ] support layout using font size. needs padding in the widgets.
 
 
 
