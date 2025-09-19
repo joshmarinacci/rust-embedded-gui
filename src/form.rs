@@ -157,15 +157,15 @@ mod tests {
         {
             let label1 = scene.get_view("label1").unwrap();
             assert_eq!(label1.name, "label1");
-            assert_eq!(label1.bounds, Bounds::new(40, 40, 100, 30));
+            assert_eq!(label1.bounds, Bounds::new(40, 40, 63, 25));
 
             let label2 = scene.get_view("label2").unwrap();
             assert_eq!(label2.name, "label2");
-            assert_eq!(label2.bounds, Bounds::new(140, 40, 100, 30));
+            assert_eq!(label2.bounds, Bounds::new(140, 40, 63, 25));
 
             let label3 = scene.get_view("label3").unwrap();
             assert_eq!(label3.name, "label3");
-            assert_eq!(label3.bounds, Bounds::new(40, 70, 100, 30));
+            assert_eq!(label3.bounds, Bounds::new(40, 70, 63, 25));
         }
 
         let mut ctx = MockDrawingContext::new(&scene);

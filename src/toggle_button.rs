@@ -79,7 +79,7 @@ mod tests {
             assert_eq!(button.name, "toggle");
             let ch_size = &theme.font.character_size;
             assert_eq!(button.bounds, Bounds::new(0, 0,
-                                                  (("toggle".len() as u32) * ch_size.width + (ch_size.width / 2) * 2) as i32,
+                                                  (("toggle".len() as u32) * ch_size.width + (ch_size.width ) * 2) as i32,
                                                   (ch_size.height + (ch_size.height / 2) * 2) as i32));
             let state = &mut button.get_state::<SelectedState>().unwrap();
             assert_eq!(state.selected, false);

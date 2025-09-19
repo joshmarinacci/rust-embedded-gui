@@ -6,14 +6,12 @@ use crate::geom::Bounds;
 
 pub fn calc_bounds(bounds: Bounds, font:MonoFont<'static>, title:&str) -> Bounds {
     let fsize = &font.character_size;
-    // info!("char size is {}", fsize);
-    let hpad = fsize.width;///2;
+    let hpad = fsize.width;
     let vpad = fsize.height/2;
     let mut width = fsize.width * title.len() as u32 ;
     width += hpad*2;
     let mut height = fsize.height;
     height += vpad*2;
-    // info!("text is {:?} bounds = {} x {}", title, width, height);
     Bounds::new(bounds.x, bounds.y, width as i32, height as i32)
 }
 

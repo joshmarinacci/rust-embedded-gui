@@ -1,6 +1,6 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle, Theme};
+use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -14,7 +14,7 @@ pub fn make_toggle_group(name: &str, data: Vec<&str>, selected: usize) -> View {
         bounds: Bounds::new(0, 0, (data.len() * 60) as i32, 30),
         state: Some(SelectOneOfState::new_with(data, selected)),
         input: Some(input_toggle_group),
-        layout: None,
+        layout: Some(layout_toggle_group),
         draw: Some(draw_toggle_group),
         visible: true,
     }
@@ -38,6 +38,7 @@ fn input_toggle_group(event: &mut GuiEvent) -> Option<Action> {
     match &event.event_type {
         EventType::Tap(pt) => {
             event.scene.mark_dirty_view(event.target);
+            event.scene.set_focused(event.target);
             if let Some(view) = event.scene.get_view_mut(event.target) {
                 let bounds = view.bounds;
                 if let Some(state) = view.get_state::<SelectOneOfState>() {
@@ -82,6 +83,15 @@ fn draw_toggle_group(e: &mut DrawEvent) {
     }
 }
 
+fn layout_toggle_group(e: &mut LayoutEvent) {
+    if let Some(state) = e.scene.get_view_state::<SelectOneOfState>(e.target) {
+        let ch = e.theme.font.character_size;
+        let mut height = ch.height + (ch.height/2)*2; // padding
+        if let Some(view) = e.scene.get_view_mut(e.target) {
+            view.bounds = Bounds::new(view.bounds.x, view.bounds.y, view.bounds.w, height as i32)
+        }
+    }
+}
 mod tests {
     use crate::geom::{Bounds, Point};
     use crate::scene::{Scene, click_at, draw_scene, layout_scene};
@@ -97,7 +107,7 @@ mod tests {
         let theme = MockDrawingContext::make_mock_theme();
         let mut scene:Scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
-            let group = make_toggle_group("group", vec!["A", "B", "C"], 0);
+            let group = make_toggle_group("group", vec!["A", "BB", "CCC"], 0);
             scene.add_view_to_root(group);
         }
         layout_scene(&mut scene, &theme);
@@ -105,9 +115,9 @@ mod tests {
         {
             let mut group = scene.get_view_mut("group").unwrap();
             assert_eq!(group.name, "group");
-            assert_eq!(group.bounds, Bounds::new(0, 0, 180, 30));
+            assert_eq!(group.bounds, Bounds::new(0, 0, 180, 13+7));
             let state = &mut group.get_state::<SelectOneOfState>().unwrap();
-            assert_eq!(state.items, vec!["A", "B", "C"]);
+            assert_eq!(state.items, vec!["A", "BB", "CCC"]);
             assert_eq!(state.selected, 0);
         }
 
@@ -115,7 +125,7 @@ mod tests {
 
         {
             let state = &mut scene.get_view_state::<SelectOneOfState>("group").unwrap();
-            assert_eq!(state.items, vec!["A", "B", "C"]);
+            assert_eq!(state.items, vec!["A", "BB", "CCC"]);
             assert_eq!(state.selected, 1);
         }
 

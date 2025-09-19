@@ -17,6 +17,7 @@ use gui2::geom::{Bounds, Point as GPoint};
 use gui2::scene::{click_at, draw_scene, layout_scene, EventResult, Scene};
 use gui2::toggle_button::make_toggle_button;
 use gui2::{DrawingContext, TextStyle, Theme};
+use gui2::toggle_group::make_toggle_group;
 
 const SMALL_FONT_BUTTON: &str = "small_font";
 const MEDIUM_FONT_BUTTON: &str = "medium_font";
@@ -46,6 +47,10 @@ fn make_scene() -> Scene {
     scene.add_view_to_parent(
         make_text_input("textinput", "type text here").position_at(30, 90),
         &panel.name,
+    );
+    scene.add_view_to_parent(
+        make_toggle_group("toggle2",vec!["Apple","Ball","Car"],1).position_at(30, 130),
+        &panel.name
     );
 
     scene.add_view_to_root(panel);
