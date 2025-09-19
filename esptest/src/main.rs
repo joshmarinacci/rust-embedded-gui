@@ -254,7 +254,6 @@ impl DrawingContext for EmbeddedDrawingContext {
             .draw(&mut self.display).unwrap();
     }
 
-    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
     fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
         let style = MonoTextStyle::new(&style.font, *style.color);
         let mut pt = Point::new(bounds.x, bounds.y);

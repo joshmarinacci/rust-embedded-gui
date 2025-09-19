@@ -3,7 +3,7 @@ use embedded_graphics::mono_font::ascii::{
     FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
-use embedded_graphics::mono_font::MonoTextStyle;
+use embedded_graphics::mono_font::{MonoTextStyle, MonoTextStyleBuilder};
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
@@ -12,11 +12,12 @@ use embedded_graphics::prelude::*;
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
+use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use gui2::comps::{make_button, make_label, make_panel, make_text_input};
 use gui2::geom::{Bounds, Point as GPoint};
-use gui2::scene::{click_at, draw_scene, layout_scene, EventResult, Scene};
+use gui2::scene::{click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene};
 use gui2::toggle_button::make_toggle_button;
-use gui2::{DrawingContext, TextStyle, Theme};
+use gui2::{DrawingContext, EventType, HAlign, TextStyle, Theme};
 use gui2::toggle_group::make_toggle_group;
 
 const SMALL_FONT_BUTTON: &str = "small_font";
@@ -45,7 +46,7 @@ fn make_scene() -> Scene {
         &panel.name,
     );
     scene.add_view_to_parent(
-        make_text_input("textinput", "type text here").position_at(30, 90),
+        make_text_input("textinput", "input").position_at(30, 90),
         &panel.name,
     );
     scene.add_view_to_parent(
@@ -100,15 +101,42 @@ impl DrawingContext for SimulatorDrawingContext<'_> {
             .draw(self.display)
             .unwrap();
     }
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
-        let style = MonoTextStyle::new(&style.font, *style.color);
-        let mut pt = Point::new(bounds.x, bounds.y);
+    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
+    //     let style = MonoTextStyle::new(&style.font, *style.color);
+    //     let mut pt = Point::new(bounds.x, bounds.y);
+    //     pt.y += bounds.h / 2;
+    //     pt.y += (style.font.baseline as i32) / 2;
+    //     let w = (style.font.character_size.width as i32) * (text.len() as i32);
+    //     pt.x += (bounds.w - w) / 2;
+    //     Text::new(text, pt, style).draw(self.display).unwrap();
+    // }
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, text_style:&TextStyle) {
+        let mut display = self.display.clipped(&bounds_to_rect(&self.clip_rect));
+
+        let mut text_builder = MonoTextStyleBuilder::new().font(text_style.font).text_color(*text_style.color);
+        if text_style.underline {
+            text_builder = text_builder.underline();
+        }
+        let style = text_builder.build();// MonoTextStyle::new(&FONT_6X10,  *text_style.color);
+        let mut pt = embedded_graphics::geometry::Point::new(bounds.x, bounds.y);
         pt.y += bounds.h / 2;
-        pt.y += (style.font.baseline as i32) / 2;
-        let w = (style.font.character_size.width as i32) * (text.len() as i32);
-        pt.x += (bounds.w - w) / 2;
-        Text::new(text, pt, style).draw(self.display).unwrap();
+        pt.y += (FONT_6X10.baseline as i32) / 2;
+
+        let w = (FONT_6X10.character_size.width as i32) * (text.len() as i32);
+
+        match text_style.halign {
+            HAlign::Left => {
+                pt.x += 5;
+            }
+            HAlign::Center => {
+                pt.x += (bounds.w - w) / 2;
+            }
+            HAlign::Right => {}
+        }
+
+        Text::new(text, pt, style).draw(&mut display).unwrap();
     }
+
 }
 
 fn main() -> Result<(), std::convert::Infallible> {
@@ -134,7 +162,15 @@ fn main() -> Result<(), std::convert::Infallible> {
         for event in window.events() {
             match event {
                 SimulatorEvent::Quit => break 'running,
-                SimulatorEvent::KeyDown { keycode, .. } => {}
+                SimulatorEvent::KeyDown { keycode, keymod, .. } => {
+                    let key:u8 = keydown_to_char(keycode, keymod);
+                    println!("keyboard event {} {} {:?}", keycode.name(), key, String::from(key as char));
+                    if key > 0 {
+                        if let Some(result) = event_at_focused(&mut scene, EventType::Keyboard(key)) {
+                            println!("got input from {:?}",result);
+                        }
+                    }
+                }
                 SimulatorEvent::MouseButtonUp { point, .. } => {
                     println!("mouse button up {}", point);
                     if let Some(result) =
@@ -151,6 +187,36 @@ fn main() -> Result<(), std::convert::Infallible> {
         }
     }
     Ok(())
+}
+
+fn keydown_to_char(keycode: Keycode, keymod: Mod) -> u8 {
+    println!("keycode as number {}", keycode.into_i32());
+    let ch = keycode.into_i32();
+    if ch <= 0 {
+        return 0;
+    }
+    let shifted = keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD);
+
+    if let Some(ch) = char::from_u32(ch as u32) {
+        if ch.is_alphabetic() {
+            return if shifted {
+                ch.to_ascii_uppercase() as u8
+            } else {
+                ch.to_ascii_lowercase() as u8
+            }
+        }
+        if ch.is_ascii_graphic() {
+            return ch as u8;
+        }
+    }
+    match keycode {
+        Keycode::Backspace => 8,
+        Keycode::SPACE => b' ',
+        _ => {
+            println!("not supported: {keycode}");
+            0
+        }
+    }
 }
 
 fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {

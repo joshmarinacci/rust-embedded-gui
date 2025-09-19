@@ -3,6 +3,7 @@ use crate::view::View;
 use crate::{util, Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme, VAlign};
 use alloc::string::ToString;
 use log::info;
+use crate::HAlign::Left;
 
 pub fn make_panel(name: &str, bounds: Bounds) -> View {
     View {
@@ -104,7 +105,7 @@ fn draw_text_input(e: &mut DrawEvent) {
             e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
         }
     }
-    let style = TextStyle::new(&e.theme.font, &e.theme.fg);
+    let style = TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(HAlign::Left);
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 }
 
