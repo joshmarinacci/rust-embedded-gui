@@ -38,7 +38,9 @@ Run the unit tests with `cargo test --features std`.
 - [x] Remove generics for color and font. Just use embedded graphics directly.
 - [x] use simulator for interactive tests
 - [x] use MockDisplay for automated tests
+- [x] support layout using font size. needs padding in the widgets.
 - [ ] setup CI on github actions.
 - [ ] add menu view
 - [ ] add list view
-- [ ] support layout using font size. needs padding in the widgets.
+- [ ] add hbox and vbox layouts
+- [ ] add tab panel
