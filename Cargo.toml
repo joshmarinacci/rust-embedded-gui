@@ -1,5 +1,5 @@
 [package]
-name = "gui2"
+name = "rust-embedded-gui"
 version = "0.1.0"
 edition = "2024"
 

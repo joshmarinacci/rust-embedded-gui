@@ -248,17 +248,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
-name = "gui2"
-version = "0.1.0"
-dependencies = [
- "embedded-graphics",
- "embedded-graphics-simulator",
- "env_logger",
- "hashbrown",
- "log",
-]
-
-[[package]]
 name = "hashbrown"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -503,6 +492,17 @@ name = "regex-syntax"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
+
+[[package]]
+name = "rust-embedded-gui"
+version = "0.1.0"
+dependencies = [
+ "embedded-graphics",
+ "embedded-graphics-simulator",
+ "env_logger",
+ "hashbrown",
+ "log",
+]
 
 [[package]]
 name = "sdl2"

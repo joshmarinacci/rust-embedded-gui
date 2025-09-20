@@ -1,3 +1,7 @@
+use embedded_graphics::Drawable;
+use embedded_graphics::prelude::Primitive;
+use embedded_graphics::prelude::WebColors;
+use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::geometry::{Point, Size};
 use embedded_graphics::mono_font::ascii::{
     FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
@@ -7,18 +11,20 @@ use embedded_graphics::mono_font::{MonoTextStyle, MonoTextStyleBuilder};
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
+use rust_embedded_gui::comps::{make_button, make_label, make_panel, make_text_input};
+use rust_embedded_gui::{DrawingContext, EventType, HAlign, TextStyle, Theme};
+use rust_embedded_gui::geom::{Bounds, Point as GPoint};
+use rust_embedded_gui::scene::{click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene};
+use rust_embedded_gui::toggle_button::make_toggle_button;
+use rust_embedded_gui::toggle_group::make_toggle_group;
+
+
 #[cfg(feature = "std")]
 use embedded_graphics::prelude::*;
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
-use gui2::comps::{make_button, make_label, make_panel, make_text_input};
-use gui2::geom::{Bounds, Point as GPoint};
-use gui2::scene::{click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene};
-use gui2::toggle_button::make_toggle_button;
-use gui2::{DrawingContext, EventType, HAlign, TextStyle, Theme};
-use gui2::toggle_group::make_toggle_group;
 
 const SMALL_FONT_BUTTON: &str = "small_font";
 const MEDIUM_FONT_BUTTON: &str = "medium_font";
