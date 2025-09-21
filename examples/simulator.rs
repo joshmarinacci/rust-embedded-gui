@@ -47,6 +47,8 @@ const LISTS_PANEL: &str = "lists-panel";
 const INPUTS_PANEL: &str = "input-panel";
 const THEMES_PANEL: &str = "themes-panel";
 
+const POPUP_BUTTON: &str = "list-button";
+const POPUP_MENU:&str = "popup-menu";
 fn make_scene() -> Scene {
     let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
@@ -139,21 +141,26 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(wrapper,&tabbed_panel.name);
     }
     {
-        let mut panel = make_panel(LISTS_PANEL, Bounds::new(0, 50, 100, 100));
-        panel.state = Some(Box::new(PanelState{
+        let mut wrapper = make_panel(LISTS_PANEL, Bounds::new(0, 50, 100, 100));
+        wrapper.state = Some(Box::new(PanelState{
             padding: 5,
-            debug: true,
-            border:true,
+            debug: false,
+            border:false,
             bg: true,
             gap: 5,
             halign: HAlign::Left,
             valign: VAlign::Top,
         }));
-        panel.layout = Some(layout_vbox);
-        scene.add_view_to_parent(make_label("lists-label", "Lists"), &panel.name);
+        wrapper.layout = Some(layout_hbox);
+        let col1 = make_column("lists-col1");
+        scene.add_view_to_parent(make_label("lists-label", "Lists"), &col1.name);
+        let button = make_button(POPUP_BUTTON,"Open Popup");
+        scene.add_view_to_parent(button,&col1.name);
+        scene.add_view_to_parent(col1,&wrapper.name);
+
         let list = make_list_view("list-view",vec!["First","Second","Third","Fourth","Fifth"],1);
-        scene.add_view_to_parent(list,&panel.name);
-        scene.add_view_to_parent(panel, &tabbed_panel.name);
+        scene.add_view_to_parent(list,&wrapper.name);
+        scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
         let mut panel = make_panel(INPUTS_PANEL, Bounds::new(0, 50, 100, 100));
@@ -512,6 +519,14 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.selected_bg = Rgb565::CSS_DARK_MAGENTA;
         theme.selected_fg = Rgb565::CSS_LIGHT_YELLOW;
         scene.mark_dirty_all();
+    }
+    if name == POPUP_BUTTON {
+        let menu = make_list_view(POPUP_MENU,vec!["Item 1", "Item 2", "Item 3"],0)
+            .position_at(50,50);
+        scene.add_view_to_root(menu);
+    }
+    if name == POPUP_MENU {
+        scene.remove_view(POPUP_MENU);
     }
 
     if name == "tabs" {
