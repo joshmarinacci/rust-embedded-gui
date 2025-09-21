@@ -1,7 +1,7 @@
 use embedded_graphics::Drawable;
 use embedded_graphics::geometry::{Point as EPoint, Size};
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
-use embedded_graphics::mono_font::ascii::{FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD};
+use embedded_graphics::mono_font::ascii::{FONT_5X7, FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD};
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
 use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
 use embedded_graphics::prelude::Primitive;
@@ -41,8 +41,8 @@ const LARGE_FONT_BUTTON: &str = "large_font";
 
 const TABBED_PANEL: &str = "tabbed-panel";
 const BUTTONS_PANEL: &str = "buttons";
-const VBOX_PANEL: &str = "vbox-panel";
-const HBOX_PANEL: &str = "hbox-panel";
+const LAYOUT_PANEL: &str = "layout-panel";
+const LISTS_PANEL: &str = "lists-panel";
 const INPUTS_PANEL: &str = "input-panel";
 const THEMES_PANEL: &str = "themes-panel";
 
@@ -51,7 +51,7 @@ fn make_scene() -> Scene {
 
     let mut tabbed_panel = make_tabs(
         TABBED_PANEL,
-        vec!["buttons", "vbox", "hbox", "inputs", "themes"],
+        vec!["buttons", "layouts", "lists", "inputs", "themes"],
         Bounds {
             x: 10,
             y: 10,
@@ -62,7 +62,7 @@ fn make_scene() -> Scene {
 
     let tabs = make_toggle_group(
         "tabs",
-        vec!["buttons", "vbox", "hbox", "inputs", "themes"],
+        vec!["buttons", "layouts", "lists", "inputs", "themes"],
         0,
     );
     scene.add_view_to_parent(tabs, &tabbed_panel.name);
@@ -102,40 +102,55 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(grid, &tabbed_panel.name);
     }
     {
-        let mut vbox = make_panel(VBOX_PANEL, Bounds::new(0, 50, 100, 100));
-        vbox.state = Some(Box::new(PanelState{
-            padding: 10,
+        let mut wrapper = make_panel(LAYOUT_PANEL, Bounds::new(0, 50, 100, 100));
+        wrapper.state = Some(Box::new(PanelState{
+            padding: 5,
             debug: false,
             border:false,
             bg: true,
-            gap: 10,
+            gap: 5,
             halign: HAlign::Center,
-            valign: VAlign::Center,
+            valign: VAlign::Top,
         }));
+        wrapper.layout = Some(layout_hbox);
+
+        let mut col1 = make_column("vbox2");
+        scene.add_view_to_parent(make_label("vbox-label", "vbox layout"), &col1.name);
+        let mut vbox = make_panel("vbox", Bounds::new(0,0,100,100));
         vbox.layout = Some(layout_vbox);
-        scene.add_view_to_parent(make_label("vbox-label", "vbox layout"), &vbox.name);
-        scene.add_view_to_parent(make_button("vbox-button1", "Button 1"), &vbox.name);
-        scene.add_view_to_parent(make_button("vbox-button2", "Button 2"), &vbox.name);
-        scene.add_view_to_parent(make_button("vbox-button3", "Button 3"), &vbox.name);
-        scene.add_view_to_parent(vbox, &tabbed_panel.name);
+        scene.add_view_to_parent(make_button("vbox-button1", "A"), &vbox.name);
+        scene.add_view_to_parent(make_button("vbox-button2", "B"), &vbox.name);
+        scene.add_view_to_parent(make_button("vbox-button3", "C"), &vbox.name);
+        scene.add_view_to_parent(vbox, &col1.name);
+        scene.add_view_to_parent(col1, &wrapper.name);
+
+        let mut col2 = make_column("vbox3");
+        scene.add_view_to_parent(make_label("hbox-label", "hbox layout"), &col2.name);
+
+        let mut hbox = make_panel("hbox", Bounds::new(0,0,100,100));
+        hbox.layout = Some(layout_hbox);
+        scene.add_view_to_parent(make_button("hbox-button1", "A"), &hbox.name);
+        scene.add_view_to_parent(make_button("hbox-button2", "B"), &hbox.name);
+        scene.add_view_to_parent(make_button("hbox-button3", "C"), &hbox.name);
+        scene.add_view_to_parent(hbox, &col2.name);
+        scene.add_view_to_parent(col2, &wrapper.name);
+
+        scene.add_view_to_parent(wrapper,&tabbed_panel.name);
     }
     {
-        let mut hbox = make_panel(HBOX_PANEL, Bounds::new(0, 50, 100, 100));
-        hbox.state = Some(Box::new(PanelState{
+        let mut panel = make_panel(LISTS_PANEL, Bounds::new(0, 50, 100, 100));
+        panel.state = Some(Box::new(PanelState{
             padding: 10,
-            debug: false,
+            debug: true,
             border:false,
             bg: true,
             gap: 10,
             halign: HAlign::Center,
             valign: VAlign::Bottom,
         }));
-        hbox.layout = Some(layout_hbox);
-        scene.add_view_to_parent(make_label("hbox-label", "hbox layout"), &hbox.name);
-        scene.add_view_to_parent(make_button("hbox-button1", "Button 1"), &hbox.name);
-        scene.add_view_to_parent(make_button("hbox-button2", "Button 2"), &hbox.name);
-        scene.add_view_to_parent(make_button("hbox-button3", "Button 3"), &hbox.name);
-        scene.add_view_to_parent(hbox, &tabbed_panel.name);
+        panel.layout = Some(layout_hbox);
+        scene.add_view_to_parent(make_label("lists-label", "Lists"), &panel.name);
+        scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
         let mut panel = make_panel(INPUTS_PANEL, Bounds::new(0, 50, 100, 100));
@@ -151,7 +166,6 @@ fn make_scene() -> Scene {
         );
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
-
     {
         let mut panel = make_panel(THEMES_PANEL, Bounds::new(0, 50, 100, 100));
         panel.layout = Some(layout_vbox);
@@ -194,6 +208,17 @@ fn make_scene() -> Scene {
     }
 
     scene
+}
+
+fn make_column(name: &str) -> View {
+    let mut panel = make_panel(name, Bounds::new(0, 0, 100, 100));
+    if let Some(state) = panel.get_state::<PanelState>() {
+        state.border = false;
+        state.gap = 5;
+        state.bg = false;
+    }
+    panel.layout = Some(layout_vbox);
+    panel
 }
 
 fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
@@ -447,18 +472,18 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
     let (name, action) = result;
     println!("result of event {:?} from {name}", action);
     if name == SMALL_FONT_BUTTON {
+        theme.font = FONT_5X7;
+        theme.bold_font = FONT_5X7;
+        scene.mark_layout_dirty();
+    }
+    if name == MEDIUM_FONT_BUTTON {
         theme.font = FONT_6X10;
         theme.bold_font = FONT_6X10;
         scene.mark_layout_dirty();
     }
-    if name == MEDIUM_FONT_BUTTON {
+    if name == LARGE_FONT_BUTTON {
         theme.font = FONT_7X13;
         theme.bold_font = FONT_7X13_BOLD;
-        scene.mark_layout_dirty();
-    }
-    if name == LARGE_FONT_BUTTON {
-        theme.font = FONT_9X15;
-        theme.bold_font = FONT_9X15_BOLD;
         scene.mark_layout_dirty();
     }
     if name == "light-theme" {
@@ -496,8 +521,8 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
                 }
                 match cmd.as_str() {
                     "buttons" => scene.show_view(BUTTONS_PANEL),
-                    "vbox" => scene.show_view(VBOX_PANEL),
-                    "hbox" => scene.show_view(HBOX_PANEL),
+                    "layouts" => scene.show_view(LAYOUT_PANEL),
+                    "lists" => scene.show_view(LISTS_PANEL),
                     "inputs" => scene.show_view(INPUTS_PANEL),
                     "themes" => scene.show_view(THEMES_PANEL),
                     &_ => {

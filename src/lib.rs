@@ -35,6 +35,7 @@ pub mod gfx;
 pub mod test;
 pub mod label;
 pub mod button;
+mod list_view;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
@@ -99,6 +100,7 @@ mod tests {
     use std::sync::Once;
     use gfx::DrawingContext;
     use crate::gfx::{HAlign, TextStyle};
+    use crate::test::MockDrawingContext;
 
     extern crate std;
 
