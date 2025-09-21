@@ -28,6 +28,7 @@ use embedded_graphics_simulator::{
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use env_logger::Target;
 use log::{info, LevelFilter};
+use rust_embedded_gui::form::{make_form, FormLayoutState};
 use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel};
 use rust_embedded_gui::view::View;
 
@@ -56,24 +57,30 @@ fn make_scene() -> Scene {
     scene.add_view_to_parent(tabs,&tabbed_panel.name);
 
     {
-        let panel = make_panel(BUTTONS_PANEL, Bounds::new(0, 50, 100, 100));
-        scene.add_view_to_parent(
-            make_label("label1", "A Label").position_at(10, 20),
-            &panel.name,
-        );
-        scene.add_view_to_parent(
-            make_button("button1", "Basic Button").position_at(10, 50),
-            &panel.name,
-        );
-        scene.add_view_to_parent(
-            make_toggle_button("toggle1", "Toggle Me").position_at(120, 50),
-            &panel.name,
-        );
-        scene.add_view_to_parent(
-            make_toggle_group("toggle2",vec!["Apple","Ball","Car"],1).position_at(10, 80),
-            &panel.name
-        );
-        scene.add_view_to_parent(panel, &tabbed_panel.name);
+        let mut form = make_form(BUTTONS_PANEL);
+        form.bounds = Bounds::new(50,50,100,100);
+        // let panel = make_panel(BUTTONS_PANEL, Bounds::new(0, 50, 100, 100));
+        let mut form_layout = FormLayoutState::new_row_column(2, 30, 2, 100);
+
+        let label1 = make_label("label1", "A Label");
+        form_layout.place_at_row_column(&label1.name,0,0);
+        scene.add_view_to_parent(label1, &form.name);
+
+        let button1 = make_button("button1","Basic Button");
+        form_layout.place_at_row_column(&button1.name, 1, 0);
+        scene.add_view_to_parent(button1, &form.name);
+
+        let button2 = make_toggle_button("toggle1", "Toggle Me");
+        form_layout.place_at_row_column(&button2.name, 1, 1);
+        scene.add_view_to_parent(button2, &form.name);
+
+        let button3 = make_toggle_group("toggle2",vec!["Apple","Ball","Car"],1);
+        form_layout.place_at_row_column(&button3.name, 2,0);
+        scene.add_view_to_parent(button3, &form.name);
+
+        form.state = Some(Box::new(form_layout));
+
+        scene.add_view_to_parent(form, &tabbed_panel.name);
     }
     {
         let mut vbox = make_panel(VBOX_PANEL, Bounds::new(0, 50, 100, 100));

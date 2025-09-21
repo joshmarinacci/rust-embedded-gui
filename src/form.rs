@@ -99,7 +99,7 @@ fn layout_form(evt: &mut LayoutEvent) {
                     let y = (cons.row * state.row_height) as i32;
                     let w = state.col_width as i32;
                     let h = state.row_height as i32;
-                    Bounds::new(parent_bounds.x + x, parent_bounds.y + y, w, h)
+                    Bounds::new(x, y, w, h)
                 } else {
                     Bounds::new(0, 0, 0, 0)
                 };
