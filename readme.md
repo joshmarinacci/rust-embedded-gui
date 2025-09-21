@@ -129,9 +129,9 @@ The theme fields should be used for:
 * add list view with selection using 
 - [x] add inner padding just to panels
 - [x] add gap to vbox and hbox
-* be able to center align vbox and hbox elements. needs state for layout on vbox and hbox.
-  * add debug to these too. 
-  * maybe a common panel layout state?
-    * gap, contents valign & halign, 
-* grid layout centers it's contents within itself. update debug to show that.
+- [ ] be able to center align vbox and hbox elements. needs state for layout on vbox and hbox.
+  - [x] add debug to these too. 
+  - [x] maybe a common panel layout state?
+  - [x] gap, contents valign & halign, 
+- [ ] grid layout centers it's contents within itself. update debug to show that.
 

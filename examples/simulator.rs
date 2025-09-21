@@ -104,9 +104,11 @@ fn make_scene() -> Scene {
         let mut vbox = make_panel(VBOX_PANEL, Bounds::new(0, 50, 100, 100));
         vbox.state = Some(Box::new(PanelState{
             padding: 10,
-            debug: false,
-            border:false,
+            debug: true,
+            border:true,
             gap: 10,
+            halign: HAlign::Center,
+            valign: VAlign::Center,
         }));
         vbox.layout = Some(layout_vbox);
         scene.add_view_to_parent(make_label("vbox-label", "vbox layout"), &vbox.name);
@@ -122,6 +124,8 @@ fn make_scene() -> Scene {
             debug: false,
             border:false,
             gap: 10,
+            halign: HAlign::Center,
+            valign: VAlign::Bottom,
         }));
         hbox.layout = Some(layout_hbox);
         scene.add_view_to_parent(make_label("hbox-label", "hbox layout"), &hbox.name);
@@ -142,6 +146,14 @@ fn make_scene() -> Scene {
     {
         let mut panel = make_panel(THEMES_PANEL, Bounds::new(0, 50, 100, 100));
         panel.layout = Some(layout_vbox);
+        panel.state = Some(Box::new(PanelState{
+            padding: 10,
+            debug: false,
+            border:false,
+            gap: 10,
+            halign: HAlign::Center,
+            valign: VAlign::Bottom,
+        }));
 
         scene.add_view_to_parent(
             make_label("themes-label", "Themes").position_at(30, 90),
