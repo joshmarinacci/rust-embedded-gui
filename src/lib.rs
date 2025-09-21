@@ -12,9 +12,9 @@ use core::any::Any;
 use embedded_graphics::Drawable;
 use embedded_graphics::geometry::Size;
 use embedded_graphics::mock_display::MockDisplay;
-use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
 use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
 use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
+use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
 use embedded_graphics::primitives::{Primitive, PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
@@ -25,12 +25,12 @@ use view::View;
 pub mod comps;
 pub mod form;
 pub mod geom;
+pub mod panel;
 pub mod scene;
 pub mod toggle_button;
 pub mod toggle_group;
-pub mod view;
 pub mod util;
-pub mod panel;
+pub mod view;
 
 #[derive(Copy, Clone)]
 pub enum HAlign {
@@ -145,9 +145,9 @@ mod tests {
     use super::*;
     use crate::comps::make_button;
     use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
+    use env_logger::Target;
     use log::LevelFilter;
     use std::sync::Once;
-    use env_logger::Target;
 
     extern crate std;
 
@@ -725,15 +725,15 @@ mod tests {
 pub struct MockDrawingContext {
     pub clip_rect: Bounds,
     pub display: MockDisplay<Rgb565>,
-    offset:Point,
+    offset: Point,
 }
 
 impl MockDrawingContext {
-    pub fn new(scene:&Scene) -> MockDrawingContext {
+    pub fn new(scene: &Scene) -> MockDrawingContext {
         let mut ctx: MockDrawingContext = MockDrawingContext {
             clip_rect: scene.dirty_rect,
             display: MockDisplay::new(),
-            offset: Point::new(0,0)
+            offset: Point::new(0, 0),
         };
         ctx.display.set_allow_out_of_bounds_drawing(true);
         ctx.display.set_allow_overdraw(true);
@@ -748,11 +748,9 @@ impl MockDrawingContext {
             bold_font: FONT_7X13_BOLD,
         }
     }
-
 }
 
 impl DrawingContext for MockDrawingContext {
-
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
         // info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
         util::bounds_to_rect(bounds)
@@ -771,12 +769,7 @@ impl DrawingContext for MockDrawingContext {
     }
 
     // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
-    fn fill_text(
-        &mut self,
-        bounds: &Bounds,
-        text: &str,
-        style: &TextStyle,
-    ) {
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
         let style = MonoTextStyle::new(&style.font, *style.color);
         let mut pt = embedded_graphics::geometry::Point::new(bounds.x, bounds.y);
         pt.y += bounds.h / 2;

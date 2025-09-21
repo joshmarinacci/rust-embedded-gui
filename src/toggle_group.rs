@@ -1,6 +1,8 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme};
+use crate::{
+    Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme,
+};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -86,7 +88,7 @@ fn draw_toggle_group(e: &mut DrawEvent) {
 fn layout_toggle_group(e: &mut LayoutEvent) {
     if let Some(state) = e.scene.get_view_state::<SelectOneOfState>(e.target) {
         let ch = e.theme.font.character_size;
-        let mut height = ch.height + (ch.height/2)*2; // padding
+        let mut height = ch.height + (ch.height / 2) * 2; // padding
         if let Some(view) = e.scene.get_view_mut(e.target) {
             view.bounds = Bounds::new(view.bounds.x, view.bounds.y, view.bounds.w, height as i32)
         }
@@ -105,7 +107,7 @@ mod tests {
     #[test]
     fn test_toggle_group() {
         let theme = MockDrawingContext::make_mock_theme();
-        let mut scene:Scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
+        let mut scene: Scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
             let group = make_toggle_group("group", vec!["A", "BB", "CCC"], 0);
             scene.add_view_to_root(group);
@@ -115,7 +117,7 @@ mod tests {
         {
             let mut group = scene.get_view_mut("group").unwrap();
             assert_eq!(group.name, "group");
-            assert_eq!(group.bounds, Bounds::new(0, 0, 180, 13+7));
+            assert_eq!(group.bounds, Bounds::new(0, 0, 180, 13 + 7));
             let state = &mut group.get_state::<SelectOneOfState>().unwrap();
             assert_eq!(state.items, vec!["A", "BB", "CCC"]);
             assert_eq!(state.selected, 0);

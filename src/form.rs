@@ -120,8 +120,8 @@ mod tests {
     use alloc::boxed::Box;
     use alloc::string::String;
     use embedded_graphics::mock_display::MockDisplay;
-    use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
     use embedded_graphics::mono_font::MonoFont;
+    use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
     use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
 
     #[test]

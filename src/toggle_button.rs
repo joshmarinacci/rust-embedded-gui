@@ -1,6 +1,6 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{util, Action, DrawEvent, DrawingContext, GuiEvent, LayoutEvent, TextStyle};
+use crate::{Action, DrawEvent, DrawingContext, GuiEvent, LayoutEvent, TextStyle, util};
 use alloc::boxed::Box;
 use core::option::Option::*;
 
@@ -67,10 +67,10 @@ fn layout_toggle_button(event: &mut LayoutEvent) {
 }
 
 mod tests {
-    use crate::geom::{Bounds, Point};
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
-    use crate::toggle_button::{make_toggle_button, SelectedState};
     use crate::MockDrawingContext;
+    use crate::geom::{Bounds, Point};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::toggle_button::{SelectedState, make_toggle_button};
     use alloc::vec;
     #[test]
     fn test_toggle_button() {
@@ -86,9 +86,15 @@ mod tests {
             let mut button = scene.get_view_mut("toggle").unwrap();
             assert_eq!(button.name, "toggle");
             let ch_size = &theme.font.character_size;
-            assert_eq!(button.bounds, Bounds::new(0, 0,
-                                                  (("toggle".len() as u32) * ch_size.width + (ch_size.width ) * 2) as i32,
-                                                  (ch_size.height + (ch_size.height / 2) * 2) as i32));
+            assert_eq!(
+                button.bounds,
+                Bounds::new(
+                    0,
+                    0,
+                    (("toggle".len() as u32) * ch_size.width + (ch_size.width) * 2) as i32,
+                    (ch_size.height + (ch_size.height / 2) * 2) as i32
+                )
+            );
             let state = &mut button.get_state::<SelectedState>().unwrap();
             assert_eq!(state.selected, false);
         }
@@ -99,12 +105,11 @@ mod tests {
             let state = scene.get_view_state::<SelectedState>("toggle").unwrap();
             assert_eq!(state.selected, true);
         }
-        
+
         let mut ctx: MockDrawingContext = MockDrawingContext::new(&scene);
 
         assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);
         assert_eq!(scene.dirty, false);
     }
-
 }

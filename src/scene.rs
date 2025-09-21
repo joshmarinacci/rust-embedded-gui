@@ -16,7 +16,7 @@ pub struct Scene {
     pub dirty_rect: Bounds,
     pub root_id: String,
     pub(crate) focused: Option<String>,
-    pub layout_dirty: bool
+    pub layout_dirty: bool,
 }
 
 impl Scene {
@@ -181,13 +181,9 @@ impl Scene {
 
 pub type EventResult = (String, Action);
 
-pub fn click_at(
-    scene: &mut Scene,
-    handlers: &Vec<Callback>,
-    pt: Point,
-) -> Option<EventResult> {
+pub fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) -> Option<EventResult> {
     let targets = pick_at(scene, &pt);
-    if let Some((target,pt)) = targets.last() {
+    if let Some((target, pt)) = targets.last() {
         let mut event: GuiEvent = GuiEvent {
             scene,
             target,
@@ -209,10 +205,7 @@ pub fn click_at(
     None
 }
 
-pub fn event_at_focused(
-    scene: &mut Scene,
-    event_type: EventType,
-) -> Option<EventResult> {
+pub fn event_at_focused(scene: &mut Scene, event_type: EventType) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent = GuiEvent {
@@ -243,7 +236,7 @@ fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<Pick> {
     let mut coll: Vec<Pick> = vec![];
     if let Some(view) = scene.keys.get(name) {
         if view.bounds.contains(pt) && view.visible {
-            coll.push((view.name.clone(),pt.clone()));
+            coll.push((view.name.clone(), pt.clone()));
             let pt2 = pt.subtract(&view.bounds.position());
             for kid in scene.get_children(&view.name) {
                 let mut coll2 = pick_at_view(scene, &pt2, &kid);
@@ -254,11 +247,7 @@ fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<Pick> {
     coll
 }
 
-pub fn draw_scene(
-    scene: &mut Scene,
-    ctx: &mut dyn DrawingContext,
-    theme: &Theme
-) {
+pub fn draw_scene(scene: &mut Scene, ctx: &mut dyn DrawingContext, theme: &Theme) {
     if scene.dirty {
         ctx.fill_rect(&scene.bounds, &theme.panel_bg);
         let name = scene.root_id.clone();
@@ -268,12 +257,7 @@ pub fn draw_scene(
     }
 }
 
-fn draw_view(
-    scene: &mut Scene,
-    ctx: &mut dyn DrawingContext,
-    theme: &Theme,
-    name: &str,
-) {
+fn draw_view(scene: &mut Scene, ctx: &mut dyn DrawingContext, theme: &Theme, name: &str) {
     let focused = &scene.focused.clone();
     let bounds = &scene.bounds.clone();
     if let Some(view) = scene.get_view_mut(name) {

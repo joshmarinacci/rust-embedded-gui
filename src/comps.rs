@@ -1,10 +1,12 @@
+use crate::HAlign::Left;
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{util, Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme, VAlign};
+use crate::{
+    Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme,
+    VAlign, util,
+};
 use alloc::string::ToString;
 use log::info;
-use crate::HAlign::Left;
-
 
 fn draw_button(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
@@ -39,7 +41,7 @@ pub fn make_button(name: &str, title: &str) -> View {
         },
         visible: true,
         state: None,
-        input: Some(|e|{
+        input: Some(|e| {
             if let EventType::Tap(_pt) = &e.event_type {
                 e.scene.set_focused(e.target);
                 e.scene.mark_dirty_view(e.target);
@@ -47,7 +49,7 @@ pub fn make_button(name: &str, title: &str) -> View {
             }
             None
         }),
-        layout: Some(|e|{
+        layout: Some(|e| {
             if let Some(view) = e.scene.get_view_mut(e.target) {
                 view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
             }
@@ -73,7 +75,7 @@ pub fn make_label(name: &str, title: &str) -> View {
             let style = TextStyle::new(&e.theme.font, &e.theme.fg);
             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
         }),
-        layout: Some(|e|{
+        layout: Some(|e| {
             if let Some(view) = e.scene.get_view_mut(e.target) {
                 view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
             }
@@ -134,7 +136,7 @@ pub fn make_text_input(name: &str, title: &str) -> View {
         visible: true,
         state: None,
         input: Some(input_text_input),
-        layout: Some(|e|{
+        layout: Some(|e| {
             // if let Some(view) = e.scene.get_view_mut(e.target) {
             //     view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
             // }

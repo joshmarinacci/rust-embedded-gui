@@ -150,15 +150,14 @@ mod tests {
     }
     #[test]
     fn test_point() {
-        let pt1 = Point::new(8,9);
-        let pt2 = Point::new(10,11);
+        let pt1 = Point::new(8, 9);
+        let pt2 = Point::new(10, 11);
         let pt3 = pt1.add(&pt2);
-        assert_eq!(pt3,Point::new(18,20));
+        assert_eq!(pt3, Point::new(18, 20));
         let bounds = Bounds::new(1, 2, 3, 4);
-        assert_eq!(bounds.position(),Point::new(1,2));
+        assert_eq!(bounds.position(), Point::new(1, 2));
 
         let pt4 = pt1.subtract(&pt2);
-        assert_eq!(pt4,Point::new(-2,-2));
-
+        assert_eq!(pt4, Point::new(-2, -2));
     }
 }
