@@ -88,29 +88,26 @@ impl Bounds {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
 }
 
 impl Point {
-    pub(crate) fn negate(&self) -> Point {
-        Point {
-            x: -self.x,
-            y: -self.y,
-        }
-    }
-}
-
-impl Point {
     pub fn new(x: i32, y: i32) -> Point {
         Point { x, y }
     }
-    pub fn add(&self, p0: &Point) -> Point {
+    pub fn add(&self, pt: &Point) -> Point {
         Point {
-            x: self.x + p0.x,
-            y: self.y + p0.y,
+            x: self.x + pt.x,
+            y: self.y + pt.y,
+        }
+    }
+    pub fn negate(&self) -> Point {
+        Point {
+            x: -self.x,
+            y: -self.y,
         }
     }
 }
@@ -144,5 +141,14 @@ mod tests {
         let b3 = Bounds::new(140, 180, 80, 30);
         // INFO - union Bounds { x: 140, y: 180, w: 80, h: 30 } Bounds { x: 140, y: 180, w: 80, h: 30 }
         assert_eq!(b2.union(b3), b2.clone());
+    }
+    #[test]
+    fn test_point() {
+        let pt1 = Point::new(8,9);
+        let pt2 = Point::new(10,11);
+        let pt3 = pt1.add(&pt2);
+        assert_eq!(pt3,Point::new(18,20));
+        let bounds = Bounds::new(1, 2, 3, 4);
+        assert_eq!(bounds.position(),Point::new(1,2));
     }
 }
