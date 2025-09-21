@@ -1,0 +1,67 @@
+use log::info;
+use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle};
+use crate::geom::Bounds;
+use crate::view::View;
+
+fn draw_text_input(e: &mut DrawEvent) {
+    e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+    if let Some(focused) = e.focused {
+        if focused == &e.view.name {
+            e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
+        }
+    }
+    let style = TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(HAlign::Left);
+    e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
+}
+
+fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
+    info!("text input got event {:?}", event.event_type);
+    match &event.event_type {
+        EventType::Keyboard(key) => {
+            if let Some(view) = event.scene.get_view_mut(event.target) {
+                match *key {
+                    8 => {
+                        view.title.remove(view.title.len() - 1);
+                    }
+                    13 => {
+                        info!("doing return");
+                        return Some(Action::Command("Completed".into()));
+                    }
+                    _ => {
+                        view.title.push(*key as char);
+                    }
+                }
+                info!("done");
+            }
+            event.scene.mark_dirty_view(event.target);
+        }
+        EventType::Tap(_pt) => {
+            event.scene.set_focused(event.target);
+        }
+        _ => {}
+    }
+    None
+}
+
+pub fn make_text_input(name: &str, title: &str) -> View {
+    View {
+        name: name.into(),
+        title: title.into(),
+        bounds: Bounds {
+            x: 0,
+            y: 0,
+            w: 100,
+            h: 30,
+        },
+        visible: true,
+        state: None,
+        input: Some(input_text_input),
+        layout: Some(|e| {
+            // if let Some(view) = e.scene.get_view_mut(e.target) {
+            //     view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
+            // }
+        }),
+        draw: Some(draw_text_input),
+    }
+}

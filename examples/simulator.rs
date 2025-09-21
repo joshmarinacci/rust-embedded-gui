@@ -9,13 +9,13 @@ use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
-use rust_embedded_gui::comps::{make_button, make_label, make_text_input};
+use rust_embedded_gui::comps::{make_button, make_label};
 use rust_embedded_gui::geom::{Bounds, Point as GPoint};
 use rust_embedded_gui::scene::{
-    EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene,
+    click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene,
 };
 use rust_embedded_gui::toggle_button::make_toggle_button;
-use rust_embedded_gui::toggle_group::{SelectOneOfState, make_toggle_group};
+use rust_embedded_gui::toggle_group::{make_toggle_group, SelectOneOfState};
 use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, TextStyle, Theme};
 use std::ops::Add;
 
@@ -26,9 +26,10 @@ use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
 use env_logger::Target;
-use log::{LevelFilter, info};
-use rust_embedded_gui::form::{FormLayoutState, make_form};
+use log::{info, LevelFilter};
+use rust_embedded_gui::form::{make_form, FormLayoutState};
 use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel};
+use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::View;
 
 const SMALL_FONT_BUTTON: &str = "small_font";

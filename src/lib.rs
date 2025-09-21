@@ -31,6 +31,7 @@ pub mod toggle_button;
 pub mod toggle_group;
 pub mod util;
 pub mod view;
+pub mod text_input;
 
 #[derive(Copy, Clone)]
 pub enum HAlign {
