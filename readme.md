@@ -15,10 +15,13 @@ The library manages a scene of views and has built in components for:
 * toggle button
 * toggle group
 
-Views are rendered using a Theme which can be customized for different
+`View`s are rendered using a `Theme` which can be customized for different
 colors and font sizes.  Views carry their own internal state using an
-optional state object. Application state should remain outside the scene/view structure
+optional `state` struct. Application state should remain outside the scene/view structure
 and be handled by processing actions emitted from the scene when events happen.
+
+To make it flexible, the lib **does not** impose its own event loop. Instead, the application
+should send events to the scene and then redraw in its own loop. **Better documentation coming**. 
 
 ## Usage
 
@@ -32,6 +35,19 @@ the simulator needs SDL2. [Install instructions](https://docs.rs/embedded-graphi
 Run the unit tests with `cargo test --features std`.
 
 
+## Themes
+
+`Theme` is a struct passed to every View's `draw` function. It stores the standard colors and fonts for drawing.
+However, these are just guidelines. A view can feel free to ignore them and draw whatever it wants.
+The theme fields should be used for:
+
+* *bg*: the background of components like buttons and text inputs.
+* *fg*: the foreground of components, which usually means the text color.
+* *panel_bg*: the background of panels and other containers. Depending on the theme this may or may not be the same as *bg*.
+* *font*: the default font used for all text.
+* *bold_font*: the bold variant of the current font. Used for button titles.
+* *selection*: a color used to indicate something is selected. Should be a strong contrast to the bg color. Used in toggle buttons, lists, and menus. 
+* *accent*: a color used to highlight something, but that isn't selected. ex: the cursor of the text box,   
 
 ## Roadmap
 
@@ -39,20 +55,36 @@ Run the unit tests with `cargo test --features std`.
 - [x] use simulator for interactive tests
 - [x] use MockDisplay for automated tests
 - [x] support layout using font size. needs padding in the widgets.
-- [ ] setup CI on github actions.
-- [ ] add menu view
-- [ ] add list view
 - [x] add hbox and vbox layouts
-- [ ] add tab panel
-- [ ] make children drawn and picked relative to the parent.
-  - [ ] calculating dirty rect needs to be converted back to global 
+- [x] make children drawn and picked relative to the parent.
+- [ ] general
+  - [ ] setup CI on github actions.
+- [ ] more components
+  - [ ] add menu view
+  - [ ] add list view
+  - [ ] add tab panel
+  - [ ] popup menu / dropdown box 
+- [ ] input improvements
+  - [ ] cleanup event types and action command signatures.
+  - [ ] document how to make your own event & draw loop
+- [ ] text input
+  - [ ] move cursor within text
+  - [ ] forward and backward delete
+  - [ ] selection?
+- [ ] focus management 
+  - [ ] use scroll events to jump between focused elements and perform selection.
+  - [ ] spec out how focus management works. 
+    - focus groups
+- [ ] layout
+  - [ ] calculating dirty rect needs to be converted back to global
+  - [ ] view padding and margins?
+  - [ ] view border control? just on and off? custom colors?
+  - [ ] form layout -> grid layout
+    - [ ] debug lines
+    - [ ] alignment within grid cells
+    - [ ] span grid cells
+- [ ] improved custom view support
+  - [ ] view can define the children it uses
+    - [ ] let tab panel define its own children using a toggle group
+  - [ ] let tab panel switch its own tabs instead of using external handle action
 
-
-* cursor in the text input
-* accent fg & bg colors for theme
-* use form layout for the buttons panel
-* don't double draw borders for panels inside of tab panel
-* let tab panel define it's own children using a toggle group
-* let tab panel switch it's own tabs instead of using external handle action
-* add padding to view 
-* add border boolean to view
