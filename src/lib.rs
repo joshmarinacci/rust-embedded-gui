@@ -112,6 +112,8 @@ pub struct Theme {
     pub bg: Rgb565,
     pub fg: Rgb565,
     pub panel_bg: Rgb565,
+    pub selected_bg: Rgb565,
+    pub selected_fg: Rgb565,
     pub font: MonoFont<'static>,
     pub bold_font: MonoFont<'static>,
 }
@@ -744,6 +746,8 @@ impl MockDrawingContext {
         Theme {
             bg: Rgb565::WHITE,
             fg: Rgb565::BLACK,
+            selected_bg: Rgb565::WHITE,
+            selected_fg: Rgb565::BLACK,
             panel_bg: Rgb565::CSS_GRAY,
             font: FONT_6X10,
             bold_font: FONT_7X13_BOLD,

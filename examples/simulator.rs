@@ -25,6 +25,7 @@ use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
+use env_logger::fmt::style::Color::Rgb;
 use env_logger::Target;
 use log::{info, LevelFilter};
 use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
@@ -68,7 +69,7 @@ fn make_scene() -> Scene {
         let mut grid = make_grid_panel(BUTTONS_PANEL);
         grid.bounds = Bounds::new(50, 50, 100, 100);
         let mut grid_layout = GridLayoutState::new_row_column(3, 30, 2, 100);
-        
+
         let label1 = make_label("label1", "A Label");
         grid_layout.place_at_row_column(&label1.name, 0, 0);
         scene.add_view_to_parent(label1, &grid.name);
@@ -290,6 +291,8 @@ fn main() -> Result<(), std::convert::Infallible> {
     let mut theme = Theme {
         bg: Rgb565::WHITE,
         fg: Rgb565::BLACK,
+        selected_bg: Rgb565::BLUE,
+        selected_fg: Rgb565::WHITE,
         panel_bg: Rgb565::CSS_LIGHT_GRAY,
         font: FONT_7X13,
         bold_font: FONT_7X13_BOLD,
@@ -406,6 +409,8 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.bg = Rgb565::CSS_MISTY_ROSE;
         theme.fg = Rgb565::CSS_DARK_BLUE;
         theme.panel_bg = Rgb565::CSS_ANTIQUE_WHITE;
+        theme.selected_bg = Rgb565::CSS_DARK_MAGENTA;
+        theme.selected_fg = Rgb565::CSS_LIGHT_YELLOW;
         scene.mark_dirty_all();
     }
 

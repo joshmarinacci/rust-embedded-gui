@@ -74,20 +74,22 @@ The theme fields should be used for:
 - [ ] focus management 
   - [ ] use scroll events to jump between focused elements and perform selection.
   - [ ] spec out how focus management works. 
-    - focus groups
+    - [ ] focus groups
 - [ ] layout
   - [ ] calculating dirty rect needs to be converted back to global
   - [ ] view padding and margins?
   - [ ] view border control? just on and off? custom colors?
-  - [ ] form layout -> grid layout
-    - [ ] debug lines
+  - [x] form layout -> grid layout
+    - [x] debug lines
     - [ ] alignment within grid cells
-    - [ ] span grid cells
+    - [x] span grid cells
 - [ ] improved custom view support
   - [ ] view can define the children it uses
     - [ ] let tab panel define its own children using a toggle group
   - [ ] let tab panel switch its own tabs instead of using external handle action
-
+- [ ] theme
+  - [x] support selected fg and bg colors
+  - [ ] accent colors?
 
 
 ## Architecture

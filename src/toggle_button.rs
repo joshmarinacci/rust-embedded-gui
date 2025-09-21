@@ -28,9 +28,9 @@ impl SelectedState {
 }
 
 fn draw_toggle_button(e: &mut DrawEvent) {
-    let (button_fill, button_color) = if let Some(state) = e.view.get_state::<SelectedState>() {
+    let (bg, fg) = if let Some(state) = e.view.get_state::<SelectedState>() {
         if state.selected {
-            (&e.theme.fg, &e.theme.bg)
+            (&e.theme.selected_bg, &e.theme.selected_fg)
         } else {
             (&e.theme.bg, &e.theme.fg)
         }
@@ -38,15 +38,15 @@ fn draw_toggle_button(e: &mut DrawEvent) {
         (&e.theme.bg, &e.theme.fg)
     };
 
-    e.ctx.fill_rect(&e.view.bounds, button_fill);
+    e.ctx.fill_rect(&e.view.bounds, bg);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
     if let Some(focused) = e.focused {
         if focused == &e.view.name {
-            e.ctx.stroke_rect(&e.view.bounds.contract(2), button_color);
+            e.ctx.stroke_rect(&e.view.bounds.contract(2), fg);
         }
     }
 
-    let style = TextStyle::new(&e.theme.font, button_color);
+    let style = TextStyle::new(&e.theme.font, fg);
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 }
 

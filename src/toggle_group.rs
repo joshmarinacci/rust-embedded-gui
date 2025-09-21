@@ -66,8 +66,8 @@ fn draw_toggle_group(e: &mut DrawEvent) {
     if let Some(state) = e.view.get_state::<SelectOneOfState>() {
         let cell_width = bounds.w / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
-            let (fill, color) = if i == state.selected {
-                (&e.theme.fg, &e.theme.bg)
+            let (bg, fg) = if i == state.selected {
+                (&e.theme.selected_bg, &e.theme.selected_fg)
             } else {
                 (&e.theme.bg, &e.theme.fg)
             };
@@ -77,9 +77,9 @@ fn draw_toggle_group(e: &mut DrawEvent) {
                 cell_width,
                 bounds.h,
             );
-            e.ctx.fill_rect(&bds, fill);
+            e.ctx.fill_rect(&bds, bg);
             e.ctx.stroke_rect(&bds, &e.theme.fg);
-            let style = TextStyle::new(&e.theme.font, color).with_halign(HAlign::Center);
+            let style = TextStyle::new(&e.theme.font, fg).with_halign(HAlign::Center);
             e.ctx.fill_text(&bds, item, &style);
         }
     }
