@@ -31,6 +31,7 @@ use log::{info, LevelFilter};
 use rust_embedded_gui::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
 use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use rust_embedded_gui::label::make_label;
+use rust_embedded_gui::list_view::make_list_view;
 use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel, PanelState};
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::View;
@@ -140,16 +141,18 @@ fn make_scene() -> Scene {
     {
         let mut panel = make_panel(LISTS_PANEL, Bounds::new(0, 50, 100, 100));
         panel.state = Some(Box::new(PanelState{
-            padding: 10,
+            padding: 5,
             debug: true,
-            border:false,
+            border:true,
             bg: true,
-            gap: 10,
-            halign: HAlign::Center,
-            valign: VAlign::Bottom,
+            gap: 5,
+            halign: HAlign::Left,
+            valign: VAlign::Top,
         }));
-        panel.layout = Some(layout_hbox);
+        panel.layout = Some(layout_vbox);
         scene.add_view_to_parent(make_label("lists-label", "Lists"), &panel.name);
+        let list = make_list_view("list-view",vec!["First","Second","Third","Fourth","Fifth"],1);
+        scene.add_view_to_parent(list,&panel.name);
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {

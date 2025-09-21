@@ -52,18 +52,18 @@ pub fn make_panel(name: &str, bounds: Bounds) -> View {
 
 pub fn layout_vbox(evt: &mut LayoutEvent) {
     if let Some(view) = evt.scene.get_view(evt.target) {
-        let width = view.bounds.w;
+        let bounds = view.bounds;
         if let Some(state) = evt.scene.get_view_state::<PanelState>(evt.target) {
             let padding = state.padding;
             let gap = state.gap;
-            let mut y = padding;
+            let mut y = padding +0;
             let halign = state.halign;
             for kid in evt.scene.get_children(evt.target) {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
                     match halign {
                         HAlign::Left => ch.bounds.x = padding,
-                        HAlign::Center => ch.bounds.x = padding + (width - padding * 2 - ch.bounds.w) / 2,
-                        HAlign::Right => ch.bounds.x = width - padding - ch.bounds.w,
+                        HAlign::Center => ch.bounds.x = padding + (bounds.w - padding * 2 - ch.bounds.w) / 2,
+                        HAlign::Right => ch.bounds.x = bounds.w - padding - ch.bounds.w,
                     }
                     ch.bounds.y = y;
                     y += ch.bounds.h + gap;

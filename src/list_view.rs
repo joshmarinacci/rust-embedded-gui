@@ -14,7 +14,7 @@ pub fn make_list_view(name: &str, data: Vec<&str>, selected: usize) -> View {
     View {
         name: name.into(),
         title: name.into(),
-        bounds: Bounds::new(0, 0, (data.len() * 60) as i32, 30),
+        bounds: Bounds::new(0, 0, 100,(data.len() * 30) as i32),
         state: Some(SelectOneOf::new_with(data, selected)),
         input: Some(input_list),
         layout: Some(layout_list),
@@ -45,9 +45,9 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
             if let Some(view) = e.scene.get_view_mut(e.target) {
                 let bounds = view.bounds;
                 if let Some(state) = view.get_state::<SelectOneOf>() {
-                    let cell_width = bounds.w / (state.items.len() as i32);
-                    let x = pt.x - bounds.x;
-                    let n = x / cell_width;
+                    let cell_height = bounds.h / (state.items.len() as i32);
+                    let y = pt.y - bounds.y;
+                    let n = y / cell_height;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;
                         return Some(Action::Command(state.items[state.selected].clone()));
@@ -65,7 +65,7 @@ fn draw_list(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     let name = e.view.name.clone();
     if let Some(state) = e.view.get_state::<SelectOneOf>() {
-        let cell_width = bounds.w / (state.items.len() as i32);
+        let cell_height = bounds.h / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
             let (bg, fg) = if i == state.selected {
                 (&e.theme.selected_bg, &e.theme.selected_fg)
@@ -73,10 +73,10 @@ fn draw_list(e: &mut DrawEvent) {
                 (&e.theme.bg, &e.theme.fg)
             };
             let bds = Bounds::new(
-                bounds.x + (i as i32) * cell_width + 1,
-                bounds.y,
-                cell_width-1,
-                bounds.h,
+                bounds.x,
+                bounds.y + (i as i32) * cell_height + 1,
+                bounds.w,
+                cell_height -1,
             );
             // draw background only if selected
             if i == state.selected {
@@ -90,12 +90,6 @@ fn draw_list(e: &mut DrawEvent) {
 
             // draw text
             draw_centered_text(e.ctx,item,&bds,&e.theme.font,fg);
-
-            // draw left edge except for the first one
-            if i != 0 {
-                let x = bounds.x + ((i as i32))*cell_width;
-                e.ctx.line(&Point::new(x, bounds.y), &Point::new(x, bounds.y+bounds.h-1), &e.theme.fg);
-            }
         }
     }
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
@@ -104,9 +98,9 @@ fn draw_list(e: &mut DrawEvent) {
 fn layout_list(e: &mut LayoutEvent) {
     if let Some(state) = e.scene.get_view_state::<SelectOneOf>(e.target) {
         let ch = e.theme.font.character_size;
-        let mut height = ch.height + (ch.height / 2) * 2; // padding
+        let height = state.items.len() as u32 * ch.height * 2;
         if let Some(view) = e.scene.get_view_mut(e.target) {
-            view.bounds = Bounds::new(view.bounds.x, view.bounds.y, view.bounds.w, height as i32)
+            view.bounds = Bounds::new(view.bounds.x, view.bounds.y, view.bounds.w, height as i32);
         }
     }
 }

@@ -35,7 +35,7 @@ pub mod gfx;
 pub mod test;
 pub mod label;
 pub mod button;
-mod list_view;
+pub mod list_view;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
