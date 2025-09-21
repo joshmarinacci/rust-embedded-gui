@@ -46,3 +46,13 @@ Run the unit tests with `cargo test --features std`.
 - [ ] add tab panel
 - [ ] make children drawn and picked relative to the parent.
   - [ ] calculating dirty rect needs to be converted back to global 
+
+
+* cursor in the text input
+* accent fg & bg colors for theme
+* use form layout for the buttons panel
+* don't double draw borders for panels inside of tab panel
+* let tab panel define it's own children using a toggle group
+* let tab panel switch it's own tabs instead of using external handle action
+* add padding to view 
+* add border boolean to view

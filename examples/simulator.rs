@@ -9,7 +9,7 @@ use embedded_graphics::mono_font::ascii::{
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
-use embedded_graphics::pixelcolor::Rgb565;
+use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
 use rust_embedded_gui::comps::{make_button, make_label, make_text_input};
@@ -27,7 +27,7 @@ use embedded_graphics_simulator::{
 };
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use env_logger::Target;
-use log::LevelFilter;
+use log::{info, LevelFilter};
 use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel};
 use rust_embedded_gui::view::View;
 
@@ -359,6 +359,26 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.bold_font = FONT_9X15_BOLD;
         scene.mark_layout_dirty();
     }
+    if name == "light-theme" {
+        theme.bg = Rgb565::WHITE;
+        theme.fg = Rgb565::BLACK;
+        theme.panel_bg = Rgb565::CSS_LIGHT_GRAY;
+        scene.mark_dirty_all();
+    }
+    if name == "dark-theme" {
+        theme.bg = Rgb565::from(Rgb888::new(50,50,50));
+        theme.fg = Rgb565::WHITE;
+        theme.panel_bg = Rgb565::BLACK;
+        scene.mark_dirty_all();
+    }
+    if name == "colorful-theme" {
+        info!("changing hte colorful theme");
+        theme.bg = Rgb565::CSS_MISTY_ROSE;
+        theme.fg = Rgb565::CSS_DARK_BLUE;
+        theme.panel_bg = Rgb565::CSS_ANTIQUE_WHITE;
+        scene.mark_dirty_all();
+    }
+
     if name == "tabs" {
         match action {
             Action::Command(cmd) => {
