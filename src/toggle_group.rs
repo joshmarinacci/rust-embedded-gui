@@ -26,7 +26,7 @@ pub struct SelectOneOfState {
 }
 
 impl SelectOneOfState {
-    fn new_with(items: Vec<&str>, selected: usize) -> Box<dyn Any> {
+    pub fn new_with(items: Vec<&str>, selected: usize) -> Box<dyn Any> {
         Box::new(SelectOneOfState {
             items: items.iter().map(|s| s.to_string()).collect(),
             selected,

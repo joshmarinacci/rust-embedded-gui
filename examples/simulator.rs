@@ -12,11 +12,11 @@ use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
 use rust_embedded_gui::comps::{make_button, make_label, make_panel, make_text_input};
-use rust_embedded_gui::{DrawingContext, EventType, HAlign, TextStyle, Theme};
+use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, TextStyle, Theme};
 use rust_embedded_gui::geom::{Bounds, Point as GPoint};
 use rust_embedded_gui::scene::{click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene};
 use rust_embedded_gui::toggle_button::make_toggle_button;
-use rust_embedded_gui::toggle_group::make_toggle_group;
+use rust_embedded_gui::toggle_group::{make_toggle_group, SelectOneOfState};
 
 
 #[cfg(feature = "std")]
@@ -25,51 +25,124 @@ use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
+use env_logger::Target;
+use log::{info, LevelFilter};
+use rust_embedded_gui::view::View;
 
 const SMALL_FONT_BUTTON: &str = "small_font";
 const MEDIUM_FONT_BUTTON: &str = "medium_font";
 const LARGE_FONT_BUTTON: &str = "large_font";
 
+const TABBED_PANEL:&str = "tabbed-panel";
+const BUTTONS_PANEL: &str = "buttons";
+const VBOX_PANEL: &str = "vbox-panel";
+const HBOX_PANEL: &str = "hbox-panel";
+const INPUTS_PANEL: &str = "input-panel";
+const THEMES_PANEL: &str = "themes-panel";
+
 fn make_scene() -> Scene {
     let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
-    let panel = make_panel(
-        "panel",
-        Bounds {
-            x: 20,
-            y: 20,
-            w: 320 - 40,
-            h: 160,
-        },
-    );
+    let tabbed_panel = make_tabs(TABBED_PANEL, vec!["buttons", "vbox", "hbox","inputs","themes"], Bounds{
+        x:10,
+        y:10,
+        w:320-20,
+        h:180,
+    });
 
-    scene.add_view_to_parent(
-        make_label("label1", "A Label").position_at(30, 30),
-        &panel.name,
-    );
-    scene.add_view_to_parent(
-        make_toggle_button("toggle1", "Toggle Me").position_at(30, 60),
-        &panel.name,
-    );
-    scene.add_view_to_parent(
-        make_text_input("textinput", "input").position_at(30, 90),
-        &panel.name,
-    );
-    scene.add_view_to_parent(
-        make_toggle_group("toggle2",vec!["Apple","Ball","Car"],1).position_at(30, 130),
-        &panel.name
-    );
+    let tabs = make_toggle_group("tabs", vec!["buttons","vbox","hbox","inputs","themes"],0);
+    scene.add_view_to_parent(tabs,&tabbed_panel.name);
 
-    scene.add_view_to_root(panel);
+    {
+        let panel = make_panel(BUTTONS_PANEL, Bounds::new(0, 50, 100, 100));
+        scene.add_view_to_parent(
+            make_label("label1", "A Label").position_at(30, 50),
+            &panel.name,
+        );
+        scene.add_view_to_parent(
+            make_button("button1", "Basic Button").position_at(120, 50),
+            &panel.name,
+        );
+        scene.add_view_to_parent(
+            make_toggle_button("toggle1", "Toggle Me").position_at(30, 80),
+            &panel.name,
+        );
+        scene.add_view_to_parent(
+            make_toggle_group("toggle2",vec!["Apple","Ball","Car"],1).position_at(30, 130),
+            &panel.name
+        );
+        scene.add_view_to_parent(panel, &tabbed_panel.name);
+    }
+    {
+        let vbox = make_panel(VBOX_PANEL, Bounds::new(0,50,100,100));
+        scene.add_view_to_parent(
+            make_label("vbox-label","vbox layout").position_at(20,50),
+            &vbox.name
+        );
+        scene.add_view_to_parent(vbox,&tabbed_panel.name);
+        scene.hide_view(VBOX_PANEL);
+    }
+    {
+        let hbox = make_panel(HBOX_PANEL, Bounds::new(0,50,100,100));
+        scene.add_view_to_parent(
+            make_label("hbox-label","hbox layout").position_at(20,50),
+            &hbox.name
+        );
+        scene.add_view_to_parent(hbox,&tabbed_panel.name);
+        scene.hide_view(HBOX_PANEL);
+    }
+    {
+        let panel = make_panel(INPUTS_PANEL, Bounds::new(0, 50, 100, 100));
+        scene.add_view_to_parent(
+            make_text_input("textinput", "input").position_at(30, 90),
+            &panel.name,
+        );
+        scene.add_view_to_parent(panel,&tabbed_panel.name);
+    }
+
+    scene.add_view_to_root(tabbed_panel);
 
     scene.add_view_to_root(make_button(SMALL_FONT_BUTTON, "Small").position_at(30, 200));
     scene.add_view_to_root(make_button(MEDIUM_FONT_BUTTON, "Medium").position_at(120, 200));
     scene.add_view_to_root(make_button(LARGE_FONT_BUTTON, "Large").position_at(220, 200));
 
-
-
     scene
 }
+
+fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
+    View {
+        name: name.into(),
+        title: name.into(),
+        bounds,
+        visible: true,
+        state: Some(SelectOneOfState::new_with(tabs,0)),
+        input: None,
+        layout: Some(|e|{
+            if let Some(state) = e.scene.get_view_state::<SelectOneOfState>(e.target) {
+                if let Some(parent) = e.scene.get_view_mut(e.target) {
+                    let bounds = parent.bounds;
+                    let kids = e.scene.get_children(e.target);
+                    let mut tabs_height = 50;
+                    for kid in kids {
+                        if let Some(ch) = e.scene.get_view_mut(&kid) {
+                            if kid == "tabs" {
+                                ch.bounds = Bounds::new(bounds.x,bounds.y,bounds.w,ch.bounds.h);
+                                tabs_height = ch.bounds.h;
+                            } else {
+                                ch.bounds = Bounds::new(bounds.x, bounds.y+ tabs_height, bounds.w, bounds.h- tabs_height);
+                            }
+                        }
+                    }
+                }
+            }
+        }),
+        draw: Some(|e| {
+            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+        }),
+    }
+}
+
 struct SimulatorDrawingContext<'a> {
     pub clip: Bounds,
     display: &'a mut SimulatorDisplay<Rgb565>,
@@ -135,6 +208,11 @@ impl DrawingContext for SimulatorDrawingContext<'_> {
 }
 
 fn main() -> Result<(), std::convert::Infallible> {
+    env_logger::Builder::new()
+        .target(Target::Stdout) // <-- redirects to stdout
+        .filter(None, LevelFilter::Info)
+        .init();
+
     let mut display: SimulatorDisplay<Rgb565> = SimulatorDisplay::new(Size::new(320, 240));
 
     let mut scene = make_scene();
@@ -221,18 +299,39 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.font = FONT_6X10;
         theme.bold_font = FONT_6X10;
         scene.mark_layout_dirty();
-        scene.mark_dirty_all();
     }
     if name == MEDIUM_FONT_BUTTON {
         theme.font = FONT_7X13;
         theme.bold_font = FONT_7X13_BOLD;
         scene.mark_layout_dirty();
-        scene.mark_dirty_all();
     }
     if name == LARGE_FONT_BUTTON {
         theme.font = FONT_9X15;
         theme.bold_font = FONT_9X15_BOLD;
         scene.mark_layout_dirty();
-        scene.mark_dirty_all();
+    }
+    if name == "tabs" {
+        match action {
+            Action::Command(cmd) => {
+                for kid in scene.get_children(TABBED_PANEL) {
+                    if kid != "tabs" {
+                        scene.hide_view(&kid);
+                    }
+                }
+                match cmd.as_str() {
+                    "buttons" => scene.show_view(BUTTONS_PANEL),
+                    "vbox" => scene.show_view(VBOX_PANEL),
+                    "hbox" => scene.show_view(HBOX_PANEL),
+                    "inputs" => scene.show_view(INPUTS_PANEL),
+                    "themes" => scene.show_view(THEMES_PANEL),
+                    &_ => {
+                        println!("tab not handled");
+                    }
+                }
+            },
+            Action::Generic => {
+
+            }
+        }
     }
 }

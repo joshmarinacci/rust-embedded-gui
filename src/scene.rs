@@ -67,6 +67,7 @@ impl Scene {
     }
     pub fn mark_layout_dirty(&mut self) {
         self.layout_dirty = true;
+        self.mark_dirty_all();
     }
     pub fn remove_child(&mut self, parent: &str, child: &str) {
         if let Some(children) = self.children.get_mut(parent) {
@@ -291,8 +292,11 @@ fn draw_view(
         }
     }
     if let Some(view) = scene.get_view(name) {
-        for kid in scene.get_children(&view.name) {
-            draw_view(scene, ctx, theme, &kid);
+        // only draw children if visible
+        if view.visible {
+            for kid in scene.get_children(&view.name) {
+                draw_view(scene, ctx, theme, &kid);
+            }
         }
     }
 }
@@ -311,14 +315,15 @@ fn layout_view(scene: &mut Scene, name: &str, theme: &Theme) {
         target: name,
         theme: theme,
     };
-    if let Some(form) = evt.scene.get_view(name) {
-        if let Some(layout) = &form.layout {
-            layout(&mut evt);
+    // layout children before the view itself
+    if let Some(view) = evt.scene.get_view(name) {
+        for kid in evt.scene.get_children(&view.name) {
+            layout_view(evt.scene, &kid, theme);
         }
     }
-    if let Some(view) = scene.get_view(name) {
-        for kid in scene.get_children(&view.name) {
-            layout_view(scene, &kid, theme);
+    if let Some(view) = evt.scene.get_view(name) {
+        if let Some(layout) = &view.layout {
+            layout(&mut evt);
         }
     }
 }
