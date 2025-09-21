@@ -1,6 +1,7 @@
 use log::info;
-use crate::{Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, TextStyle};
+use crate::{Action, DrawEvent, EventType, GuiEvent};
 use crate::geom::Bounds;
+use crate::gfx::{DrawingContext, HAlign, TextStyle};
 use crate::view::View;
 
 fn draw_text_input(e: &mut DrawEvent) {

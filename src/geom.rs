@@ -7,6 +7,12 @@ pub struct Bounds {
 }
 
 impl Bounds {
+    pub(crate) fn center(&self) -> Point {
+        Point::new(self.x+self.w/2, self.y+self.h/2)
+    }
+}
+
+impl Bounds {
     pub(crate) fn position(&self) -> Point {
         Point {
             x: self.x,

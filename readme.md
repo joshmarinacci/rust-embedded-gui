@@ -47,7 +47,7 @@ The theme fields should be used for:
 * **font**: the default font used for all text.
 * **bold_font**: the bold variant of the current font. Used for button titles.
 * **selection**: a color used to indicate something is selected. Should be a strong contrast to the bg color. Used in toggle buttons, lists, and menus. 
-* **accent**: a color used to highlight something, but that isn't selected. ex: the cursor of the text box,   
+
 
 ## Roadmap
 
@@ -75,7 +75,14 @@ The theme fields should be used for:
   - [ ] use scroll events to jump between focused elements and perform selection.
   - [ ] spec out how focus management works. 
     - [ ] focus groups
-- [ ] layout
+- [ ] drawing
+  - [ ] redo fill_text api.
+    - [ ] just text. support bg color?
+    - [ ] proper alignment. provide center point and draw centered
+  - [ ] draw line
+  - [ ] remove clear
+  - [ ] consolidate Display impls
+- [ ] layout & rendering
   - [ ] calculating dirty rect needs to be converted back to global
   - [ ] view padding and margins?
   - [ ] view border control? just on and off? custom colors?
@@ -112,5 +119,19 @@ The theme fields should be used for:
 
 
 
+## tasks
 
+* fix draw text alignment issues
+* a common draw text centered inside of bounds function
+* draw line. update grid.debug and toggle group to use it.
+* add scroll events to select within elements.
+* toggle group should indicate it is focused with a double border
+* add list view with selection using 
+* add inner padding just to panels
+* add gap to vbox and hbox
+* be able to center align vbox and hbox elements. needs state for layout on vbox and hbox.
+  * add debug to these too. 
+  * maybe a common panel layout state?
+    * gap, contents valign & halign, 
+* grid layout centers it's contents within itself. update debug to show that.
 

@@ -1,13 +1,14 @@
 use crate::geom::Bounds;
 use crate::view::View;
 use crate::{
-    Action, DrawEvent, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme,
+    Action, DrawEvent, EventType, GuiEvent, LayoutEvent,
 };
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
+use crate::gfx::{DrawingContext, HAlign, TextStyle};
 
 pub fn make_toggle_group(name: &str, data: Vec<&str>, selected: usize) -> View {
     View {
@@ -96,13 +97,10 @@ fn layout_toggle_group(e: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
-    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
-    use crate::{MockDrawingContext, Theme};
-    use alloc::string::String;
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
     use alloc::vec;
-    use embedded_graphics::mono_font::MonoFont;
-    use embedded_graphics::pixelcolor::Rgb565;
+    use crate::test::MockDrawingContext;
 
     #[test]
     fn test_toggle_group() {

@@ -8,15 +8,15 @@ use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
-use embedded_graphics::text::Text;
-use rust_embedded_gui::comps::{make_button, make_label};
+use embedded_graphics::text::{Alignment, Text, TextStyleBuilder, TextStyle as ETextStyle, Baseline};
+use rust_embedded_gui::button::make_button;
 use rust_embedded_gui::geom::{Bounds, Point as GPoint};
 use rust_embedded_gui::scene::{
     click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene,
 };
 use rust_embedded_gui::toggle_button::make_toggle_button;
 use rust_embedded_gui::toggle_group::{make_toggle_group, SelectOneOfState};
-use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, TextStyle, Theme, VAlign};
+use rust_embedded_gui::{Action, EventType, Theme};
 use std::ops::Add;
 
 #[cfg(feature = "std")]
@@ -25,10 +25,11 @@ use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
-use env_logger::fmt::style::Color::Rgb;
 use env_logger::Target;
 use log::{info, LevelFilter};
+use rust_embedded_gui::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
 use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
+use rust_embedded_gui::label::make_label;
 use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel};
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::View;
@@ -78,7 +79,7 @@ fn make_scene() -> Scene {
         grid_layout.place_at_row_column(&button1.name, 1, 0);
         scene.add_view_to_parent(button1, &grid.name);
 
-        let button2 = make_toggle_button("toggle1", "Toggle Me");
+        let button2 = make_toggle_button("toggle1", "Toggle");
         grid_layout.place_at_row_column(&button2.name, 1, 1);
         scene.add_view_to_parent(button2, &grid.name);
 
@@ -274,6 +275,27 @@ impl DrawingContext for SimulatorDrawingContext<'_> {
         Text::new(text, pt, style).draw(&mut display).unwrap();
     }
 
+    fn text(&mut self, text: &str, position: &GPoint, style: &TextStyle) {
+        let mut display = &mut self.display;
+        let mut display = display.clipped(&bounds_to_rect(&self.clip));
+        let mut display = display.translated(self.offset);
+        let mut pt = EPoint::new(position.x,position.y);
+        let mut text_builder = MonoTextStyleBuilder::new()
+            .font(style.font)
+            .text_color(*style.color);
+        if style.underline {
+            text_builder = text_builder.underline();
+        }
+        let estyle = text_builder.build();
+        let etext = Text {
+            position:pt,
+            text: text,
+            character_style: estyle,
+            text_style: TextStyleBuilder::new().alignment(Alignment::Center).baseline(Baseline::Middle).build(),
+        };
+        etext.draw(&mut display).unwrap();
+    }
+
     fn translate(&mut self, offset: &GPoint) {
         self.offset = self.offset.add(EPoint::new(offset.x, offset.y));
     }
@@ -405,13 +427,12 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         scene.mark_dirty_all();
     }
     if name == "colorful-theme" {
-        info!("changing hte colorful theme");
         theme.bg = Rgb565::CSS_MISTY_ROSE;
         theme.fg = Rgb565::CSS_DARK_BLUE;
         theme.panel_bg = Rgb565::CSS_ANTIQUE_WHITE;
         theme.selected_bg = Rgb565::CSS_DARK_MAGENTA;
         theme.selected_fg = Rgb565::CSS_LIGHT_YELLOW;
-        scene.mark_dirty_all();
+        scene.mark_layout_dirty();
     }
 
     if name == "tabs" {

@@ -1,8 +1,9 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{Action, DrawEvent, DrawingContext, GuiEvent, LayoutEvent, TextStyle, util};
+use crate::{util, Action, DrawEvent, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
 use core::option::Option::*;
+use crate::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
 
 pub fn make_toggle_button(name: &str, title: &str) -> View {
     View {
@@ -47,7 +48,13 @@ fn draw_toggle_button(e: &mut DrawEvent) {
     }
 
     let style = TextStyle::new(&e.theme.font, fg);
-    e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
+    e.ctx.text(&e.view.title,&e.view.bounds.center(),&TextStyle {
+        font: &e.theme.font,
+        color: fg,
+        valign: VAlign::Center,
+        halign: HAlign::Center,
+        underline: false,
+    })
 }
 
 fn input_toggle_button(event: &mut GuiEvent) -> Option<Action> {
@@ -67,11 +74,12 @@ fn layout_toggle_button(event: &mut LayoutEvent) {
 }
 
 mod tests {
-    use crate::MockDrawingContext;
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
-    use crate::toggle_button::{SelectedState, make_toggle_button};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::toggle_button::{make_toggle_button, SelectedState};
     use alloc::vec;
+    use crate::test::MockDrawingContext;
+
     #[test]
     fn test_toggle_button() {
         let theme = MockDrawingContext::make_mock_theme();

@@ -10,16 +10,15 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::any::Any;
 use embedded_graphics::Drawable;
-use embedded_graphics::geometry::Size;
 use embedded_graphics::mock_display::MockDisplay;
-use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
+use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
 use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
-use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
+use embedded_graphics::mono_font::MonoFont;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
-use embedded_graphics::primitives::{Primitive, PrimitiveStyle, Rectangle};
-use embedded_graphics::text::Text;
+use embedded_graphics::primitives::Primitive;
 use geom::{Bounds, Point};
-use log::{error, info};
+use log::info;
+use gfx::DrawingContext;
 use view::View;
 
 pub mod comps;
@@ -32,63 +31,10 @@ pub mod toggle_group;
 pub mod util;
 pub mod view;
 pub mod text_input;
-
-#[derive(Copy, Clone)]
-pub enum HAlign {
-    Left,
-    Center,
-    Right,
-}
-#[derive(Copy, Clone)]
-pub enum VAlign {
-    Top,
-    Center,
-    Bottom,
-}
-pub struct TextStyle<'a> {
-    pub halign: HAlign,
-    pub valign: VAlign,
-    pub underline: bool,
-    pub font: &'a MonoFont<'static>,
-    pub color: &'a Rgb565,
-}
-
-impl<'a> TextStyle<'a> {
-    pub fn new(font: &'a MonoFont<'static>, color: &'a Rgb565) -> TextStyle<'a> {
-        TextStyle {
-            font,
-            color,
-            underline: false,
-            valign: VAlign::Center,
-            halign: HAlign::Left,
-        }
-    }
-    pub fn with_underline(&self, underline: bool) -> Self {
-        TextStyle {
-            color: self.color,
-            font: self.font,
-            underline,
-            halign: self.halign,
-            valign: self.valign,
-        }
-    }
-    pub fn with_halign(&self, halign: HAlign) -> Self {
-        TextStyle {
-            color: self.color,
-            font: self.font,
-            underline: self.underline,
-            halign,
-            valign: self.valign,
-        }
-    }
-}
-
-pub trait DrawingContext {
-    fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565);
-    fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565);
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
-    fn translate(&mut self, offset: &Point);
-}
+pub mod gfx;
+pub mod test;
+pub mod label;
+pub mod button;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
@@ -146,11 +92,13 @@ pub struct LayoutEvent<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::comps::make_button;
+    use crate::button::make_button;
     use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
     use env_logger::Target;
     use log::LevelFilter;
     use std::sync::Once;
+    use gfx::DrawingContext;
+    use crate::gfx::{HAlign, TextStyle};
 
     extern crate std;
 
@@ -725,66 +673,3 @@ mod tests {
     }
 }
 
-pub struct MockDrawingContext {
-    pub clip_rect: Bounds,
-    pub display: MockDisplay<Rgb565>,
-    offset: Point,
-}
-
-impl MockDrawingContext {
-    pub fn new(scene: &Scene) -> MockDrawingContext {
-        let mut ctx: MockDrawingContext = MockDrawingContext {
-            clip_rect: scene.dirty_rect,
-            display: MockDisplay::new(),
-            offset: Point::new(0, 0),
-        };
-        ctx.display.set_allow_out_of_bounds_drawing(true);
-        ctx.display.set_allow_overdraw(true);
-        return ctx;
-    }
-    pub fn make_mock_theme() -> Theme {
-        Theme {
-            bg: Rgb565::WHITE,
-            fg: Rgb565::BLACK,
-            selected_bg: Rgb565::WHITE,
-            selected_fg: Rgb565::BLACK,
-            panel_bg: Rgb565::CSS_GRAY,
-            font: FONT_6X10,
-            bold_font: FONT_7X13_BOLD,
-        }
-    }
-}
-
-impl DrawingContext for MockDrawingContext {
-    fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        // info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
-        util::bounds_to_rect(bounds)
-            .intersection(&util::bounds_to_rect(&self.clip_rect))
-            .into_styled(PrimitiveStyle::with_fill(*color))
-            .draw(&mut self.display)
-            .unwrap();
-    }
-
-    fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        util::bounds_to_rect(bounds)
-            .intersection(&util::bounds_to_rect(&self.clip_rect))
-            .into_styled(PrimitiveStyle::with_stroke(*color, 1))
-            .draw(&mut self.display)
-            .unwrap();
-    }
-
-    // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
-        let style = MonoTextStyle::new(&style.font, *style.color);
-        let mut pt = embedded_graphics::geometry::Point::new(bounds.x, bounds.y);
-        pt.y += bounds.h / 2;
-        pt.y += (style.font.baseline as i32) / 2;
-        let w = (style.font.character_size.width as i32) * (text.len() as i32);
-        pt.x += (bounds.w - w) / 2;
-        Text::new(text, pt, style).draw(&mut self.display).unwrap();
-    }
-
-    fn translate(&mut self, offset: &Point) {
-        self.offset = self.offset.add(offset);
-    }
-}

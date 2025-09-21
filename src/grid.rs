@@ -1,10 +1,11 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{DrawEvent, HAlign, LayoutEvent, VAlign};
+use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::String;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use hashbrown::HashMap;
+use crate::gfx::{HAlign, VAlign};
 
 pub struct GridLayoutState {
     pub constraints: HashMap<String, LayoutConstraint>,
@@ -139,17 +140,14 @@ fn center_within(cell: Bounds, view: &mut Bounds) {
 }
 
 mod tests {
-    use crate::comps::{make_button, make_label};
-    use crate::grid::{GridLayoutState, make_grid_panel, LayoutConstraint};
+    use crate::button::make_button;
+    use crate::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
     use crate::geom::Bounds;
-    use crate::scene::{Scene, draw_scene, layout_scene};
-    use crate::{HAlign, MockDrawingContext, Theme, VAlign};
+    use crate::scene::{draw_scene, layout_scene, Scene};
     use alloc::boxed::Box;
-    use alloc::string::String;
-    use embedded_graphics::mock_display::MockDisplay;
-    use embedded_graphics::mono_font::MonoFont;
-    use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
-    use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
+    use crate::gfx::{HAlign, VAlign};
+    use crate::label::make_label;
+    use crate::test::MockDrawingContext;
 
     #[test]
     fn test_grid_layout() {

@@ -1,6 +1,7 @@
 use crate::geom::Bounds;
 use crate::view::View;
-use crate::{DrawingContext, LayoutEvent};
+use crate::LayoutEvent;
+use crate::gfx::DrawingContext;
 
 pub fn make_panel(name: &str, bounds: Bounds) -> View {
     View {

@@ -1,0 +1,68 @@
+use embedded_graphics::pixelcolor::Rgb565;
+use embedded_graphics::primitives::PrimitiveStyle;
+use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
+use embedded_graphics::text::Text;
+use embedded_graphics::prelude::Primitive;
+use embedded_graphics::Drawable;
+use crate::geom::{Bounds, Point};
+
+#[derive(Copy, Clone)]
+pub enum HAlign {
+    Left,
+    Center,
+    Right,
+}
+
+#[derive(Copy, Clone)]
+pub enum VAlign {
+    Top,
+    Center,
+    Bottom,
+}
+
+pub struct TextStyle<'a> {
+    pub halign: HAlign,
+    pub valign: VAlign,
+    pub underline: bool,
+    pub font: &'a MonoFont<'static>,
+    pub color: &'a Rgb565,
+}
+
+impl<'a> TextStyle<'a> {
+    pub fn new(font: &'a MonoFont<'static>, color: &'a Rgb565) -> TextStyle<'a> {
+        TextStyle {
+            font,
+            color,
+            underline: false,
+            valign: VAlign::Center,
+            halign: HAlign::Left,
+        }
+    }
+    pub fn with_underline(&self, underline: bool) -> Self {
+        TextStyle {
+            color: self.color,
+            font: self.font,
+            underline,
+            halign: self.halign,
+            valign: self.valign,
+        }
+    }
+    pub fn with_halign(&self, halign: HAlign) -> Self {
+        TextStyle {
+            color: self.color,
+            font: self.font,
+            underline: self.underline,
+            halign,
+            valign: self.valign,
+        }
+    }
+}
+
+pub trait DrawingContext {
+    fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565);
+    fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565);
+    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
+    fn text(&mut self, text:&str, position:&Point, style:&TextStyle);
+    fn translate(&mut self, offset: &Point);
+}
+
