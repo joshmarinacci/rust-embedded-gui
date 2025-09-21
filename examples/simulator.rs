@@ -16,7 +16,7 @@ use rust_embedded_gui::scene::{
 };
 use rust_embedded_gui::toggle_button::make_toggle_button;
 use rust_embedded_gui::toggle_group::{make_toggle_group, SelectOneOfState};
-use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, TextStyle, Theme};
+use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, TextStyle, Theme, VAlign};
 use std::ops::Add;
 
 #[cfg(feature = "std")]
@@ -27,7 +27,7 @@ use embedded_graphics_simulator::{
 };
 use env_logger::Target;
 use log::{info, LevelFilter};
-use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState};
+use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel};
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::View;
@@ -82,7 +82,14 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(button2, &grid.name);
 
         let button3 = make_toggle_group("toggle2", vec!["Apple", "Ball", "Car"], 1);
-        grid_layout.place_at_row_column(&button3.name, 2, 0);
+        grid_layout.constraints.insert((&button3.name).into(),LayoutConstraint {
+            row:2,
+            col: 0,
+            col_span: 2,
+            row_span: 1,
+            v_align: VAlign::Center,
+            h_align: HAlign::Center,
+        });
         scene.add_view_to_parent(button3, &grid.name);
 
         grid.state = Some(Box::new(grid_layout));

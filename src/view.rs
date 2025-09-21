@@ -22,6 +22,11 @@ impl View {
         self.bounds.y = y;
         self
     }
+    pub fn with_size(mut self, w: i32, h: i32) -> View {
+        self.bounds.w = w;
+        self.bounds.h = h;
+        self
+    }
     pub fn hide(mut self) -> View {
         self.visible = false;
         self

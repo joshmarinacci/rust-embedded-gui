@@ -43,12 +43,12 @@ impl GridLayoutState {
 }
 
 pub struct LayoutConstraint {
-    col: usize,
-    row: usize,
-    col_span: usize,
-    row_span: usize,
-    h_align: HAlign,
-    v_align: VAlign,
+    pub col: usize,
+    pub row: usize,
+    pub col_span: usize,
+    pub row_span: usize,
+    pub h_align: HAlign,
+    pub v_align: VAlign,
 }
 
 impl LayoutConstraint {
@@ -97,7 +97,7 @@ fn layout_grid(evt: &mut LayoutEvent) {
                 let bounds = if let Some(cons) = &state.constraints.get(&kid) {
                     let x = (cons.col * state.col_width) as i32;
                     let y = (cons.row * state.row_height) as i32;
-                    let w = state.col_width as i32;
+                    let w = state.col_width as i32 * cons.col_span as i32;
                     let h = state.row_height as i32;
                     Bounds::new(x, y, w, h)
                 } else {
@@ -112,11 +112,11 @@ fn layout_grid(evt: &mut LayoutEvent) {
 }
 
 mod tests {
-    use crate::comps::make_label;
-    use crate::grid::{GridLayoutState, make_grid_panel};
+    use crate::comps::{make_button, make_label};
+    use crate::grid::{GridLayoutState, make_grid_panel, LayoutConstraint};
     use crate::geom::Bounds;
     use crate::scene::{Scene, draw_scene, layout_scene};
-    use crate::{MockDrawingContext, Theme};
+    use crate::{HAlign, MockDrawingContext, Theme, VAlign};
     use alloc::boxed::Box;
     use alloc::string::String;
     use embedded_graphics::mock_display::MockDisplay;
@@ -173,5 +173,32 @@ mod tests {
         assert_eq!(scene.dirty, true);
         draw_scene(&mut scene, &mut ctx, &theme);
         assert_eq!(scene.dirty, false);
+    }
+
+    #[test]
+    fn col_span() {
+        let theme = MockDrawingContext::make_mock_theme();
+        let mut grid = make_grid_panel("grid").position_at(0,0).with_size(200,200);
+        let mut layout = GridLayoutState::new_row_column(2, 30, 2, 100);
+        let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
+
+        let button = make_button("b1","b1");
+        layout.constraints.insert((&button.name).into(),LayoutConstraint{
+            col:0,
+            row:0,
+            col_span: 2,
+            row_span: 1,
+            h_align: HAlign::Center,
+            v_align: VAlign::Center,
+        });
+
+        grid.state = Some(Box::new(layout));
+        scene.add_view_to_parent(button,&grid.name);
+        scene.add_view_to_root(grid);
+        layout_scene(&mut scene, &theme);
+
+        if let Some(view) = scene.get_view("b1") {
+            assert_eq!(view.bounds, Bounds::new(0,0,200,30));
+        }
     }
 }
