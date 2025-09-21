@@ -5,22 +5,6 @@ use alloc::string::ToString;
 use log::info;
 use crate::HAlign::Left;
 
-pub fn make_panel(name: &str, bounds: Bounds) -> View {
-    View {
-        name: name.into(),
-        title: name.into(),
-        bounds,
-        visible: true,
-        input: None,
-        state: None,
-        layout: None,
-        draw: Some(|e| {
-            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-        }),
-    }
-}
-
 
 fn draw_button(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);

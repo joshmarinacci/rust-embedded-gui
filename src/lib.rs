@@ -30,6 +30,7 @@ pub mod toggle_button;
 pub mod toggle_group;
 pub mod view;
 pub mod util;
+pub mod panel;
 
 #[derive(Copy, Clone)]
 pub enum HAlign {

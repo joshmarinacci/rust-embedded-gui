@@ -7,12 +7,12 @@ use embedded_graphics::mono_font::ascii::{
     FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
-use embedded_graphics::mono_font::{MonoTextStyle, MonoTextStyleBuilder};
+use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
-use rust_embedded_gui::comps::{make_button, make_label, make_panel, make_text_input};
-use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, LayoutEvent, TextStyle, Theme};
+use rust_embedded_gui::comps::{make_button, make_label, make_text_input};
+use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, TextStyle, Theme};
 use rust_embedded_gui::geom::{Bounds, Point as GPoint};
 use rust_embedded_gui::scene::{click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene};
 use rust_embedded_gui::toggle_button::make_toggle_button;
@@ -26,7 +26,8 @@ use embedded_graphics_simulator::{
 };
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use env_logger::Target;
-use log::{info, LevelFilter};
+use log::LevelFilter;
+use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel};
 use rust_embedded_gui::view::View;
 
 const SMALL_FONT_BUTTON: &str = "small_font";
@@ -78,21 +79,9 @@ fn make_scene() -> Scene {
         vbox.draw = Some(|e|{
             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
         });
-        vbox.layout = Some(|evt|{
-            if let Some(parent) = evt.scene.get_view_mut(evt.target) {
-                let bounds = parent.bounds;
-                let mut y = bounds.y;
-                for kid in evt.scene.get_children(evt.target) {
-                    if let Some(ch) = evt.scene.get_view_mut(&kid) {
-                        ch.bounds.x = bounds.x;
-                        ch.bounds.y = y;
-                        y += ch.bounds.h;
-                    }
-                }
-            }
-        });
+        vbox.layout = Some(layout_vbox);
         scene.add_view_to_parent(
-            make_label("vbox-label","vbox layout").position_at(20,50),
+            make_label("vbox-label","vbox layout"),
             &vbox.name
         );
         scene.add_view_to_parent(make_button("vbox-button1","Button 1"), &vbox.name);
@@ -105,21 +94,9 @@ fn make_scene() -> Scene {
         hbox.draw = Some(|e|{
             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
         });
-        hbox.layout = Some(|evt|{
-            if let Some(parent) = evt.scene.get_view_mut(evt.target) {
-                let bounds = parent.bounds;
-                let mut x = bounds.x;
-                for kid in evt.scene.get_children(evt.target) {
-                    if let Some(ch) = evt.scene.get_view_mut(&kid) {
-                        ch.bounds.x = x;
-                        ch.bounds.y = bounds.y;
-                        x += ch.bounds.w;
-                    }
-                }
-            }
-        });
+        hbox.layout = Some(layout_hbox);
         scene.add_view_to_parent(
-            make_label("hbox-label","hbox layout").position_at(20,50),
+            make_label("hbox-label","hbox layout"),
             &hbox.name
         );
         scene.add_view_to_parent(make_button("hbox-button1","Button 1"), &hbox.name);
