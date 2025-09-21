@@ -1,5 +1,5 @@
 use crate::geom::Bounds;
-use crate::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
+use crate::gfx::{draw_centered_text, DrawingContext, HAlign, TextStyle, VAlign};
 use crate::view::View;
 use crate::{Action, DrawEvent, EventType, util};
 use alloc::string::ToString;
@@ -12,17 +12,7 @@ fn draw_button(e: &mut DrawEvent) {
             e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
         }
     }
-    e.ctx.text(
-        &e.view.title,
-        &e.view.bounds.center(),
-        &TextStyle {
-            font: &e.theme.bold_font,
-            halign: HAlign::Center,
-            valign: VAlign::Center,
-            color: &e.theme.fg,
-            underline: false,
-        },
-    );
+    draw_centered_text(e.ctx, &e.view.title, &e.view.bounds, &e.theme.bold_font, &e.theme.fg);
 }
 
 pub fn make_button(name: &str, title: &str) -> View {

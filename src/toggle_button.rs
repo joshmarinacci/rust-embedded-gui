@@ -1,9 +1,9 @@
 use crate::geom::Bounds;
+use crate::gfx::{draw_centered_text, DrawingContext};
 use crate::view::View;
 use crate::{util, Action, DrawEvent, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
 use core::option::Option::*;
-use crate::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
 
 pub fn make_toggle_button(name: &str, title: &str) -> View {
     View {
@@ -47,14 +47,7 @@ fn draw_toggle_button(e: &mut DrawEvent) {
         }
     }
 
-    let style = TextStyle::new(&e.theme.font, fg);
-    e.ctx.text(&e.view.title,&e.view.bounds.center(),&TextStyle {
-        font: &e.theme.font,
-        color: fg,
-        valign: VAlign::Center,
-        halign: HAlign::Center,
-        underline: false,
-    })
+    draw_centered_text(e.ctx,&e.view.title, &e.view.bounds, &e.theme.font, fg);
 }
 
 fn input_toggle_button(event: &mut GuiEvent) -> Option<Action> {
@@ -76,9 +69,9 @@ fn layout_toggle_button(event: &mut LayoutEvent) {
 mod tests {
     use crate::geom::{Bounds, Point};
     use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::test::MockDrawingContext;
     use crate::toggle_button::{make_toggle_button, SelectedState};
     use alloc::vec;
-    use crate::test::MockDrawingContext;
 
     #[test]
     fn test_toggle_button() {

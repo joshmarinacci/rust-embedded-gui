@@ -121,8 +121,8 @@ The theme fields should be used for:
 
 ## tasks
 
-* fix draw text alignment issues
-* a common draw text centered inside of bounds function
+-[x] fix draw text alignment issues
+-[x] a common draw text centered inside of bounds function
 * draw line. update grid.debug and toggle group to use it.
 * add scroll events to select within elements.
 * toggle group should indicate it is focused with a double border

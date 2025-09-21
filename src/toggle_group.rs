@@ -1,14 +1,12 @@
 use crate::geom::Bounds;
+use crate::gfx::{draw_centered_text, DrawingContext, HAlign, TextStyle};
 use crate::view::View;
-use crate::{
-    Action, DrawEvent, EventType, GuiEvent, LayoutEvent,
-};
+use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
-use crate::gfx::{DrawingContext, HAlign, TextStyle};
 
 pub fn make_toggle_group(name: &str, data: Vec<&str>, selected: usize) -> View {
     View {
@@ -80,8 +78,7 @@ fn draw_toggle_group(e: &mut DrawEvent) {
             );
             e.ctx.fill_rect(&bds, bg);
             e.ctx.stroke_rect(&bds, &e.theme.fg);
-            let style = TextStyle::new(&e.theme.font, fg).with_halign(HAlign::Center);
-            e.ctx.fill_text(&bds, item, &style);
+            draw_centered_text(e.ctx,item,&bds,&e.theme.font,fg);
         }
     }
 }
@@ -97,10 +94,10 @@ fn layout_toggle_group(e: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
-    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
-    use alloc::vec;
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
+    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
+    use alloc::vec;
 
     #[test]
     fn test_toggle_group() {

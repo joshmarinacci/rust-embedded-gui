@@ -66,3 +66,14 @@ pub trait DrawingContext {
     fn translate(&mut self, offset: &Point);
 }
 
+
+
+pub fn draw_centered_text(ctx: &mut dyn DrawingContext, text: &str, bounds: &Bounds, font: &MonoFont<'static>, color: &Rgb565) {
+    ctx.text(text,&bounds.center(),&TextStyle {
+        font,
+        color,
+        valign: VAlign::Center,
+        halign: HAlign::Center,
+        underline: false,
+    })
+}

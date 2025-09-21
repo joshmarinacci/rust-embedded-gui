@@ -25,6 +25,7 @@ use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
+use env_logger::fmt::style::Color::Rgb;
 use env_logger::Target;
 use log::{info, LevelFilter};
 use rust_embedded_gui::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
@@ -418,12 +419,16 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.bg = Rgb565::WHITE;
         theme.fg = Rgb565::BLACK;
         theme.panel_bg = Rgb565::CSS_LIGHT_GRAY;
+        theme.selected_bg = Rgb565::CSS_CORNFLOWER_BLUE;
+        theme.selected_fg = Rgb565::WHITE;
         scene.mark_dirty_all();
     }
     if name == "dark-theme" {
         theme.bg = Rgb565::from(Rgb888::new(50, 50, 50));
         theme.fg = Rgb565::WHITE;
         theme.panel_bg = Rgb565::BLACK;
+        theme.selected_bg = Rgb565::CSS_DARK_BLUE;
+        theme.selected_fg = Rgb565::WHITE;
         scene.mark_dirty_all();
     }
     if name == "colorful-theme" {
@@ -432,7 +437,7 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.panel_bg = Rgb565::CSS_ANTIQUE_WHITE;
         theme.selected_bg = Rgb565::CSS_DARK_MAGENTA;
         theme.selected_fg = Rgb565::CSS_LIGHT_YELLOW;
-        scene.mark_layout_dirty();
+        scene.mark_dirty_all();
     }
 
     if name == "tabs" {
