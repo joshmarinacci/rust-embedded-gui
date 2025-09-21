@@ -71,7 +71,9 @@ fn make_scene() -> Scene {
         let mut grid = make_grid_panel(BUTTONS_PANEL);
         grid.bounds = Bounds::new(50, 50, 100, 100);
         let mut grid_layout = GridLayoutState::new_row_column(3, 30, 2, 100);
-        grid_layout.padding = 0;
+        grid_layout.debug = false;
+        grid_layout.padding = 10;
+        grid_layout.border = false;
 
         let label1 = make_label("label1", "A Label");
         grid_layout.place_at_row_column(&label1.name, 0, 0);
@@ -96,7 +98,6 @@ fn make_scene() -> Scene {
         });
         scene.add_view_to_parent(button3, &grid.name);
 
-        grid_layout.debug = true;
         grid.state = Some(Box::new(grid_layout));
         scene.add_view_to_parent(grid, &tabbed_panel.name);
     }
@@ -104,8 +105,9 @@ fn make_scene() -> Scene {
         let mut vbox = make_panel(VBOX_PANEL, Bounds::new(0, 50, 100, 100));
         vbox.state = Some(Box::new(PanelState{
             padding: 10,
-            debug: true,
-            border:true,
+            debug: false,
+            border:false,
+            bg: true,
             gap: 10,
             halign: HAlign::Center,
             valign: VAlign::Center,
@@ -123,6 +125,7 @@ fn make_scene() -> Scene {
             padding: 10,
             debug: false,
             border:false,
+            bg: true,
             gap: 10,
             halign: HAlign::Center,
             valign: VAlign::Bottom,
@@ -135,7 +138,13 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(hbox, &tabbed_panel.name);
     }
     {
-        let panel = make_panel(INPUTS_PANEL, Bounds::new(0, 50, 100, 100));
+        let mut panel = make_panel(INPUTS_PANEL, Bounds::new(0, 50, 100, 100));
+        if let Some(state) = panel.get_state::<PanelState>() {
+            state.border = false;
+            state.gap = 5;
+            state.bg = false;
+        }
+
         scene.add_view_to_parent(
             make_text_input("textinput", "input").position_at(10, 10),
             &panel.name,
@@ -150,6 +159,7 @@ fn make_scene() -> Scene {
             padding: 10,
             debug: false,
             border:false,
+            bg:true,
             gap: 10,
             halign: HAlign::Center,
             valign: VAlign::Bottom,
@@ -167,9 +177,17 @@ fn make_scene() -> Scene {
 
     scene.add_view_to_root(tabbed_panel);
 
-    scene.add_view_to_root(make_button(SMALL_FONT_BUTTON, "Small").position_at(30, 200));
-    scene.add_view_to_root(make_button(MEDIUM_FONT_BUTTON, "Medium").position_at(120, 200));
-    scene.add_view_to_root(make_button(LARGE_FONT_BUTTON, "Large").position_at(220, 200));
+    let mut font_buttons = make_panel("font_buttons", Bounds::new(30, 200, 200, 30));
+    font_buttons.layout = Some(layout_hbox);
+    if let Some(state) = font_buttons.get_state::<PanelState>() {
+        state.border = false;
+        state.gap = 5;
+        state.bg = false;
+    }
+    scene.add_view_to_parent(make_button(SMALL_FONT_BUTTON, "Small"), &font_buttons.name);
+    scene.add_view_to_parent(make_button(MEDIUM_FONT_BUTTON, "Medium"), &font_buttons.name);
+    scene.add_view_to_parent(make_button(LARGE_FONT_BUTTON, "Large"), &font_buttons.name);
+    scene.add_view_to_root(font_buttons);
 
     if let Some(state) = scene.get_view_state::<SelectOneOfState>(TABBED_PANEL) {
         state.selected = 2;
@@ -200,10 +218,10 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
                                 ch.visible = true;
                             } else {
                                 ch.bounds = Bounds::new(
-                                    0,
-                                    0 + tabs_height,
-                                    bounds.w,
-                                    bounds.h - tabs_height,
+                                    0+1,
+                                    0 + tabs_height+1,
+                                    bounds.w-2,
+                                    bounds.h - tabs_height -2,
                                 );
                                 ch.visible = false;
                                 if i == selected + 1 {

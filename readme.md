@@ -76,11 +76,11 @@ The theme fields should be used for:
   - [ ] spec out how focus management works. 
     - [ ] focus groups
 - [ ] drawing
-  - [ ] redo fill_text api.
-    - [ ] just text. support bg color?
-    - [ ] proper alignment. provide center point and draw centered
-  - [ ] draw line
-  - [ ] remove clear
+  - [x] redo fill_text api.
+    - [x] just text. support bg color?
+    - [x] proper alignment. provide center point and draw centered
+  - [x] draw line
+  - [x] remove clear
   - [ ] consolidate Display impls
 - [ ] layout & rendering
   - [ ] calculating dirty rect needs to be converted back to global

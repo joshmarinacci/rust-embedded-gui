@@ -11,6 +11,7 @@ pub struct PanelState {
     pub gap: i32,
     pub debug: bool,
     pub border: bool,
+    pub bg: bool,
     pub halign: HAlign,
     pub valign: VAlign,
 }
@@ -25,15 +26,18 @@ pub fn make_panel(name: &str, bounds: Bounds) -> View {
             padding: 0,
             debug: false,
             border: true,
+            bg: true,
             gap: 0,
             halign: HAlign::Center,
             valign: VAlign::Center,
         })),
         layout: None,
         draw: Some(|e| {
-            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
             let bounds = e.view.bounds;
             if let Some(state) = e.view.get_state::<PanelState>() {
+                if state.bg {
+                    e.ctx.fill_rect(&bounds, &e.theme.bg);
+                }
                 if state.border {
                     e.ctx.stroke_rect(&bounds, &e.theme.fg);
                 }
