@@ -297,9 +297,11 @@ fn draw_view(
     if let Some(view) = scene.get_view(name) {
         // only draw children if visible
         if view.visible {
+            ctx.translate(&bounds.position().negate());
             for kid in scene.get_children(&view.name) {
                 draw_view(scene, ctx, theme, &kid);
             }
+            ctx.translate(&bounds.position());
         }
     }
 }

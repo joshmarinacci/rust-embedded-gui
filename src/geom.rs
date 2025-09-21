@@ -7,6 +7,15 @@ pub struct Bounds {
 }
 
 impl Bounds {
+    pub(crate) fn position(&self) -> Point {
+        Point {
+            x: self.x,
+            y: self.y,
+        }
+    }
+}
+
+impl Bounds {
     fn from_xyxy2(x: i32, y: i32, x2: i32, y2: i32) -> Bounds {
         Bounds {
             x,
@@ -86,8 +95,23 @@ pub struct Point {
 }
 
 impl Point {
+    pub(crate) fn negate(&self) -> Point {
+        Point {
+            x: -self.x,
+            y: -self.y,
+        }
+    }
+}
+
+impl Point {
     pub fn new(x: i32, y: i32) -> Point {
         Point { x, y }
+    }
+    pub fn add(&self, p0: &Point) -> Point {
+        Point {
+            x: self.x + p0.x,
+            y: self.y + p0.y,
+        }
     }
 }
 

@@ -86,6 +86,7 @@ pub trait DrawingContext {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565);
     fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565);
     fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
+    fn translate(&mut self, offset: &Point);
 }
 
 pub struct DrawEvent<'a> {
@@ -724,6 +725,7 @@ mod tests {
 pub struct MockDrawingContext {
     pub clip_rect: Bounds,
     pub display: MockDisplay<Rgb565>,
+    offset:Point,
 }
 
 impl MockDrawingContext {
@@ -731,6 +733,7 @@ impl MockDrawingContext {
         let mut ctx: MockDrawingContext = MockDrawingContext {
             clip_rect: scene.dirty_rect,
             display: MockDisplay::new(),
+            offset: Point::new(0,0)
         };
         ctx.display.set_allow_out_of_bounds_drawing(true);
         ctx.display.set_allow_overdraw(true);
@@ -781,5 +784,9 @@ impl DrawingContext for MockDrawingContext {
         let w = (style.font.character_size.width as i32) * (text.len() as i32);
         pt.x += (bounds.w - w) / 2;
         Text::new(text, pt, style).draw(&mut self.display).unwrap();
+    }
+
+    fn translate(&mut self, offset: &Point) {
+        self.offset = self.offset.add(offset);
     }
 }

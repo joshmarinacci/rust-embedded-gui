@@ -1,8 +1,9 @@
+use std::ops::Add;
 use embedded_graphics::Drawable;
 use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::prelude::RgbColor;
-use embedded_graphics::geometry::{Point, Size};
+use embedded_graphics::geometry::{Point as EPoint, Size};
 use embedded_graphics::mono_font::ascii::{
     FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
@@ -182,6 +183,7 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
 struct SimulatorDrawingContext<'a> {
     pub clip: Bounds,
     display: &'a mut SimulatorDisplay<Rgb565>,
+    offset: EPoint,
 }
 
 impl SimulatorDrawingContext<'_> {
@@ -189,41 +191,45 @@ impl SimulatorDrawingContext<'_> {
         SimulatorDrawingContext {
             display,
             clip: Bounds::new_empty(),
+            offset: EPoint::new(0,0),
         }
     }
 }
 
 fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
     Rectangle::new(
-        Point::new(bounds.x, bounds.y),
+        EPoint::new(bounds.x, bounds.y),
         Size::new(bounds.w as u32, bounds.h as u32),
     )
 }
 
 impl DrawingContext for SimulatorDrawingContext<'_> {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        let mut display = self.display.clipped(&bounds_to_rect(&self.clip));
+        let mut translated = self.display.translated(self.offset);
+        let mut display = translated.clipped(&bounds_to_rect(&self.clip));
         bounds_to_rect(bounds)
             .into_styled(PrimitiveStyle::with_fill(*color))
             .draw(&mut display)
             .unwrap();
     }
     fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        let mut display = self.display.clipped(&bounds_to_rect(&self.clip));
+        let mut translated = self.display.translated(self.offset);
+        let mut display = translated.clipped(&bounds_to_rect(&self.clip));
         bounds_to_rect(bounds)
             .into_styled(PrimitiveStyle::with_stroke(*color, 1))
             .draw(&mut display)
             .unwrap();
     }
     fn fill_text(&mut self, bounds: &Bounds, text: &str, text_style:&TextStyle) {
-        let mut display = self.display.clipped(&bounds_to_rect(&self.clip));
+        let mut translated = self.display.translated(self.offset);
+        let mut display = translated.clipped(&bounds_to_rect(&self.clip));
 
         let mut text_builder = MonoTextStyleBuilder::new().font(text_style.font).text_color(*text_style.color);
         if text_style.underline {
             text_builder = text_builder.underline();
         }
         let style = text_builder.build();// MonoTextStyle::new(&FONT_6X10,  *text_style.color);
-        let mut pt = embedded_graphics::geometry::Point::new(bounds.x, bounds.y);
+        let mut pt = EPoint::new(bounds.x, bounds.y);
         pt.y += bounds.h / 2;
         pt.y += (FONT_6X10.baseline as i32) / 2;
 
@@ -240,6 +246,10 @@ impl DrawingContext for SimulatorDrawingContext<'_> {
         }
 
         Text::new(text, pt, style).draw(&mut display).unwrap();
+    }
+
+    fn translate(&mut self, offset: &GPoint) {
+        self.offset = self.offset.add(EPoint::new(offset.x, offset.y));
     }
 }
 
