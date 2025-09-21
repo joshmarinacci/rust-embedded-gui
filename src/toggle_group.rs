@@ -43,7 +43,7 @@ fn input_toggle_group(event: &mut GuiEvent) -> Option<Action> {
                 let bounds = view.bounds;
                 if let Some(state) = view.get_state::<SelectOneOfState>() {
                     let cell_width = bounds.w / (state.items.len() as i32);
-                    let x = pt.x - bounds.x;
+                    let x = pt.x;
                     let n = x / cell_width;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;

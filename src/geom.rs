@@ -104,6 +104,12 @@ impl Point {
             y: self.y + pt.y,
         }
     }
+    pub fn subtract(&self, pt: &Point) -> Point {
+        Point {
+            x: self.x - pt.x,
+            y: self.y - pt.y,
+        }
+    }
     pub fn negate(&self) -> Point {
         Point {
             x: -self.x,
@@ -150,5 +156,9 @@ mod tests {
         assert_eq!(pt3,Point::new(18,20));
         let bounds = Bounds::new(1, 2, 3, 4);
         assert_eq!(bounds.position(),Point::new(1,2));
+
+        let pt4 = pt1.subtract(&pt2);
+        assert_eq!(pt4,Point::new(-2,-2));
+
     }
 }

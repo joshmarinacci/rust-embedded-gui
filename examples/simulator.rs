@@ -58,19 +58,19 @@ fn make_scene() -> Scene {
     {
         let panel = make_panel(BUTTONS_PANEL, Bounds::new(0, 50, 100, 100));
         scene.add_view_to_parent(
-            make_label("label1", "A Label").position_at(30, 50),
+            make_label("label1", "A Label").position_at(10, 20),
             &panel.name,
         );
         scene.add_view_to_parent(
-            make_button("button1", "Basic Button").position_at(120, 50),
+            make_button("button1", "Basic Button").position_at(10, 50),
             &panel.name,
         );
         scene.add_view_to_parent(
-            make_toggle_button("toggle1", "Toggle Me").position_at(30, 80),
+            make_toggle_button("toggle1", "Toggle Me").position_at(120, 50),
             &panel.name,
         );
         scene.add_view_to_parent(
-            make_toggle_group("toggle2",vec!["Apple","Ball","Car"],1).position_at(30, 130),
+            make_toggle_group("toggle2",vec!["Apple","Ball","Car"],1).position_at(10, 80),
             &panel.name
         );
         scene.add_view_to_parent(panel, &tabbed_panel.name);
@@ -108,7 +108,7 @@ fn make_scene() -> Scene {
     {
         let panel = make_panel(INPUTS_PANEL, Bounds::new(0, 50, 100, 100));
         scene.add_view_to_parent(
-            make_text_input("textinput", "input").position_at(30, 90),
+            make_text_input("textinput", "input").position_at(10, 10),
             &panel.name,
         );
         scene.add_view_to_parent(panel,&tabbed_panel.name);
@@ -158,11 +158,11 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
                     for (i,kid) in e.scene.get_children(e.target).iter().enumerate() {
                         if let Some(ch) = e.scene.get_view_mut(&kid) {
                             if kid == "tabs" {
-                                ch.bounds = Bounds::new(bounds.x,bounds.y,bounds.w,ch.bounds.h);
+                                ch.bounds = Bounds::new(0,0,bounds.w,ch.bounds.h);
                                 tabs_height = ch.bounds.h;
                                 ch.visible = true;
                             } else {
-                                ch.bounds = Bounds::new(bounds.x, bounds.y+ tabs_height, bounds.w, bounds.h- tabs_height);
+                                ch.bounds = Bounds::new(0, 0+ tabs_height, bounds.w, bounds.h- tabs_height);
                                 ch.visible = false;
                                 if i == selected + 1 {
                                     ch.visible = true;
@@ -205,24 +205,27 @@ fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
 
 impl DrawingContext for SimulatorDrawingContext<'_> {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        let mut translated = self.display.translated(self.offset);
-        let mut display = translated.clipped(&bounds_to_rect(&self.clip));
+        let mut display = &mut self.display;
+        let mut display = display.clipped(&bounds_to_rect(&self.clip));
+        let mut display = display.translated(self.offset);
         bounds_to_rect(bounds)
             .into_styled(PrimitiveStyle::with_fill(*color))
             .draw(&mut display)
             .unwrap();
     }
     fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        let mut translated = self.display.translated(self.offset);
-        let mut display = translated.clipped(&bounds_to_rect(&self.clip));
+        let mut display = &mut self.display;
+        let mut display = display.clipped(&bounds_to_rect(&self.clip));
+        let mut display = display.translated(self.offset);
         bounds_to_rect(bounds)
             .into_styled(PrimitiveStyle::with_stroke(*color, 1))
             .draw(&mut display)
             .unwrap();
     }
     fn fill_text(&mut self, bounds: &Bounds, text: &str, text_style:&TextStyle) {
-        let mut translated = self.display.translated(self.offset);
-        let mut display = translated.clipped(&bounds_to_rect(&self.clip));
+        let mut display = &mut self.display;
+        let mut display = display.clipped(&bounds_to_rect(&self.clip));
+        let mut display = display.translated(self.offset);
 
         let mut text_builder = MonoTextStyleBuilder::new().font(text_style.font).text_color(*text_style.color);
         if text_style.underline {

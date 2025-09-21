@@ -64,6 +64,7 @@ impl Scene {
             // info!("dirty rect now {:?}", self.dirty_rect);
             self.dirty = true;
         }
+        self.mark_dirty_all();
     }
     pub fn mark_layout_dirty(&mut self) {
         self.layout_dirty = true;
@@ -186,11 +187,11 @@ pub fn click_at(
     pt: Point,
 ) -> Option<EventResult> {
     let targets = pick_at(scene, &pt);
-    if let Some(target) = targets.last() {
+    if let Some((target,pt)) = targets.last() {
         let mut event: GuiEvent = GuiEvent {
             scene,
             target,
-            event_type: EventType::Tap(pt),
+            event_type: EventType::Tap(pt.clone()),
             action: None,
         };
         if let Some(view) = event.scene.get_view(target) {
@@ -232,19 +233,18 @@ pub fn event_at_focused(
     None
 }
 
-pub fn pick_at(scene: &mut Scene, pt: &Point) -> Vec<String> {
+type Pick = (String, Point);
+
+pub fn pick_at(scene: &mut Scene, pt: &Point) -> Vec<Pick> {
     pick_at_view(scene, pt, &scene.root_id)
 }
 
-fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<String> {
-    let mut coll: Vec<String> = vec![];
+fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<Pick> {
+    let mut coll: Vec<Pick> = vec![];
     if let Some(view) = scene.keys.get(name) {
         if view.bounds.contains(pt) && view.visible {
-            coll.push(view.name.clone());
-            let pt2 = Point {
-                x: pt.x, // - view.bounds.x,
-                y: pt.y,// - view.bounds.y,
-            };
+            coll.push((view.name.clone(),pt.clone()));
+            let pt2 = pt.subtract(&view.bounds.position());
             for kid in scene.get_children(&view.name) {
                 let mut coll2 = pick_at_view(scene, &pt2, &kid);
                 coll.append(&mut coll2);
@@ -260,10 +260,6 @@ pub fn draw_scene(
     theme: &Theme
 ) {
     if scene.dirty {
-        // info!(
-        //     "draw scene: {} {:?} {:?}",
-        //     scene.dirty, scene.bounds, scene.dirty_rect
-        // );
         ctx.fill_rect(&scene.bounds, &theme.panel_bg);
         let name = scene.root_id.clone();
         draw_view(scene, ctx, theme, &name);
@@ -297,11 +293,12 @@ fn draw_view(
     if let Some(view) = scene.get_view(name) {
         // only draw children if visible
         if view.visible {
-            ctx.translate(&bounds.position().negate());
+            let bounds = view.bounds.clone();
+            ctx.translate(&bounds.position());
             for kid in scene.get_children(&view.name) {
                 draw_view(scene, ctx, theme, &kid);
             }
-            ctx.translate(&bounds.position());
+            ctx.translate(&bounds.position().negate());
         }
     }
 }

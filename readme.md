@@ -44,4 +44,5 @@ Run the unit tests with `cargo test --features std`.
 - [ ] add list view
 - [x] add hbox and vbox layouts
 - [ ] add tab panel
-- make children drawn and picked relative to the parent.
+- [ ] make children drawn and picked relative to the parent.
+  - [ ] calculating dirty rect needs to be converted back to global 

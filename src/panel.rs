@@ -20,11 +20,10 @@ pub fn make_panel(name: &str, bounds: Bounds) -> View {
 
 pub fn layout_vbox(evt: &mut LayoutEvent) {
     if let Some(parent) = evt.scene.get_view_mut(evt.target) {
-        let bounds = parent.bounds;
-        let mut y = bounds.y;
+        let mut y = 0;
         for kid in evt.scene.get_children(evt.target) {
             if let Some(ch) = evt.scene.get_view_mut(&kid) {
-                ch.bounds.x = bounds.x;
+                ch.bounds.x = 0;
                 ch.bounds.y = y;
                 y += ch.bounds.h;
             }
@@ -34,12 +33,11 @@ pub fn layout_vbox(evt: &mut LayoutEvent) {
 
 pub fn layout_hbox(evt: &mut LayoutEvent) {
     if let Some(parent) = evt.scene.get_view_mut(evt.target) {
-        let bounds = parent.bounds;
-        let mut x = bounds.x;
+        let mut x = 0;
         for kid in evt.scene.get_children(evt.target) {
             if let Some(ch) = evt.scene.get_view_mut(&kid) {
                 ch.bounds.x = x;
-                ch.bounds.y = bounds.y;
+                ch.bounds.y = 0;
                 x += ch.bounds.w;
             }
         }
