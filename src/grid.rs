@@ -1,4 +1,4 @@
-use crate::geom::Bounds;
+use crate::geom::{Bounds, Point};
 use crate::view::View;
 use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
@@ -95,16 +95,17 @@ fn draw_grid(evt: &mut DrawEvent) {
     let bounds = evt.view.bounds;
     if let Some(state) = evt.view.get_state::<GridLayoutState>() {
         if state.debug {
-            for i in 0..state.col_count {
-                for j in 0 .. state.row_count {
-                    let rect = Bounds::new(
-                        (i * state.col_width) as i32 + bounds.x,
-                        (j * state.row_height) as i32 + bounds.y,
-                           state.col_width as i32,
-                           state.row_height as i32
-                    );
-                    evt.ctx.stroke_rect(&rect, &Rgb565::RED);
-                }
+            for i in 0..state.col_count+1 {
+                let x = (i * state.col_width) as i32 + bounds.x;
+                let y = bounds.y;
+                let y2 = bounds.y + bounds.h;
+                evt.ctx.line(&Point::new(x,y), &Point::new(x,y2), &Rgb565::RED);
+            }
+            for j in 0 .. state.row_count+1 {
+                let y = (j * state.row_height) as i32 + bounds.y;
+                let x = bounds.x;
+                let x2 = bounds.x + bounds.w;
+                evt.ctx.line(&Point::new(x,y), &Point::new(x2,y), &Rgb565::RED);
             }
         }
     }

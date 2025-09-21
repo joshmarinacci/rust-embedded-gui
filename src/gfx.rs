@@ -61,6 +61,7 @@ impl<'a> TextStyle<'a> {
 pub trait DrawingContext {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565);
     fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565);
+    fn line(&mut self, start:&Point, end:&Point, color:&Rgb565);
     fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
     fn text(&mut self, text:&str, position:&Point, style:&TextStyle);
     fn translate(&mut self, offset: &Point);

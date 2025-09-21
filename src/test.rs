@@ -4,7 +4,8 @@ use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
 use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
 use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
-use embedded_graphics::primitives::{Primitive, PrimitiveStyle};
+use embedded_graphics::primitives::{Line, Primitive, PrimitiveStyle};
+use embedded_graphics::geometry::{Point as EPoint};
 use embedded_graphics::text::Text;
 use crate::geom::{Bounds, Point};
 use crate::gfx::{DrawingContext, TextStyle};
@@ -58,6 +59,11 @@ impl DrawingContext for MockDrawingContext {
             .unwrap();
     }
 
+    fn line(&mut self, start: &Point, end: &Point, color: &Rgb565) {
+        let line = Line::new(EPoint::new(start.x,start.y),EPoint::new(end.x,end.y));
+        line.into_styled(PrimitiveStyle::with_stroke(*color,1)).draw(&mut self.display).unwrap();
+    }
+
     // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
     fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
         let style = MonoTextStyle::new(&style.font, *style.color);
@@ -70,7 +76,7 @@ impl DrawingContext for MockDrawingContext {
     }
 
     fn text(&mut self, text: &str, position: &Point, style: &TextStyle) {
-        
+
     }
 
     fn translate(&mut self, offset: &Point) {

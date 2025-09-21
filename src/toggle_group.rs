@@ -1,4 +1,4 @@
-use crate::geom::Bounds;
+use crate::geom::{Bounds, Point};
 use crate::gfx::{draw_centered_text, DrawingContext, HAlign, TextStyle};
 use crate::view::View;
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
@@ -61,7 +61,6 @@ fn input_toggle_group(event: &mut GuiEvent) -> Option<Action> {
 fn draw_toggle_group(e: &mut DrawEvent) {
     let bounds = e.view.bounds;
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
     if let Some(state) = e.view.get_state::<SelectOneOfState>() {
         let cell_width = bounds.w / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
@@ -71,16 +70,27 @@ fn draw_toggle_group(e: &mut DrawEvent) {
                 (&e.theme.bg, &e.theme.fg)
             };
             let bds = Bounds::new(
-                bounds.x + (i as i32) * cell_width,
+                bounds.x + (i as i32) * cell_width + 1,
                 bounds.y,
-                cell_width,
+                cell_width-1,
                 bounds.h,
             );
-            e.ctx.fill_rect(&bds, bg);
-            e.ctx.stroke_rect(&bds, &e.theme.fg);
+            // draw background only if selected
+            if i == state.selected {
+                e.ctx.fill_rect(&bds, bg);
+            }
+
+            // draw text
             draw_centered_text(e.ctx,item,&bds,&e.theme.font,fg);
+
+            // draw left edge except for the first one
+            if i != 0 {
+                let x = bounds.x + ((i as i32))*cell_width;
+                e.ctx.line(&Point::new(x, bounds.y), &Point::new(x, bounds.y+bounds.h-1), &e.theme.fg);
+            }
         }
     }
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
 }
 
 fn layout_toggle_group(e: &mut LayoutEvent) {

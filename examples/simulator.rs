@@ -7,7 +7,7 @@ use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
 use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
-use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
+use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
 use embedded_graphics::text::{Alignment, Text, TextStyleBuilder, TextStyle as ETextStyle, Baseline};
 use rust_embedded_gui::button::make_button;
 use rust_embedded_gui::geom::{Bounds, Point as GPoint};
@@ -245,6 +245,15 @@ impl DrawingContext for SimulatorDrawingContext<'_> {
             .draw(&mut display)
             .unwrap();
     }
+
+    fn line(&mut self, start: &GPoint, end: &GPoint, color: &Rgb565) {
+        let mut display = &mut self.display;
+        let mut display = display.clipped(&bounds_to_rect(&self.clip));
+        let mut display = display.translated(self.offset);
+        let line = Line::new(EPoint::new(start.x,start.y),EPoint::new(end.x,end.y));
+        line.into_styled(PrimitiveStyle::with_stroke(*color,1)).draw(&mut display).unwrap();
+    }
+
     fn fill_text(&mut self, bounds: &Bounds, text: &str, text_style: &TextStyle) {
         let mut display = &mut self.display;
         let mut display = display.clipped(&bounds_to_rect(&self.clip));
