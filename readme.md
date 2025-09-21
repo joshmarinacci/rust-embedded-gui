@@ -41,13 +41,13 @@ Run the unit tests with `cargo test --features std`.
 However, these are just guidelines. A view can feel free to ignore them and draw whatever it wants.
 The theme fields should be used for:
 
-* *bg*: the background of components like buttons and text inputs.
-* *fg*: the foreground of components, which usually means the text color.
-* *panel_bg*: the background of panels and other containers. Depending on the theme this may or may not be the same as *bg*.
-* *font*: the default font used for all text.
-* *bold_font*: the bold variant of the current font. Used for button titles.
-* *selection*: a color used to indicate something is selected. Should be a strong contrast to the bg color. Used in toggle buttons, lists, and menus. 
-* *accent*: a color used to highlight something, but that isn't selected. ex: the cursor of the text box,   
+* **bg**: the background of components like buttons and text inputs.
+* **fg**: the foreground of components, which usually means the text color.
+* **panel_bg**: the background of panels and other containers. Depending on the theme this may or may not be the same as *bg*.
+* **font**: the default font used for all text.
+* **bold_font**: the bold variant of the current font. Used for button titles.
+* **selection**: a color used to indicate something is selected. Should be a strong contrast to the bg color. Used in toggle buttons, lists, and menus. 
+* **accent**: a color used to highlight something, but that isn't selected. ex: the cursor of the text box,   
 
 ## Roadmap
 
@@ -87,4 +87,11 @@ The theme fields should be used for:
   - [ ] view can define the children it uses
     - [ ] let tab panel define its own children using a toggle group
   - [ ] let tab panel switch its own tabs instead of using external handle action
+
+
+
+## Architecture
+
+### Grid Layout Architecture
+
 

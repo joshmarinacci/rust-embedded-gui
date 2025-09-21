@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use hashbrown::HashMap;
 
-pub struct FormLayoutState {
+pub struct GridLayoutState {
     pub constraints: HashMap<String, LayoutConstraint>,
     row_count: usize,
     col_count: usize,
@@ -13,14 +13,14 @@ pub struct FormLayoutState {
     row_height: usize,
 }
 
-impl FormLayoutState {
+impl GridLayoutState {
     pub fn new_row_column(
         row_count: usize,
         row_height: usize,
         col_count: usize,
         col_width: usize,
-    ) -> FormLayoutState {
-        FormLayoutState {
+    ) -> GridLayoutState {
+        GridLayoutState {
             constraints: HashMap::new(),
             col_count,
             row_count,
@@ -30,7 +30,7 @@ impl FormLayoutState {
     }
 }
 
-impl FormLayoutState {
+impl GridLayoutState {
     pub fn place_at_row_column(
         &mut self,
         name: &str,
@@ -64,20 +64,20 @@ impl LayoutConstraint {
     }
 }
 
-pub fn make_form(name: &str) -> View {
+pub fn make_grid_panel(name: &str) -> View {
     View {
         name: name.into(),
         title: name.into(),
         bounds: Bounds::new(0, 0, 100, 100),
         input: None,
-        state: Some(Box::new(FormLayoutState {
+        state: Some(Box::new(GridLayoutState {
             constraints: HashMap::new(),
             col_count: 2,
             row_count: 2,
             col_width: 100,
             row_height: 30,
         })),
-        layout: Some(layout_form),
+        layout: Some(layout_grid),
         draw: Some(common_draw_panel),
         visible: true,
     }
@@ -88,12 +88,12 @@ fn common_draw_panel(evt: &mut DrawEvent) {
     evt.ctx.stroke_rect(&evt.view.bounds, &evt.theme.fg);
 }
 
-fn layout_form(evt: &mut LayoutEvent) {
+fn layout_grid(evt: &mut LayoutEvent) {
     if let Some(view) = evt.scene.get_view(evt.target) {
         let parent_bounds = view.bounds;
         let kids = evt.scene.get_children(evt.target);
         for kid in kids {
-            if let Some(state) = evt.scene.get_view_state::<FormLayoutState>(evt.target) {
+            if let Some(state) = evt.scene.get_view_state::<GridLayoutState>(evt.target) {
                 let bounds = if let Some(cons) = &state.constraints.get(&kid) {
                     let x = (cons.col * state.col_width) as i32;
                     let y = (cons.row * state.row_height) as i32;
@@ -113,7 +113,7 @@ fn layout_form(evt: &mut LayoutEvent) {
 
 mod tests {
     use crate::comps::make_label;
-    use crate::form::{FormLayoutState, make_form};
+    use crate::grid::{GridLayoutState, make_grid_panel};
     use crate::geom::Bounds;
     use crate::scene::{Scene, draw_scene, layout_scene};
     use crate::{MockDrawingContext, Theme};
@@ -125,47 +125,47 @@ mod tests {
     use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
 
     #[test]
-    fn test_form_layout() {
+    fn test_grid_layout() {
         let theme = MockDrawingContext::make_mock_theme();
 
-        let mut form = make_form("form");
-        form.bounds.x = 40;
-        form.bounds.y = 40;
-        form.bounds.w = 200;
-        form.bounds.h = 200;
-        let mut form_layout = FormLayoutState::new_row_column(2, 30, 2, 100);
+        let mut grid = make_grid_panel("grid");
+        grid.bounds.x = 40;
+        grid.bounds.y = 40;
+        grid.bounds.w = 200;
+        grid.bounds.h = 200;
+        let mut grid_layout = GridLayoutState::new_row_column(2, 30, 2, 100);
 
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
         let label1 = make_label("label1", "Label 1");
-        form_layout.place_at_row_column(&label1.name, 0, 0);
-        scene.add_view_to_parent(label1, &form.name);
+        grid_layout.place_at_row_column(&label1.name, 0, 0);
+        scene.add_view_to_parent(label1, &grid.name);
 
         let label2 = make_label("label2", "Label 2");
-        form_layout.place_at_row_column(&label2.name, 0, 1);
-        scene.add_view_to_parent(label2, &form.name);
+        grid_layout.place_at_row_column(&label2.name, 0, 1);
+        scene.add_view_to_parent(label2, &grid.name);
 
         let label3 = make_label("label3", "Label 3");
-        form_layout.place_at_row_column(&label3.name, 1, 0);
-        scene.add_view_to_parent(label3, &form.name);
+        grid_layout.place_at_row_column(&label3.name, 1, 0);
+        scene.add_view_to_parent(label3, &grid.name);
 
-        form.state = Some(Box::new(form_layout));
-        scene.add_view_to_root(form);
+        grid.state = Some(Box::new(grid_layout));
+        scene.add_view_to_root(grid);
 
         layout_scene(&mut scene, &theme);
 
         {
             let label1 = scene.get_view("label1").unwrap();
             assert_eq!(label1.name, "label1");
-            assert_eq!(label1.bounds, Bounds::new(40, 40, 63, 25));
+            assert_eq!(label1.bounds, Bounds::new(0, 0, 63, 25));
 
             let label2 = scene.get_view("label2").unwrap();
             assert_eq!(label2.name, "label2");
-            assert_eq!(label2.bounds, Bounds::new(140, 40, 63, 25));
+            assert_eq!(label2.bounds, Bounds::new(100, 0, 63, 25));
 
             let label3 = scene.get_view("label3").unwrap();
             assert_eq!(label3.name, "label3");
-            assert_eq!(label3.bounds, Bounds::new(40, 70, 63, 25));
+            assert_eq!(label3.bounds, Bounds::new(0, 70, 63, 25));
         }
 
         let mut ctx = MockDrawingContext::new(&scene);

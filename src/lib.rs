@@ -23,7 +23,7 @@ use log::{error, info};
 use view::View;
 
 pub mod comps;
-pub mod form;
+pub mod grid;
 pub mod geom;
 pub mod panel;
 pub mod scene;
