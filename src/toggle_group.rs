@@ -7,6 +7,8 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
+use hashbrown::Equivalent;
+use log::info;
 
 pub fn make_toggle_group(name: &str, data: Vec<&str>, selected: usize) -> View {
     View {
@@ -61,6 +63,7 @@ fn input_toggle_group(e: &mut GuiEvent) -> Option<Action> {
 fn draw_toggle_group(e: &mut DrawEvent) {
     let bounds = e.view.bounds;
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+    let name = e.view.name.clone();
     if let Some(state) = e.view.get_state::<SelectOneOfState>() {
         let cell_width = bounds.w / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
@@ -78,6 +81,11 @@ fn draw_toggle_group(e: &mut DrawEvent) {
             // draw background only if selected
             if i == state.selected {
                 e.ctx.fill_rect(&bds, bg);
+                if let Some(focused) = e.focused {
+                    if focused == &name {
+                        e.ctx.stroke_rect(&bds.contract(2),fg);
+                    }
+                }
             }
 
             // draw text

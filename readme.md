@@ -129,9 +129,12 @@ The theme fields should be used for:
 * add list view with selection using 
 - [x] add inner padding just to panels
 - [x] add gap to vbox and hbox
-- [ ] be able to center align vbox and hbox elements. needs state for layout on vbox and hbox.
+- [x] be able to center align vbox and hbox elements. needs state for layout on vbox and hbox.
   - [x] add debug to these too. 
   - [x] maybe a common panel layout state?
   - [x] gap, contents valign & halign, 
-- [ ] grid layout centers it's contents within itself. update debug to show that.
+- [x] grid layout centers it's contents within itself. update debug to show that.
 
+In case of tabs the child panel gets it's size from the parent, but it needs to know it's
+own size during layout, so how can it find out this information? passed from the parent
+during the layout phase?
