@@ -29,6 +29,19 @@ pub struct SelectOneOf {
 }
 
 impl SelectOneOf {
+    pub fn select_next(&mut self) {
+        if self.selected < self.items.len() -1 {
+            self.selected += 1;
+        }
+    }
+    pub fn select_prev(&mut self) {
+        if self.selected > 0 {
+            self.selected -= 1;
+        }
+    }
+}
+
+impl SelectOneOf {
     pub fn new_with(items: Vec<&str>, selected: usize) -> Box<dyn Any> {
         Box::new(SelectOneOf {
             items: items.iter().map(|s| s.to_string()).collect(),
@@ -52,6 +65,17 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
                         state.selected = n as usize;
                         return Some(Action::Command(state.items[state.selected].clone()));
                     }
+                }
+            }
+        }
+        EventType::Scroll(x,y) => {
+            e.scene.mark_dirty_view(e.target);
+            if let Some(state) = e.scene.get_view_state::<SelectOneOf>(e.target) {
+                if *y > 0 {
+                    state.select_next();
+                }
+                if *y < 0 {
+                    state.select_prev();
                 }
             }
         }

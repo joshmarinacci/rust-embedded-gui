@@ -441,6 +441,12 @@ fn main() -> Result<(), std::convert::Infallible> {
                 SimulatorEvent::MouseButtonDown { mouse_btn, point } => {
                     println!("mouse down");
                 }
+                SimulatorEvent::MouseWheel {scroll_delta, direction} => {
+                    info!("mouse wheel {scroll_delta:?} {direction:?}");
+                    if let Some(result) = event_at_focused(&mut scene,EventType::Scroll(scroll_delta.x,scroll_delta.y)) {
+                        println!("got input from {:?}", result);
+                    }
+                }
                 _ => {}
             }
         }
@@ -523,6 +529,7 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
     if name == POPUP_BUTTON {
         let menu = make_list_view(POPUP_MENU,vec!["Item 1", "Item 2", "Item 3"],0)
             .position_at(50,50);
+        scene.set_focused(&*menu.name);
         scene.add_view_to_root(menu);
     }
     if name == POPUP_MENU {

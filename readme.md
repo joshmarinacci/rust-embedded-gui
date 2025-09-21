@@ -60,8 +60,8 @@ The theme fields should be used for:
 - [ ] general
   - [ ] setup CI on github actions.
 - [ ] more components
-  - [ ] add menu view
-  - [ ] add list view
+  - [x] add menu view
+  - [x] add list view
   - [ ] add tab panel
   - [ ] popup menu / dropdown box 
 - [ ] input improvements
@@ -121,20 +121,6 @@ The theme fields should be used for:
 
 ## tasks
 
-- [x] fix draw text alignment issues
-- [x] a common draw text centered inside of bounds function
-- [x] draw line. update grid.debug and toggle group to use it. 
-- [ ] add scroll events to select within elements.
-- [x] toggle group should indicate it is focused with a double border
-- [ ] add list view with selection using 
-- [x] add inner padding just to panels
-- [x] add gap to vbox and hbox
-- [x] be able to center align vbox and hbox elements. needs state for layout on vbox and hbox.
-  - [x] add debug to these too. 
-  - [x] maybe a common panel layout state?
-  - [x] gap, contents valign & halign, 
-- [x] grid layout centers it's contents within itself. update debug to show that.
-
-In case of tabs the child panel gets it's size from the parent, but it needs to know it's
+* In case of tabs the child panel gets it's size from the parent, but it needs to know it's
 own size during layout, so how can it find out this information? passed from the parent
 during the layout phase?
