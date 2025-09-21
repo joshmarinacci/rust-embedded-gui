@@ -12,7 +12,7 @@ use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_graphics::text::Text;
 use rust_embedded_gui::comps::{make_button, make_label, make_panel, make_text_input};
-use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, TextStyle, Theme};
+use rust_embedded_gui::{Action, DrawingContext, EventType, HAlign, LayoutEvent, TextStyle, Theme};
 use rust_embedded_gui::geom::{Bounds, Point as GPoint};
 use rust_embedded_gui::scene::{click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene};
 use rust_embedded_gui::toggle_button::make_toggle_button;
@@ -74,22 +74,58 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
-        let vbox = make_panel(VBOX_PANEL, Bounds::new(0,50,100,100));
+        let mut vbox = make_panel(VBOX_PANEL, Bounds::new(0, 50, 100, 100));
+        vbox.draw = Some(|e|{
+            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+        });
+        vbox.layout = Some(|evt|{
+            if let Some(parent) = evt.scene.get_view_mut(evt.target) {
+                let bounds = parent.bounds;
+                let mut y = bounds.y;
+                for kid in evt.scene.get_children(evt.target) {
+                    if let Some(ch) = evt.scene.get_view_mut(&kid) {
+                        ch.bounds.x = bounds.x;
+                        ch.bounds.y = y;
+                        y += ch.bounds.h;
+                    }
+                }
+            }
+        });
         scene.add_view_to_parent(
             make_label("vbox-label","vbox layout").position_at(20,50),
             &vbox.name
         );
-        scene.add_view_to_parent(vbox,&tabbed_panel.name);
-        scene.hide_view(VBOX_PANEL);
+        scene.add_view_to_parent(make_button("vbox-button1","Button 1"), &vbox.name);
+        scene.add_view_to_parent(make_button("vbox-button2","Button 2"), &vbox.name);
+        scene.add_view_to_parent(make_button("vbox-button3","Button 3"), &vbox.name);
+        scene.add_view_to_parent(vbox, &tabbed_panel.name);
     }
     {
-        let hbox = make_panel(HBOX_PANEL, Bounds::new(0,50,100,100));
+        let mut hbox = make_panel(HBOX_PANEL, Bounds::new(0, 50, 100, 100));
+        hbox.draw = Some(|e|{
+            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+        });
+        hbox.layout = Some(|evt|{
+            if let Some(parent) = evt.scene.get_view_mut(evt.target) {
+                let bounds = parent.bounds;
+                let mut x = bounds.x;
+                for kid in evt.scene.get_children(evt.target) {
+                    if let Some(ch) = evt.scene.get_view_mut(&kid) {
+                        ch.bounds.x = x;
+                        ch.bounds.y = bounds.y;
+                        x += ch.bounds.w;
+                    }
+                }
+            }
+        });
         scene.add_view_to_parent(
             make_label("hbox-label","hbox layout").position_at(20,50),
             &hbox.name
         );
+        scene.add_view_to_parent(make_button("hbox-button1","Button 1"), &hbox.name);
+        scene.add_view_to_parent(make_button("hbox-button2","Button 2"), &hbox.name);
+        scene.add_view_to_parent(make_button("hbox-button3","Button 3"), &hbox.name);
         scene.add_view_to_parent(hbox,&tabbed_panel.name);
-        scene.hide_view(HBOX_PANEL);
     }
     {
         let panel = make_panel(INPUTS_PANEL, Bounds::new(0, 50, 100, 100));
@@ -121,9 +157,8 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
             if let Some(state) = e.scene.get_view_state::<SelectOneOfState>(e.target) {
                 if let Some(parent) = e.scene.get_view_mut(e.target) {
                     let bounds = parent.bounds;
-                    let kids = e.scene.get_children(e.target);
                     let mut tabs_height = 50;
-                    for kid in kids {
+                    for kid in e.scene.get_children(e.target) {
                         if let Some(ch) = e.scene.get_view_mut(&kid) {
                             if kid == "tabs" {
                                 ch.bounds = Bounds::new(bounds.x,bounds.y,bounds.w,ch.bounds.h);

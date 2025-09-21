@@ -5,7 +5,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use hashbrown::HashMap;
-use log::info;
+use log::{info, warn};
 
 #[derive(Debug)]
 pub struct Scene {
@@ -150,6 +150,9 @@ impl Scene {
     }
     pub fn add_view(&mut self, view: View) {
         let name = view.name.clone();
+        if self.keys.contains_key(&name) {
+            warn!("might be adding duplicate view key {name}");
+        }
         self.keys.insert(name.clone(), view);
         self.mark_dirty_view(&name);
     }
