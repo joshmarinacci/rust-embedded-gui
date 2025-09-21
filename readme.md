@@ -94,4 +94,4 @@ The theme fields should be used for:
 
 ### Grid Layout Architecture
 
-
+The grid has rows and columns. Views are placed at specific cells referenced by a row and column.

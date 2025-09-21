@@ -67,7 +67,7 @@ fn make_scene() -> Scene {
     {
         let mut grid = make_grid_panel(BUTTONS_PANEL);
         grid.bounds = Bounds::new(50, 50, 100, 100);
-        let mut grid_layout = GridLayoutState::new_row_column(2, 30, 2, 100);
+        let mut grid_layout = GridLayoutState::new_row_column(3, 30, 2, 100);
 
         let label1 = make_label("label1", "A Label");
         grid_layout.place_at_row_column(&label1.name, 0, 0);
@@ -92,6 +92,7 @@ fn make_scene() -> Scene {
         });
         scene.add_view_to_parent(button3, &grid.name);
 
+        grid_layout.debug = true;
         grid.state = Some(Box::new(grid_layout));
         scene.add_view_to_parent(grid, &tabbed_panel.name);
     }

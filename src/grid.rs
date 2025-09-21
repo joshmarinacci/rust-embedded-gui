@@ -3,6 +3,7 @@ use crate::view::View;
 use crate::{DrawEvent, HAlign, LayoutEvent, VAlign};
 use alloc::boxed::Box;
 use alloc::string::String;
+use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use hashbrown::HashMap;
 
 pub struct GridLayoutState {
@@ -11,6 +12,7 @@ pub struct GridLayoutState {
     col_count: usize,
     col_width: usize,
     row_height: usize,
+    pub debug:bool
 }
 
 impl GridLayoutState {
@@ -26,6 +28,7 @@ impl GridLayoutState {
             row_count,
             col_width,
             row_height,
+            debug: false,
         }
     }
 }
@@ -76,16 +79,34 @@ pub fn make_grid_panel(name: &str) -> View {
             row_count: 2,
             col_width: 100,
             row_height: 30,
+            debug: false,
         })),
         layout: Some(layout_grid),
-        draw: Some(common_draw_panel),
+        draw: Some(draw_grid),
         visible: true,
     }
 }
 
-fn common_draw_panel(evt: &mut DrawEvent) {
+fn draw_grid(evt: &mut DrawEvent) {
     evt.ctx.fill_rect(&evt.view.bounds, &evt.theme.bg);
     evt.ctx.stroke_rect(&evt.view.bounds, &evt.theme.fg);
+
+    let bounds = evt.view.bounds;
+    if let Some(state) = evt.view.get_state::<GridLayoutState>() {
+        if state.debug {
+            for i in 0..state.col_count {
+                for j in 0 .. state.row_count {
+                    let rect = Bounds::new(
+                        (i * state.col_width) as i32 + bounds.x,
+                        (j * state.row_height) as i32 + bounds.y,
+                           state.col_width as i32,
+                           state.row_height as i32
+                    );
+                    evt.ctx.stroke_rect(&rect, &Rgb565::RED);
+                }
+            }
+        }
+    }
 }
 
 fn layout_grid(evt: &mut LayoutEvent) {
@@ -94,21 +115,27 @@ fn layout_grid(evt: &mut LayoutEvent) {
         let kids = evt.scene.get_children(evt.target);
         for kid in kids {
             if let Some(state) = evt.scene.get_view_state::<GridLayoutState>(evt.target) {
-                let bounds = if let Some(cons) = &state.constraints.get(&kid) {
+                let cell_bounds = if let Some(cons) = &state.constraints.get(&kid) {
                     let x = (cons.col * state.col_width) as i32;
                     let y = (cons.row * state.row_height) as i32;
                     let w = state.col_width as i32 * cons.col_span as i32;
-                    let h = state.row_height as i32;
+                    let h = state.row_height as i32 * cons.row_span as i32;
                     Bounds::new(x, y, w, h)
                 } else {
                     Bounds::new(0, 0, 0, 0)
                 };
                 if let Some(view) = evt.scene.get_view_mut(&kid) {
-                    view.bounds = bounds;
+                    center_within(cell_bounds, &mut view.bounds);
+                    // view.bounds = cell_bounds;
                 }
             }
         }
     }
+}
+
+fn center_within(cell: Bounds, view: &mut Bounds) {
+    view.x = (cell.w - view.w)/2 + cell.x;
+    view.y = (cell.h - view.h)/2 + cell.y;
 }
 
 mod tests {
@@ -180,6 +207,7 @@ mod tests {
         let theme = MockDrawingContext::make_mock_theme();
         let mut grid = make_grid_panel("grid").position_at(0,0).with_size(200,200);
         let mut layout = GridLayoutState::new_row_column(2, 30, 2, 100);
+        layout.debug = true;
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
         let button = make_button("b1","b1");
