@@ -31,7 +31,7 @@ use log::{info, LevelFilter};
 use rust_embedded_gui::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
 use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use rust_embedded_gui::label::make_label;
-use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel};
+use rust_embedded_gui::panel::{layout_hbox, layout_vbox, make_panel, PanelState};
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::View;
 
@@ -71,6 +71,7 @@ fn make_scene() -> Scene {
         let mut grid = make_grid_panel(BUTTONS_PANEL);
         grid.bounds = Bounds::new(50, 50, 100, 100);
         let mut grid_layout = GridLayoutState::new_row_column(3, 30, 2, 100);
+        grid_layout.padding = 0;
 
         let label1 = make_label("label1", "A Label");
         grid_layout.place_at_row_column(&label1.name, 0, 0);
@@ -101,9 +102,12 @@ fn make_scene() -> Scene {
     }
     {
         let mut vbox = make_panel(VBOX_PANEL, Bounds::new(0, 50, 100, 100));
-        vbox.draw = Some(|e| {
-            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-        });
+        vbox.state = Some(Box::new(PanelState{
+            padding: 10,
+            debug: false,
+            border:false,
+            gap: 10,
+        }));
         vbox.layout = Some(layout_vbox);
         scene.add_view_to_parent(make_label("vbox-label", "vbox layout"), &vbox.name);
         scene.add_view_to_parent(make_button("vbox-button1", "Button 1"), &vbox.name);
@@ -113,9 +117,12 @@ fn make_scene() -> Scene {
     }
     {
         let mut hbox = make_panel(HBOX_PANEL, Bounds::new(0, 50, 100, 100));
-        hbox.draw = Some(|e| {
-            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-        });
+        hbox.state = Some(Box::new(PanelState{
+            padding: 10,
+            debug: false,
+            border:false,
+            gap: 10,
+        }));
         hbox.layout = Some(layout_hbox);
         scene.add_view_to_parent(make_label("hbox-label", "hbox layout"), &hbox.name);
         scene.add_view_to_parent(make_button("hbox-button1", "Button 1"), &hbox.name);

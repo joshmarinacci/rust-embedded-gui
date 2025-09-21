@@ -35,16 +35,16 @@ impl SelectOneOfState {
     }
 }
 
-fn input_toggle_group(event: &mut GuiEvent) -> Option<Action> {
-    match &event.event_type {
+fn input_toggle_group(e: &mut GuiEvent) -> Option<Action> {
+    match &e.event_type {
         EventType::Tap(pt) => {
-            event.scene.mark_dirty_view(event.target);
-            event.scene.set_focused(event.target);
-            if let Some(view) = event.scene.get_view_mut(event.target) {
+            e.scene.mark_dirty_view(e.target);
+            e.scene.set_focused(e.target);
+            if let Some(view) = e.scene.get_view_mut(e.target) {
                 let bounds = view.bounds;
                 if let Some(state) = view.get_state::<SelectOneOfState>() {
                     let cell_width = bounds.w / (state.items.len() as i32);
-                    let x = pt.x;
+                    let x = pt.x - bounds.x;
                     let n = x / cell_width;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;

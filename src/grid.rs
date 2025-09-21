@@ -13,7 +13,8 @@ pub struct GridLayoutState {
     col_count: usize,
     col_width: usize,
     row_height: usize,
-    pub debug:bool
+    pub debug:bool,
+    pub padding: i32,
 }
 
 impl GridLayoutState {
@@ -30,6 +31,7 @@ impl GridLayoutState {
             col_width,
             row_height,
             debug: false,
+            padding: 0,
         }
     }
 }
@@ -81,6 +83,7 @@ pub fn make_grid_panel(name: &str) -> View {
             col_width: 100,
             row_height: 30,
             debug: false,
+            padding: 0,
         })),
         layout: Some(layout_grid),
         draw: Some(draw_grid),
@@ -94,17 +97,18 @@ fn draw_grid(evt: &mut DrawEvent) {
 
     let bounds = evt.view.bounds;
     if let Some(state) = evt.view.get_state::<GridLayoutState>() {
+        let padding = state.padding;
         if state.debug {
             for i in 0..state.col_count+1 {
-                let x = (i * state.col_width) as i32 + bounds.x;
-                let y = bounds.y;
-                let y2 = bounds.y + bounds.h;
+                let x = (i * state.col_width) as i32 + bounds.x + padding;
+                let y = bounds.y + padding;
+                let y2 = bounds.y + bounds.h - padding * 2;
                 evt.ctx.line(&Point::new(x,y), &Point::new(x,y2), &Rgb565::RED);
             }
             for j in 0 .. state.row_count+1 {
-                let y = (j * state.row_height) as i32 + bounds.y;
-                let x = bounds.x;
-                let x2 = bounds.x + bounds.w;
+                let y = (j * state.row_height) as i32 + bounds.y + padding;
+                let x = bounds.x + padding;
+                let x2 = bounds.x + bounds.w - padding * 2;
                 evt.ctx.line(&Point::new(x,y), &Point::new(x2,y), &Rgb565::RED);
             }
         }
@@ -117,9 +121,10 @@ fn layout_grid(evt: &mut LayoutEvent) {
         let kids = evt.scene.get_children(evt.target);
         for kid in kids {
             if let Some(state) = evt.scene.get_view_state::<GridLayoutState>(evt.target) {
+                let padding = state.padding;
                 let cell_bounds = if let Some(cons) = &state.constraints.get(&kid) {
-                    let x = (cons.col * state.col_width) as i32;
-                    let y = (cons.row * state.row_height) as i32;
+                    let x = (cons.col * state.col_width) as i32 + padding;
+                    let y = (cons.row * state.row_height) as i32 + padding;
                     let w = state.col_width as i32 * cons.col_span as i32;
                     let h = state.row_height as i32 * cons.row_span as i32;
                     Bounds::new(x, y, w, h)
@@ -128,7 +133,6 @@ fn layout_grid(evt: &mut LayoutEvent) {
                 };
                 if let Some(view) = evt.scene.get_view_mut(&kid) {
                     center_within(cell_bounds, &mut view.bounds);
-                    // view.bounds = cell_bounds;
                 }
             }
         }

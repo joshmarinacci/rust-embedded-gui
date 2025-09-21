@@ -123,12 +123,12 @@ The theme fields should be used for:
 
 -[x] fix draw text alignment issues
 -[x] a common draw text centered inside of bounds function
-* draw line. update grid.debug and toggle group to use it.
+-[x] draw line. update grid.debug and toggle group to use it.
 * add scroll events to select within elements.
 * toggle group should indicate it is focused with a double border
 * add list view with selection using 
-* add inner padding just to panels
-* add gap to vbox and hbox
+- [x] add inner padding just to panels
+- [x] add gap to vbox and hbox
 * be able to center align vbox and hbox elements. needs state for layout on vbox and hbox.
   * add debug to these too. 
   * maybe a common panel layout state?
