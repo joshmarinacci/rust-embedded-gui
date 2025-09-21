@@ -44,7 +44,7 @@ const THEMES_PANEL: &str = "themes-panel";
 fn make_scene() -> Scene {
     let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
-    let tabbed_panel = make_tabs(TABBED_PANEL, vec!["buttons", "vbox", "hbox","inputs","themes"], Bounds{
+    let mut tabbed_panel = make_tabs(TABBED_PANEL, vec!["buttons", "vbox", "hbox", "inputs", "themes"], Bounds{
         x:10,
         y:10,
         w:320-20,
@@ -113,11 +113,29 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(panel,&tabbed_panel.name);
     }
 
+    {
+        let mut panel = make_panel(THEMES_PANEL, Bounds::new(0,50,100,100));
+        panel.layout = Some(layout_vbox);
+
+        scene.add_view_to_parent(
+            make_label("themes-label", "Themes").position_at(30, 90),
+            &panel.name,
+        );
+        scene.add_view_to_parent(make_button("light-theme","Light"), &panel.name);
+        scene.add_view_to_parent(make_button("dark-theme","Dark"), &panel.name);
+        scene.add_view_to_parent(make_button("colorful-theme","Colorful"), &panel.name);
+        scene.add_view_to_parent(panel,&tabbed_panel.name);
+    }
+
     scene.add_view_to_root(tabbed_panel);
 
     scene.add_view_to_root(make_button(SMALL_FONT_BUTTON, "Small").position_at(30, 200));
     scene.add_view_to_root(make_button(MEDIUM_FONT_BUTTON, "Medium").position_at(120, 200));
     scene.add_view_to_root(make_button(LARGE_FONT_BUTTON, "Large").position_at(220, 200));
+
+    if let Some(state) = scene.get_view_state::<SelectOneOfState>(TABBED_PANEL) {
+        state.selected = 2;
+    }
 
     scene
 }
@@ -132,16 +150,22 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
         input: None,
         layout: Some(|e|{
             if let Some(state) = e.scene.get_view_state::<SelectOneOfState>(e.target) {
+                let selected = state.selected;
                 if let Some(parent) = e.scene.get_view_mut(e.target) {
                     let bounds = parent.bounds;
                     let mut tabs_height = 50;
-                    for kid in e.scene.get_children(e.target) {
+                    for (i,kid) in e.scene.get_children(e.target).iter().enumerate() {
                         if let Some(ch) = e.scene.get_view_mut(&kid) {
                             if kid == "tabs" {
                                 ch.bounds = Bounds::new(bounds.x,bounds.y,bounds.w,ch.bounds.h);
                                 tabs_height = ch.bounds.h;
+                                ch.visible = true;
                             } else {
                                 ch.bounds = Bounds::new(bounds.x, bounds.y+ tabs_height, bounds.w, bounds.h- tabs_height);
+                                ch.visible = false;
+                                if i == selected + 1 {
+                                    ch.visible = true;
+                                }
                             }
                         }
                     }
