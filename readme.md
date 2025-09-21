@@ -94,4 +94,21 @@ The theme fields should be used for:
 
 ### Grid Layout Architecture
 
-The grid has rows and columns. Views are placed at specific cells referenced by a row and column.
+* A child view determines its own size
+* A parent view determines the position of the child.
+* The grid has rows and columns. 
+* Views are placed at specific cells referenced by a `row` and `col`.
+* Views can span multiple rows or columns using `row_span` and `col_span`.
+* Views are aligned within the cells they are positioned at using `h_align` and `v_align` fields.
+* To make a view stretch to fill a cell, use the `stretch` variant of the alignment.
+
+
+
+
+
+
+
+
+
+
+
