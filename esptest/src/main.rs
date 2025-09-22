@@ -6,11 +6,29 @@
     holding buffers for the duration of a data transfer."
 )]
 
+use rust_embedded_gui::gfx::TextStyle;
+use rust_embedded_gui::scene::draw_scene;
+use rust_embedded_gui::Action;
+use rust_embedded_gui::gfx::HAlign;
+use rust_embedded_gui::gfx::DrawingContext;
+use rust_embedded_gui::view::View;
+use rust_embedded_gui::text_input::make_text_input;
+use rust_embedded_gui::button::make_button;
+use rust_embedded_gui::label::make_label;
+use rust_embedded_gui::geom::{Bounds, Point as GPoint};
+use rust_embedded_gui::panel::make_panel;
+use rust_embedded_gui::scene::Scene;
+use rust_embedded_gui::EventType;
+use rust_embedded_gui::GuiEvent;
+use rust_embedded_gui::scene::pick_at;
+use rust_embedded_gui::Theme;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use embedded_hal_bus::spi::{ExclusiveDevice, RefCellDevice};
+use core::convert::Infallible;
+use core::ops::Add;
+use embedded_hal_bus::spi::{ExclusiveDevice};
 use esp_hal::clock::CpuClock;
 use esp_hal::delay::Delay;
 use esp_hal::gpio::Level::{High, Low};
@@ -18,7 +36,7 @@ use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig, Pull};
 use esp_hal::{main, Blocking};
 use esp_hal::spi::master::{Config as SpiConfig, Spi};
 use esp_hal::time::{Duration, Instant, Rate};
-use log::{error, info};
+use log::{info};
 
 use embedded_graphics::{
     mono_font::{ascii::FONT_6X10, MonoTextStyle},
@@ -26,22 +44,20 @@ use embedded_graphics::{
     prelude::*,
     text::Text,
 };
-use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
-use embedded_graphics::geometry::{Point, Size};
+use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
+use embedded_graphics::geometry::{Point as EPoint, Size};
+use embedded_graphics::mock_display::MockDisplay;
 use embedded_graphics::mono_font::ascii::{FONT_7X13_BOLD, FONT_9X15};
-use embedded_graphics::mono_font::MonoFont;
+use embedded_graphics::mono_font::{MonoFont, MonoTextStyleBuilder};
+use embedded_graphics::text::{Alignment, Baseline, TextStyleBuilder};
 use esp_hal::i2c::master::{BusTimeout, Config as I2CConfig, I2c};
 use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
 use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
 
-use gui2::geom::{Bounds, Point as GPoint};
 use gt911::Gt911Blocking;
-use gui2::comps::{make_button, make_label, make_panel, make_text_input};
-use gui2::scene::{draw_scene, pick_at, Scene};
-use gui2::{Action, DrawingContext, EventType, GuiEvent, HAlign, LayoutEvent, TextStyle, Theme};
-use gui2::view::View;
+use rust_embedded_gui::device::EmbeddedDrawingContext;
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
@@ -98,7 +114,7 @@ fn main() -> ! {
     let spi_device = ExclusiveDevice::new(spi, TFT_CS, spi_delay).unwrap();
     let di = SpiInterface::new(spi_device, tft_dc, buffer);
     info!("building");
-    let display = Builder::new(ST7789, di)
+    let mut display = Builder::new(ST7789, di)
         .display_size(240, 320)
         .invert_colors(ColorInversion::Inverted)
         .color_order(ColorOrder::Rgb)
@@ -111,13 +127,15 @@ fn main() -> ! {
     // delay.delay_millis(500);
     info!("Display initialized");
 
-    let mut ctx:EmbeddedDrawingContext = EmbeddedDrawingContext::new(display);
+    let mut ctx = EmbeddedDrawingContext::new(&mut display);
     let mut scene = make_gui_scene();
 
 
     let theme = Theme {
         bg: Rgb565::WHITE,
         fg: Rgb565::BLACK,
+        selected_bg: Rgb565::WHITE,
+        selected_fg: Rgb565::BLACK,
         panel_bg: Rgb565::CSS_LIGHT_GRAY,
         font: FONT_6X10,
         bold_font: FONT_7X13_BOLD,
@@ -148,11 +166,11 @@ fn main() -> ! {
                 let pt = GPoint::new(320 - point.y as i32, 240-point.x as i32);
                 let targets = pick_at(&mut scene, &pt);
                 info!("clicked on targets {:?}", targets);
-                if let Some(target) =  targets.last() {
+                if let Some((target,pt)) =  targets.last() {
                     let mut evt = GuiEvent {
                         scene: &mut scene,
                         target,
-                        event_type: EventType::Tap(pt),
+                        event_type: EventType::Tap(pt.clone()),
                         action: None,
                     };
                     info!("created event on target {:?} at {:?}",evt.target, evt.event_type);
@@ -166,7 +184,7 @@ fn main() -> ! {
         }
 
         let delay_start = Instant::now();
-        ctx.clip_rect = scene.dirty_rect.clone();
+        ctx.clip = scene.dirty_rect.clone();
         draw_scene(&mut scene, &mut ctx, &theme);
         while delay_start.elapsed() < Duration::from_millis(100) {}
     }
@@ -175,13 +193,13 @@ fn main() -> ! {
 
 fn make_gui_scene() -> Scene {
     let mut scene = Scene::new_with_bounds(Bounds::new(0,0,320,240));
-    let rootname = scene.root_id.clone();
+    let _rootname = scene.root_id.clone();
 
-    let mut panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
+    let panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
 
 
     scene.add_view_to_parent(make_label("label1","A Label").position_at(10,30),
-    &panel.name);
+                             &panel.name);
 
     scene.add_view_to_root(make_button("button1","A button")
         .position_at(10,60));
@@ -203,98 +221,6 @@ fn make_gui_scene() -> Scene {
     scene
 }
 
-struct EmbeddedDrawingContext {
-    pub display: Display<
-        SpiInterface<
-            'static,
-            ExclusiveDevice<Spi<'static, Blocking>, Output<'static>, Delay>,
-            Output<'static>,
-        >,
-        ST7789,
-        NoResetPin,
-    >,
-    pub clip_rect: Bounds,
-}
-
-impl EmbeddedDrawingContext {
-    fn new(display: Display<
-        SpiInterface<
-            'static,
-            ExclusiveDevice<Spi<'static, Blocking>, Output<'static>, Delay>,
-            Output<'static>>,
-        ST7789,
-        NoResetPin
-    >) -> EmbeddedDrawingContext {
-        EmbeddedDrawingContext {
-            display,
-            clip_rect: Bounds::new_empty(),
-        }
-    }
-}
-
-fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
-    Rectangle::new(Point::new(bounds.x,bounds.y),
-                   Size::new(bounds.w as u32,bounds.h as u32))
-}
-
-impl DrawingContext for EmbeddedDrawingContext {
-    fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        // info!("fill_rect {:?} {:?} {:?}", bounds, self.clip_rect, color);
-        bounds_to_rect(bounds)
-            .intersection(&bounds_to_rect(&self.clip_rect))
-            .into_styled(PrimitiveStyle::with_fill(*color))
-            .draw(&mut self.display).unwrap();
-
-    }
-
-    fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        bounds_to_rect(bounds)
-            .intersection(&bounds_to_rect(&self.clip_rect))
-            .into_styled(PrimitiveStyle::with_stroke(*color,1))
-            .draw(&mut self.display).unwrap();
-    }
-
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
-        let style = MonoTextStyle::new(&style.font, *style.color);
-        let mut pt = Point::new(bounds.x, bounds.y);
-        pt.y += bounds.h / 2;
-        pt.y += (style.font.baseline as i32)/2;
-        let w = (style.font.character_size.width as i32) * (text.len() as i32);
-        pt.x += (bounds.w - w) / 2;
-        Text::new(text, pt, style)
-            .draw(&mut self.display)
-            .unwrap();
-    }
-}
-
-fn make_vbox(name: &str, bounds: Bounds) -> View {
-    View {
-        name: name.to_string(),
-        title: name.to_string(),
-        bounds,
-        visible: true,
-        draw: Some(|e|{
-            e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg);
-        }),
-        input: None,
-        state: None,
-        layout: Some(|evt|{
-                if let Some(parent) = evt.scene.get_view_mut(evt.target) {
-                    let mut y = 0;
-                    let bounds = parent.bounds;
-                    let kids = evt.scene.get_children(evt.target);
-                    for kid in kids {
-                        if let Some(ch) = evt.scene.get_view_mut(&kid) {
-                            ch.bounds.x = 0;
-                            ch.bounds.y = y;
-                            ch.bounds.w = bounds.w;
-                            y += ch.bounds.h;
-                        }
-                    }
-                }
-        }),
-    }
-}
 
 struct MenuState {
     data:Vec<String>,
