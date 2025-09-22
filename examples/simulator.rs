@@ -16,7 +16,7 @@ use rust_embedded_gui::scene::{
 };
 use rust_embedded_gui::toggle_button::make_toggle_button;
 use rust_embedded_gui::toggle_group::{make_toggle_group, SelectOneOfState};
-use rust_embedded_gui::{Action, EventType, Theme};
+use rust_embedded_gui::{Action, EventType, KeyboardAction, Theme};
 use std::ops::Add;
 
 #[cfg(feature = "std")]
@@ -309,18 +309,10 @@ fn main() -> Result<(), std::convert::Infallible> {
                 SimulatorEvent::KeyDown {
                     keycode, keymod, ..
                 } => {
-                    let key: u8 = keydown_to_char(keycode, keymod);
-                    println!(
-                        "keyboard event {} {} {:?}",
-                        keycode.name(),
-                        key,
-                        String::from(key as char)
-                    );
-                    if key > 0 {
-                        if let Some(result) = event_at_focused(&mut scene, EventType::Keyboard(key))
-                        {
-                            println!("got input from {:?}", result);
-                        }
+                    let evt:EventType = keydown_to_char(keycode, keymod);
+                    if let Some(result) = event_at_focused(&mut scene, evt)
+                    {
+                        println!("got input from {:?}", result);
                     }
                 }
                 SimulatorEvent::MouseButtonUp { point, .. } => {
@@ -347,32 +339,36 @@ fn main() -> Result<(), std::convert::Infallible> {
     Ok(())
 }
 
-fn keydown_to_char(keycode: Keycode, keymod: Mod) -> u8 {
+fn keydown_to_char(keycode: Keycode, keymod: Mod) -> EventType {
     println!("keycode as number {}", keycode.into_i32());
     let ch = keycode.into_i32();
     if ch <= 0 {
-        return 0;
+        return EventType::Unknown;
     }
     let shifted = keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD);
 
     if let Some(ch) = char::from_u32(ch as u32) {
         if ch.is_alphabetic() {
             return if shifted {
-                ch.to_ascii_uppercase() as u8
+                EventType::Keyboard(ch.to_ascii_uppercase() as u8)
             } else {
-                ch.to_ascii_lowercase() as u8
+                EventType::Keyboard(ch.to_ascii_lowercase() as u8)
             };
         }
         if ch.is_ascii_graphic() {
-            return ch as u8;
+            return EventType::Keyboard(ch as u8);
         }
     }
     match keycode {
-        Keycode::Backspace => 8,
-        Keycode::SPACE => b' ',
+        Keycode::Backspace => EventType::KeyboardAction(KeyboardAction::Backspace),
+        Keycode::LEFT => EventType::KeyboardAction(KeyboardAction::Left),
+        Keycode::RIGHT => EventType::KeyboardAction(KeyboardAction::Right),
+        Keycode::UP => EventType::KeyboardAction(KeyboardAction::Up),
+        Keycode::DOWN => EventType::KeyboardAction(KeyboardAction::Down),
+        Keycode::SPACE => EventType::Keyboard(b' '),
         _ => {
             println!("not supported: {keycode}");
-            0
+            return EventType::Unknown;
         }
     }
 }

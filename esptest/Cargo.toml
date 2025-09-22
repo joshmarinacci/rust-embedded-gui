@@ -16,7 +16,7 @@ esp-hal = { version = "1.0.0-rc.0", features = ["esp32s3", "unstable", "log-04"]
 embedded-graphics = "0.8.1"
 mipidsi = "0.9.0"
 esp-bootloader-esp-idf = "0.1.0"
-gui2 = { path="../" }
+rust-embedded-gui = { path="../" }
 static_cell = { version = "2.1.0", features = ["nightly"] }
 gt911 = "0.3.0"
 

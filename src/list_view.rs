@@ -1,7 +1,7 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::{draw_centered_text, DrawingContext, HAlign, TextStyle};
 use crate::view::View;
-use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
+use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -78,6 +78,19 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
                     state.select_prev();
                 }
             }
+        }
+        EventType::KeyboardAction(action) => {
+            e.scene.mark_dirty_view(e.target);
+            if let Some(state) = e.scene.get_view_state::<SelectOneOf>(e.target) {
+                match action {
+                    KeyboardAction::Up => state.select_prev(),
+                    KeyboardAction::Down => state.select_next(),
+                    _ => {
+
+                    }
+                }
+            }
+
         }
         _ => {}
     }

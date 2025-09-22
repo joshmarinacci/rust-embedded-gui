@@ -780,9 +780,9 @@ dependencies = [
  "esp-hal",
  "esp-println",
  "gt911",
- "gui2",
  "log",
  "mipidsi",
+ "rust-embedded-gui",
  "static_cell",
 ]
 
@@ -883,15 +883,6 @@ dependencies = [
  "embedded-hal 1.0.0",
  "embedded-hal-async",
  "heapless",
-]
-
-[[package]]
-name = "gui2"
-version = "0.1.0"
-dependencies = [
- "embedded-graphics",
- "hashbrown 0.16.0",
- "log",
 ]
 
 [[package]]
@@ -1226,6 +1217,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "rust-embedded-gui"
+version = "0.1.0"
+dependencies = [
+ "embedded-graphics",
+ "hashbrown 0.16.0",
+ "log",
 ]
 
 [[package]]
