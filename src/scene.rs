@@ -206,13 +206,13 @@ pub fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) -> Optio
     None
 }
 
-pub fn event_at_focused(scene: &mut Scene, event_type: EventType) -> Option<EventResult> {
+pub fn event_at_focused(scene: &mut Scene, event_type: &EventType) -> Option<EventResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent = GuiEvent {
             scene,
             target: &focused,
-            event_type: event_type,
+            event_type: event_type.clone(),
             action: None,
         };
         if let Some(view) = event.scene.get_view(&focused) {

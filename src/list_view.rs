@@ -85,6 +85,12 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
                 match action {
                     KeyboardAction::Up => state.select_prev(),
                     KeyboardAction::Down => state.select_next(),
+                    KeyboardAction::Return => {
+                        info!("firmly selecting the item");
+                        return Some(Action::Command(
+                            state.items[state.selected as usize].clone(),
+                        ));
+                    }
                     _ => {
 
                     }

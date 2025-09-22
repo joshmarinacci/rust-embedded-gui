@@ -68,15 +68,16 @@ pub struct Theme {
 
 pub type Callback = fn(event: &mut GuiEvent);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum KeyboardAction {
     Left,
     Right,
     Up,
     Down,
     Backspace,
+    Return,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EventType {
     Generic,
     Unknown,
