@@ -46,7 +46,8 @@ The theme fields should be used for:
 * **panel_bg**: the background of panels and other containers. Depending on the theme this may or may not be the same as *bg*.
 * **font**: the default font used for all text.
 * **bold_font**: the bold variant of the current font. Used for button titles.
-* **selection**: a color used to indicate something is selected. Should be a strong contrast to the bg color. Used in toggle buttons, lists, and menus. 
+* **selected_bg**: a background color used to indicate something is selected.
+* **selected_fg**: a text color used to indicate something is selected. Usually used with `selected_bg`.
 
 
 ## Roadmap
@@ -81,7 +82,7 @@ The theme fields should be used for:
     - [x] proper alignment. provide center point and draw centered
   - [x] draw line
   - [x] remove clear
-  - [ ] consolidate Display impls
+  - [x] consolidate Display impls
 - [ ] layout & rendering
   - [ ] calculating dirty rect needs to be converted back to global
   - [ ] view padding and margins?
