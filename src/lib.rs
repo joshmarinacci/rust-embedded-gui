@@ -36,6 +36,7 @@ pub mod test;
 pub mod label;
 pub mod button;
 pub mod list_view;
+pub mod device;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,

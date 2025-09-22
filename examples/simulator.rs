@@ -28,6 +28,7 @@ use embedded_graphics_simulator::{
 use env_logger::fmt::style::Color::Rgb;
 use env_logger::Target;
 use log::{info, LevelFilter};
+use rust_embedded_gui::device::EmbeddedDrawingContext;
 use rust_embedded_gui::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
 use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use rust_embedded_gui::label::make_label;
@@ -275,114 +276,6 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
     }
 }
 
-struct SimulatorDrawingContext<'a> {
-    pub clip: Bounds,
-    display: &'a mut SimulatorDisplay<Rgb565>,
-    offset: EPoint,
-}
-
-impl SimulatorDrawingContext<'_> {
-    fn new(display: &mut SimulatorDisplay<Rgb565>) -> SimulatorDrawingContext {
-        SimulatorDrawingContext {
-            display,
-            clip: Bounds::new_empty(),
-            offset: EPoint::new(0, 0),
-        }
-    }
-}
-
-fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
-    Rectangle::new(
-        EPoint::new(bounds.x, bounds.y),
-        Size::new(bounds.w as u32, bounds.h as u32),
-    )
-}
-
-impl DrawingContext for SimulatorDrawingContext<'_> {
-    fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        let mut display = &mut self.display;
-        let mut display = display.clipped(&bounds_to_rect(&self.clip));
-        let mut display = display.translated(self.offset);
-        bounds_to_rect(bounds)
-            .into_styled(PrimitiveStyle::with_fill(*color))
-            .draw(&mut display)
-            .unwrap();
-    }
-    fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
-        let mut display = &mut self.display;
-        let mut display = display.clipped(&bounds_to_rect(&self.clip));
-        let mut display = display.translated(self.offset);
-        bounds_to_rect(bounds)
-            .into_styled(PrimitiveStyle::with_stroke(*color, 1))
-            .draw(&mut display)
-            .unwrap();
-    }
-
-    fn line(&mut self, start: &GPoint, end: &GPoint, color: &Rgb565) {
-        let mut display = &mut self.display;
-        let mut display = display.clipped(&bounds_to_rect(&self.clip));
-        let mut display = display.translated(self.offset);
-        let line = Line::new(EPoint::new(start.x,start.y),EPoint::new(end.x,end.y));
-        line.into_styled(PrimitiveStyle::with_stroke(*color,1)).draw(&mut display).unwrap();
-    }
-
-    fn fill_text(&mut self, bounds: &Bounds, text: &str, text_style: &TextStyle) {
-        let mut display = &mut self.display;
-        let mut display = display.clipped(&bounds_to_rect(&self.clip));
-        let mut display = display.translated(self.offset);
-
-        let mut text_builder = MonoTextStyleBuilder::new()
-            .font(text_style.font)
-            .text_color(*text_style.color);
-        if text_style.underline {
-            text_builder = text_builder.underline();
-        }
-        let style = text_builder.build(); // MonoTextStyle::new(&FONT_6X10,  *text_style.color);
-        let mut pt = EPoint::new(bounds.x, bounds.y);
-        pt.y += bounds.h / 2;
-        pt.y += (FONT_6X10.baseline as i32) / 2;
-
-        let w = (FONT_6X10.character_size.width as i32) * (text.len() as i32);
-
-        match text_style.halign {
-            HAlign::Left => {
-                pt.x += 5;
-            }
-            HAlign::Center => {
-                pt.x += (bounds.w - w) / 2;
-            }
-            HAlign::Right => {}
-        }
-
-        Text::new(text, pt, style).draw(&mut display).unwrap();
-    }
-
-    fn text(&mut self, text: &str, position: &GPoint, style: &TextStyle) {
-        let mut display = &mut self.display;
-        let mut display = display.clipped(&bounds_to_rect(&self.clip));
-        let mut display = display.translated(self.offset);
-        let mut pt = EPoint::new(position.x,position.y);
-        let mut text_builder = MonoTextStyleBuilder::new()
-            .font(style.font)
-            .text_color(*style.color);
-        if style.underline {
-            text_builder = text_builder.underline();
-        }
-        let estyle = text_builder.build();
-        let etext = Text {
-            position:pt,
-            text: text,
-            character_style: estyle,
-            text_style: TextStyleBuilder::new().alignment(Alignment::Center).baseline(Baseline::Middle).build(),
-        };
-        etext.draw(&mut display).unwrap();
-    }
-
-    fn translate(&mut self, offset: &GPoint) {
-        self.offset = self.offset.add(EPoint::new(offset.x, offset.y));
-    }
-}
-
 fn main() -> Result<(), std::convert::Infallible> {
     env_logger::Builder::new()
         .target(Target::Stdout) // <-- redirects to stdout
@@ -405,7 +298,7 @@ fn main() -> Result<(), std::convert::Infallible> {
     let output_settings = OutputSettingsBuilder::new().scale(2).build();
     let mut window = Window::new("Simulator Test", &output_settings);
     'running: loop {
-        let mut ctx: SimulatorDrawingContext = SimulatorDrawingContext::new(&mut display);
+        let mut ctx = EmbeddedDrawingContext::new(&mut display);
         ctx.clip = scene.dirty_rect.clone();
         layout_scene(&mut scene, &theme);
         draw_scene(&mut scene, &mut ctx, &theme);
