@@ -47,6 +47,14 @@ fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
             }
             event.scene.mark_dirty_view(event.target);
         }
+        EventType::KeyboardAction(act) => {
+            if let Some(view) = event.scene.get_view_mut(event.target) {
+                if view.title.len() > 0 {
+                    view.title.remove(view.title.len() - 1);
+                    event.scene.mark_dirty_view(event.target);
+                }
+            }
+        }
         EventType::Tap(_pt) => {
             event.scene.set_focused(event.target);
         }
