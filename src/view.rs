@@ -18,13 +18,13 @@ pub struct View {
 
 impl View {
     pub fn position_at(mut self, x: i32, y: i32) -> View {
-        self.bounds.x = x;
-        self.bounds.y = y;
+        self.bounds.position.x= x;
+        self.bounds.position.y= y;
         self
     }
     pub fn with_size(mut self, w: i32, h: i32) -> View {
-        self.bounds.w = w;
-        self.bounds.h = h;
+        self.bounds.size.w= w;
+        self.bounds.size.h= h;
         self
     }
     pub fn hide(mut self) -> View {

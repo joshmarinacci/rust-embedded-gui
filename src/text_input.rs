@@ -17,7 +17,7 @@ fn draw_text_input(e: &mut DrawEvent) {
             let w = e.theme.font.character_size.width as i32;
             let h = e.theme.font.character_size.height as i32;
             e.ctx.fill_rect(
-                &Bounds::new(e.view.bounds.x + n * w + 5, e.view.bounds.y + 5, 2, h + 4),
+                &Bounds::new(e.view.bounds.position.x+ n * w + 5, e.view.bounds.position.y+ 5, 2, h + 4),
                 &e.theme.fg,
             );
         }
@@ -59,12 +59,7 @@ pub fn make_text_input(name: &str, title: &str) -> View {
     View {
         name: name.into(),
         title: title.into(),
-        bounds: Bounds {
-            x: 0,
-            y: 0,
-            w: 100,
-            h: 30,
-        },
+        bounds: Bounds::new(0,0,100,30),
         visible: true,
         state: None,
         input: Some(input_text_input),

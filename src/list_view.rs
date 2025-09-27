@@ -58,8 +58,8 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
             if let Some(view) = e.scene.get_view_mut(e.target) {
                 let bounds = view.bounds;
                 if let Some(state) = view.get_state::<SelectOneOf>() {
-                    let cell_height = bounds.h / (state.items.len() as i32);
-                    let y = pt.y - bounds.y;
+                    let cell_height = bounds.h() / (state.items.len() as i32);
+                    let y = pt.y - bounds.y();
                     let n = y / cell_height;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;
@@ -105,7 +105,7 @@ fn draw_list(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     let name = e.view.name.clone();
     if let Some(state) = e.view.get_state::<SelectOneOf>() {
-        let cell_height = bounds.h / (state.items.len() as i32);
+        let cell_height = bounds.h() / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
             let (bg, fg) = if i == state.selected {
                 (&e.theme.selected_bg, &e.theme.selected_fg)
@@ -113,9 +113,9 @@ fn draw_list(e: &mut DrawEvent) {
                 (&e.theme.bg, &e.theme.fg)
             };
             let bds = Bounds::new(
-                bounds.x,
-                bounds.y + (i as i32) * cell_height + 1,
-                bounds.w,
+                bounds.x(),
+                bounds.y() + (i as i32) * cell_height + 1,
+                bounds.w(),
                 cell_height - 1,
             );
             // draw background only if selected
@@ -140,7 +140,7 @@ fn layout_list(e: &mut LayoutEvent) {
         let ch = e.theme.font.character_size;
         let height = state.items.len() as u32 * ch.height * 2;
         if let Some(view) = e.scene.get_view_mut(e.target) {
-            view.bounds = Bounds::new(view.bounds.x, view.bounds.y, view.bounds.w, height as i32);
+            view.bounds = Bounds::new(view.bounds.x(), view.bounds.y(), view.bounds.w(), height as i32);
         }
     }
 }

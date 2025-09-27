@@ -45,8 +45,8 @@ fn input_toggle_group(e: &mut GuiEvent) -> Option<Action> {
             if let Some(view) = e.scene.get_view_mut(e.target) {
                 let bounds = view.bounds;
                 if let Some(state) = view.get_state::<SelectOneOfState>() {
-                    let cell_width = bounds.w / (state.items.len() as i32);
-                    let x = pt.x - bounds.x;
+                    let cell_width = bounds.size.w/ (state.items.len() as i32);
+                    let x = pt.x - bounds.x();
                     let n = x / cell_width;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;
@@ -65,7 +65,7 @@ fn draw_toggle_group(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     let name = e.view.name.clone();
     if let Some(state) = e.view.get_state::<SelectOneOfState>() {
-        let cell_width = bounds.w / (state.items.len() as i32);
+        let cell_width = bounds.size.w/ (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
             let (bg, fg) = if i == state.selected {
                 (&e.theme.selected_bg, &e.theme.selected_fg)
@@ -73,10 +73,10 @@ fn draw_toggle_group(e: &mut DrawEvent) {
                 (&e.theme.bg, &e.theme.fg)
             };
             let bds = Bounds::new(
-                bounds.x + (i as i32) * cell_width + 1,
-                bounds.y,
+                bounds.position.x+ (i as i32) * cell_width + 1,
+                bounds.y(),
                 cell_width - 1,
-                bounds.h,
+                bounds.h(),
             );
             // draw background only if selected
             if i == state.selected {
@@ -93,10 +93,10 @@ fn draw_toggle_group(e: &mut DrawEvent) {
 
             // draw left edge except for the first one
             if i != 0 {
-                let x = bounds.x + (i as i32) * cell_width;
+                let x = bounds.position.x+ (i as i32) * cell_width;
                 e.ctx.line(
-                    &Point::new(x, bounds.y),
-                    &Point::new(x, bounds.y + bounds.h - 1),
+                    &Point::new(x, bounds.y()),
+                    &Point::new(x, bounds.position.y+ bounds.size.h- 1),
                     &e.theme.fg,
                 );
             }
@@ -110,7 +110,7 @@ fn layout_toggle_group(e: &mut LayoutEvent) {
         let ch = e.theme.font.character_size;
         let mut height = ch.height + (ch.height / 2) * 2; // padding
         if let Some(view) = e.scene.get_view_mut(e.target) {
-            view.bounds = Bounds::new(view.bounds.x, view.bounds.y, view.bounds.w, height as i32)
+            view.bounds = Bounds::new(view.bounds.x(), view.bounds.y(), view.bounds.w(), height as i32)
         }
     }
 }

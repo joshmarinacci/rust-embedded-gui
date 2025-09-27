@@ -7,12 +7,7 @@ pub fn make_label(name: &str, title: &str) -> View {
     View {
         name: name.into(),
         title: title.into(),
-        bounds: Bounds {
-            x: 0,
-            y: 0,
-            w: 100,
-            h: 30,
-        },
+        bounds: Bounds::new(0,0,100,30),
         visible: true,
         state: None,
         input: None,

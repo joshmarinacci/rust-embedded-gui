@@ -61,14 +61,14 @@ pub fn layout_vbox(evt: &mut LayoutEvent) {
             for kid in evt.scene.get_children(evt.target) {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
                     match halign {
-                        HAlign::Left => ch.bounds.x = padding,
+                        HAlign::Left => ch.bounds.position.x = padding,
                         HAlign::Center => {
-                            ch.bounds.x = padding + (bounds.w - padding * 2 - ch.bounds.w) / 2
+                            ch.bounds.position.x = padding + (bounds.w() - padding * 2 - ch.bounds.w()) / 2
                         }
-                        HAlign::Right => ch.bounds.x = bounds.w - padding - ch.bounds.w,
+                        HAlign::Right => ch.bounds.position.x = bounds.w() - padding - ch.bounds.w(),
                     }
-                    ch.bounds.y = y;
-                    y += ch.bounds.h + gap;
+                    ch.bounds.position.y = y;
+                    y += ch.bounds.size.h + gap;
                 }
             }
         }
@@ -77,7 +77,7 @@ pub fn layout_vbox(evt: &mut LayoutEvent) {
 
 pub fn layout_hbox(evt: &mut LayoutEvent) {
     if let Some(view) = evt.scene.get_view(evt.target) {
-        let height = view.bounds.h;
+        let height = view.bounds.h();
         if let Some(state) = evt.scene.get_view_state::<PanelState>(evt.target) {
             let padding = state.padding;
             let gap = state.gap;
@@ -86,15 +86,15 @@ pub fn layout_hbox(evt: &mut LayoutEvent) {
             for kid in evt.scene.get_children(evt.target) {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
                     match valign {
-                        VAlign::Top => ch.bounds.y = padding,
+                        VAlign::Top => ch.bounds.position.y= padding,
                         VAlign::Center => {
-                            ch.bounds.y = padding + (height - padding * 2 - ch.bounds.h) / 2
+                            ch.bounds.position.y= padding + (height - padding * 2 - ch.bounds.h()) / 2
                         }
-                        VAlign::Bottom => ch.bounds.y = height - padding - ch.bounds.h,
+                        VAlign::Bottom => ch.bounds.position.y= height - padding - ch.bounds.h(),
                     }
-                    ch.bounds.x = x;
-                    // ch.bounds.y = padding;
-                    x += ch.bounds.w + gap;
+                    ch.bounds.position.x= x;
+                    // ch.bounds.position.y= padding;
+                    x += ch.bounds.size.w+ gap;
                 }
             }
         }

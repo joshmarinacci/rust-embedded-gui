@@ -38,8 +38,8 @@ where
 
 fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
     Rectangle::new(
-        EPoint::new(bounds.x, bounds.y),
-        ESize::new(bounds.w as u32, bounds.h as u32),
+        EPoint::new(bounds.position.x, bounds.position.y),
+        ESize::new(bounds.size.w as u32, bounds.size.h as u32),
     )
 }
 
@@ -79,8 +79,8 @@ where
             text_builder = text_builder.underline();
         }
         let style = text_builder.build(); // MonoTextStyle::new(&FONT_6X10,  *text_style.color);
-        let mut pt = EPoint::new(bounds.x, bounds.y);
-        pt.y += bounds.h / 2;
+        let mut pt = EPoint::new(bounds.position.x, bounds.position.y);
+        pt.y += bounds.size.h / 2;
         pt.y += (FONT_6X10.baseline as i32) / 2;
 
         let w = (FONT_6X10.character_size.width as i32) * (text.len() as i32);
@@ -90,7 +90,7 @@ where
                 pt.x += 5;
             }
             HAlign::Center => {
-                pt.x += (bounds.w - w) / 2;
+                pt.x += (bounds.size.w - w) / 2;
             }
             HAlign::Right => {}
         }

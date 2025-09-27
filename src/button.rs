@@ -25,12 +25,7 @@ pub fn make_button(name: &str, title: &str) -> View {
     View {
         name: name.to_string(),
         title: title.to_string(),
-        bounds: Bounds {
-            x: 0,
-            y: 0,
-            w: 80,
-            h: 30,
-        },
+        bounds: Bounds::new(0,0,80,30),
         visible: true,
         state: None,
         input: Some(|e| {

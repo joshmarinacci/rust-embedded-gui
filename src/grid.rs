@@ -109,16 +109,16 @@ fn draw_grid(evt: &mut DrawEvent) {
         }
         if state.debug {
             for i in 0..state.col_count + 1 {
-                let x = (i * state.col_width) as i32 + bounds.x + padding;
-                let y = bounds.y + padding;
-                let y2 = bounds.y + bounds.h - padding * 2;
+                let x = (i * state.col_width) as i32 + bounds.x() + padding;
+                let y = bounds.y() + padding;
+                let y2 = bounds.y() + bounds.h() - padding * 2;
                 evt.ctx
                     .line(&Point::new(x, y), &Point::new(x, y2), &Rgb565::RED);
             }
             for j in 0..state.row_count + 1 {
-                let y = (j * state.row_height) as i32 + bounds.y + padding;
-                let x = bounds.x + padding;
-                let x2 = bounds.x + bounds.w - padding * 2;
+                let y = (j * state.row_height) as i32 + bounds.y() + padding;
+                let x = bounds.x() + padding;
+                let x2 = bounds.x() + bounds.w() - padding * 2;
                 evt.ctx
                     .line(&Point::new(x, y), &Point::new(x2, y), &Rgb565::RED);
             }
@@ -151,8 +151,8 @@ fn layout_grid(evt: &mut LayoutEvent) {
 }
 
 fn center_within(cell: Bounds, view: &mut Bounds) {
-    view.x = (cell.w - view.w) / 2 + cell.x;
-    view.y = (cell.h - view.h) / 2 + cell.y;
+    view.position.x = (cell.w() - view.w()) / 2 + cell.x();
+    view.position.y = (cell.h() - view.h()) / 2 + cell.y();
 }
 
 mod tests {
@@ -170,10 +170,7 @@ mod tests {
         let theme = MockDrawingContext::make_mock_theme();
 
         let mut grid = make_grid_panel("grid");
-        grid.bounds.x = 40;
-        grid.bounds.y = 40;
-        grid.bounds.w = 200;
-        grid.bounds.h = 200;
+        grid.bounds = Bounds::new(40,40,200,200);
         let mut grid_layout = GridLayoutState::new_row_column(2, 30, 2, 100);
 
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));

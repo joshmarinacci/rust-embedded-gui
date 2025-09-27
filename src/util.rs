@@ -12,7 +12,7 @@ pub fn calc_bounds(bounds: Bounds, font: MonoFont<'static>, title: &str) -> Boun
     width += hpad * 2;
     let mut height = fsize.height;
     height += vpad * 2;
-    Bounds::new(bounds.x, bounds.y, width as i32, height as i32)
+    Bounds::new(bounds.x(), bounds.y(), width as i32, height as i32)
 }
 
 pub fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
@@ -20,7 +20,7 @@ pub fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
         return Rectangle::zero();
     }
     Rectangle::new(
-        embedded_graphics::geometry::Point::new(bounds.x, bounds.y),
-        Size::new(bounds.w as u32, bounds.h as u32),
+        embedded_graphics::geometry::Point::new(bounds.position.x, bounds.position.y),
+        Size::new(bounds.size.w as u32, bounds.size.h as u32),
     )
 }

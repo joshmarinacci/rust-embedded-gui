@@ -60,12 +60,7 @@ fn make_scene() -> Scene {
     let mut tabbed_panel = make_tabs(
         TABBED_PANEL,
         vec!["buttons", "layouts", "lists", "inputs", "themes"],
-        Bounds {
-            x: 10,
-            y: 10,
-            w: 320 - 20,
-            h: 180,
-        },
+        Bounds::new(10,10,320-20,180),
     );
 
     let tabs = make_toggle_group(
@@ -263,15 +258,15 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
                     for (i, kid) in e.scene.get_children(e.target).iter().enumerate() {
                         if let Some(ch) = e.scene.get_view_mut(&kid) {
                             if kid == "tabs" {
-                                ch.bounds = Bounds::new(0, 0, bounds.w, ch.bounds.h);
-                                tabs_height = ch.bounds.h;
+                                ch.bounds = Bounds::new(0, 0, bounds.w(), ch.bounds.h());
+                                tabs_height = ch.bounds.h();
                                 ch.visible = true;
                             } else {
                                 ch.bounds = Bounds::new(
                                     0 + 1,
                                     0 + tabs_height + 1,
-                                    bounds.w - 2,
-                                    bounds.h - tabs_height - 2,
+                                    bounds.size.w- 2,
+                                    bounds.size.h- tabs_height - 2,
                                 );
                                 ch.visible = false;
                                 if i == selected + 1 {
@@ -324,7 +319,7 @@ fn main() -> Result<(), std::convert::Infallible> {
                     keycode, keymod, ..
                 } => {
                     let evt: EventType = keydown_to_char(keycode, keymod);
-                    if let Some(result) = event_at_focused(&mut scene, evt) {
+                    if let Some(result) = event_at_focused(&mut scene, &evt) {
                         println!("got input from {:?}", result);
                     }
                 }
@@ -346,7 +341,7 @@ fn main() -> Result<(), std::convert::Infallible> {
                     info!("mouse wheel {scroll_delta:?} {direction:?}");
                     if let Some(result) = event_at_focused(
                         &mut scene,
-                        EventType::Scroll(scroll_delta.x, scroll_delta.y),
+                        &EventType::Scroll(scroll_delta.x, scroll_delta.y),
                     ) {
                         println!("got input from {:?}", result);
                     }

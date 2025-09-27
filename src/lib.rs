@@ -133,12 +133,7 @@ mod tests {
         View {
             name: name.to_string(),
             title: name.to_string(),
-            bounds: Bounds {
-                x: 0,
-                y: 0,
-                w: 10,
-                h: 10,
-            },
+            bounds: Bounds::new(0,0,10,10),
             visible: true,
             draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.bg)),
             input: None,
@@ -153,10 +148,10 @@ mod tests {
             let kids = evt.scene.get_children(evt.target);
             for kid in kids {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
-                    ch.bounds.x = 0;
-                    ch.bounds.y = y;
-                    ch.bounds.w = bounds.w;
-                    y += ch.bounds.h;
+                    ch.bounds.position.x= 0;
+                    ch.bounds.position.y= y;
+                    ch.bounds.size.w= bounds.w();
+                    y += ch.bounds.h();
                 }
             }
         }
@@ -183,12 +178,7 @@ mod tests {
         View {
             name: name.to_string(),
             title: name.to_string(),
-            bounds: Bounds {
-                x: 0,
-                y: 0,
-                w: 20,
-                h: 20,
-            },
+            bounds: Bounds::new(0,0,20,20),
             visible: true,
             draw: Some(|e| {
                 if let Some(state) = &mut e.view.state {
@@ -248,12 +238,7 @@ mod tests {
         View {
             name: name.to_string(),
             title: name.to_string(),
-            bounds: Bounds {
-                x: 0,
-                y: 0,
-                w: 30,
-                h: 20,
-            },
+            bounds: Bounds::new(0,0,30,20),
             visible: true,
             draw: Some(draw_label_view),
             input: None,
@@ -301,12 +286,7 @@ mod tests {
     #[test]
     fn test_geometry() {
         initialize();
-        let bounds = Bounds {
-            x: 0,
-            y: 0,
-            w: 100,
-            h: 100,
-        };
+        let bounds = Bounds::new(0,0,100,100);
         assert_eq!(bounds.contains(&Point::new(10, 10)), true);
         assert_eq!(bounds.contains(&Point::new(-1, -1)), false);
 
@@ -359,21 +339,11 @@ mod tests {
         let mut scene: Scene = Scene::new();
         let vbox = make_vbox(
             "parent",
-            Bounds {
-                x: 10,
-                y: 10,
-                w: 100,
-                h: 100,
-            },
+            Bounds::new(10,10,100,100),
         );
 
         let mut button = make_test_button("child");
-        button.bounds = Bounds {
-            x: 10,
-            y: 10,
-            w: 10,
-            h: 10,
-        };
+        button.bounds = Bounds::new(10,10,10,10);
 
         scene.add_child(&scene.root_id.clone(), &vbox.name);
         scene.add_child(&vbox.name, &button.name);
@@ -390,12 +360,7 @@ mod tests {
         // add panel
         scene.add_view(make_vbox(
             "parent",
-            Bounds {
-                x: 10,
-                y: 10,
-                w: 100,
-                h: 100,
-            },
+            Bounds::new(10,10,100,100),
         ));
         // add button 1
         scene.add_view_to_parent(make_test_button("button1"), "parent");
@@ -409,30 +374,15 @@ mod tests {
         });
         assert_eq!(
             get_bounds(&scene, "parent"),
-            Some(Bounds {
-                x: 10,
-                y: 10,
-                w: 100,
-                h: 100
-            })
+            Some(Bounds::new(10,10,100,100))
         );
         assert_eq!(
             get_bounds(&scene, "button1"),
-            Some(Bounds {
-                x: 0,
-                y: 0,
-                w: 100,
-                h: 20
-            })
+            Some(Bounds::new(0,0,100,20)),
         );
         assert_eq!(
             get_bounds(&scene, "button2"),
-            Some(Bounds {
-                x: 0,
-                y: 20,
-                w: 100,
-                h: 20
-            })
+            Some(Bounds::new(0,20,100,20))
         );
     }
     #[test]
@@ -441,12 +391,7 @@ mod tests {
         // add panel
         scene.add_view(make_vbox(
             "parent",
-            Bounds {
-                x: 10,
-                y: 10,
-                w: 100,
-                h: 100,
-            },
+            Bounds::new(10,10,100,100),
         ));
         // add button 1
         scene.add_view(make_test_button("button1"));
@@ -496,12 +441,7 @@ mod tests {
             name: String::from("toggle"),
             title: String::from("Off"),
             visible: true,
-            bounds: Bounds {
-                x: 10,
-                y: 10,
-                w: 20,
-                h: 20,
-            },
+            bounds: Bounds::new(10,10,20,20),
             draw: Some(|e| {
                 if let Some(state) = &e.view.state {
                     if let Some(state) = state.downcast_ref::<String>() {
@@ -571,7 +511,7 @@ mod tests {
 
         // create button 2
         let mut button2 = make_test_button("button2");
-        button2.bounds.x = 100;
+        button2.bounds.position.x= 100;
         // make button 2 invisible
         button2.visible = false;
         scene.add_view_to_root(button2);
@@ -623,7 +563,7 @@ mod tests {
         scene.focused = Some("textbox1".into());
 
         // send keyboard event
-        event_at_focused(&mut scene, EventType::Keyboard(b'X'));
+        event_at_focused(&mut scene, &EventType::Keyboard(b'X'));
         // confirm text is updated
         assert_eq!(get_view_title(&scene, "textbox1"), "fooX");
     }

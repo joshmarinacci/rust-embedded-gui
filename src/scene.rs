@@ -142,12 +142,7 @@ impl Scene {
         }
     }
     pub fn new() -> Scene {
-        let bounds = Bounds {
-            x: 0,
-            y: 0,
-            w: 200,
-            h: 200,
-        };
+        let bounds = Bounds::new(0,0,200,200);
         Self::new_with_bounds(bounds)
     }
     pub fn add_view(&mut self, view: View) {
@@ -238,7 +233,7 @@ fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<Pick> {
     if let Some(view) = scene.keys.get(name) {
         if view.bounds.contains(pt) && view.visible {
             coll.push((view.name.clone(), pt.clone()));
-            let pt2 = pt.subtract(&view.bounds.position());
+            let pt2 = pt.subtract(&view.bounds.position);
             for kid in scene.get_children(&view.name) {
                 let mut coll2 = pick_at_view(scene, &pt2, &kid);
                 coll.append(&mut coll2);
@@ -279,11 +274,11 @@ fn draw_view(scene: &mut Scene, ctx: &mut dyn DrawingContext, theme: &Theme, nam
         // only draw children if visible
         if view.visible {
             let bounds = view.bounds.clone();
-            ctx.translate(&bounds.position());
+            ctx.translate(&bounds.position);
             for kid in scene.get_children(&view.name) {
                 draw_view(scene, ctx, theme, &kid);
             }
-            ctx.translate(&bounds.position().negate());
+            ctx.translate(&bounds.position.negate());
         }
     }
 }

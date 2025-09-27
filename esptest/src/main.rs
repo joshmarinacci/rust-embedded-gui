@@ -246,8 +246,8 @@ fn make_menuview(name:&str, data:Vec<String>) -> View {
                     for (i,item) in (&state.data).iter().enumerate() {
                         let b = Bounds {
                             x: e.view.bounds.x+1,
-                            y: e.view.bounds.y + (i as i32) * vh + 1,
-                            w: e.view.bounds.w -2,
+                            y: e.view.bounds.y()+ (i as i32) * vh + 1,
+                            w: e.view.bounds.size.w-2,
                             h: vh,
                         };
                         if state.selected == i {
@@ -297,7 +297,7 @@ fn make_menuview(name:&str, data:Vec<String>) -> View {
             if let Some(parent) = event.scene.get_view_mut(event.target) {
                 if let Some(state) = &parent.state {
                     if let Some(state) = state.downcast_ref::<MenuState>() {
-                        parent.bounds.h = vh * (state.data.len() as i32);
+                        parent.bounds.size.h= vh * (state.data.len() as i32);
                     }
                 }
             };
