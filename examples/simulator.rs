@@ -38,7 +38,7 @@ use rust_embedded_gui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel
 use rust_embedded_gui::label::make_label;
 use rust_embedded_gui::layouts::{layout_hbox_2, layout_vbox as layout_vbox_2, layout_std_panel, layout_tabbed_panel, layout_tabbed_panel_tabs};
 use rust_embedded_gui::list_view::make_list_view;
-use rust_embedded_gui::panel::{PanelState, make_panel, layout_hbox, layout_vbox, draw_std_panel};
+use rust_embedded_gui::panel::{draw_std_panel};
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::{Align, Flex, View, ViewId};
 use rust_embedded_gui::view::Flex::Intrinsic;
@@ -131,8 +131,12 @@ fn make_scene() -> Scene {
         {
             let col1 = make_column("vbox2");
             scene.add_view_to_parent(make_label("vbox-label", "vbox layout"), &col1.name);
-            let mut vbox = make_panel("vbox", Bounds::new(0, 0, 100, 100));
-            vbox.layout = Some(layout_vbox);
+            let vbox = View {
+                name: ViewId::new("vbox"),
+                draw:Some(draw_std_panel),
+                layout: Some(layout_vbox_2),
+                ..Default::default()
+            };
             scene.add_view_to_parent(make_button("vbox-button1", "A"), &vbox.name);
             scene.add_view_to_parent(make_button("vbox-button2", "B"), &vbox.name);
             scene.add_view_to_parent(make_button("vbox-button3", "C"), &vbox.name);
