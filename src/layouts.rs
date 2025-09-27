@@ -170,14 +170,16 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
         pass.layout_child(&tabs_id, space);
 
         // layout content panels
-        let insets = Insets::new(10,0,0,0);
-        for kid in &pass.scene.get_children_ids(&pass.target) {
-            if kid == &tabs_id {
-                continue;
-            }
-            pass.layout_child(kid,space - insets);
-            if let Some(view) = pass.scene.get_view_mut(kid) {
-                view.bounds.position.y = 10;
+        if let Some(view) = pass.scene.get_view(&tabs_id) {
+            let insets = Insets::new(view.bounds.size.h,0,0,0);
+            for kid in &pass.scene.get_children_ids(&pass.target) {
+                if kid == &tabs_id {
+                    continue;
+                }
+                pass.layout_child(kid,space - insets);
+                if let Some(view) = pass.scene.get_view_mut(kid) {
+                    view.bounds.position.y = insets.top;
+                }
             }
         }
     }
