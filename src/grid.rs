@@ -6,6 +6,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use hashbrown::HashMap;
+use crate::view::Flex::{Intrinsic, Resize};
 
 pub struct GridLayoutState {
     pub constraints: HashMap<ViewId, LayoutConstraint>,
@@ -98,14 +99,10 @@ pub fn make_grid_panel(name: &ViewId) -> View {
 
 fn draw_grid(evt: &mut DrawEvent) {
     let bounds = evt.view.bounds;
+    evt.ctx.fill_rect(&evt.view.bounds, &evt.theme.bg);
+    evt.ctx.stroke_rect(&evt.view.bounds, &evt.theme.fg);
     if let Some(state) = evt.view.get_state::<GridLayoutState>() {
         let padding = state.padding;
-        if state.bg {
-            evt.ctx.fill_rect(&bounds, &evt.theme.bg);
-        }
-        if state.border {
-            evt.ctx.stroke_rect(&bounds, &evt.theme.fg);
-        }
         if state.debug {
             for i in 0..state.col_count + 1 {
                 let x = (i * state.col_width) as i32 + bounds.x() + padding;
@@ -125,12 +122,27 @@ fn draw_grid(evt: &mut DrawEvent) {
     }
 }
 
-fn layout_grid(evt: &mut LayoutEvent) {
-    if let Some(view) = evt.scene.get_view(evt.target) {
-        let parent_bounds = view.bounds;
-        let kids = evt.scene.get_children_ids(evt.target);
+fn layout_grid(pass: &mut LayoutEvent) {
+    if let Some(view) = pass.scene.get_view_mut(pass.target) {
+        let cs = pass.theme.font.character_size;
+        if view.h_flex == Resize {
+            view.bounds.size.w = pass.space.w;
+        }
+        if view.h_flex == Intrinsic {
+        }
+        if view.v_flex == Resize {
+            view.bounds.size.h = pass.space.h;
+        }
+        if view.v_flex == Intrinsic {
+        }
+
+        let parent_bounds = view.bounds.clone();
+        let padding = view.padding.clone();
+        let kids = pass.scene.get_children_ids(pass.target);
+        let space = parent_bounds.size.clone() - padding;
         for kid in kids {
-            if let Some(state) = evt.scene.get_view_state::<GridLayoutState>(evt.target) {
+            pass.layout_child(&kid,space);
+            if let Some(state) = pass.scene.get_view_state::<GridLayoutState>(pass.target) {
                 let padding = state.padding;
                 let cell_bounds = if let Some(cons) = &state.constraints.get(&kid) {
                     let x = (cons.col * state.col_width) as i32 + padding;
@@ -141,7 +153,7 @@ fn layout_grid(evt: &mut LayoutEvent) {
                 } else {
                     Bounds::new(0, 0, 0, 0)
                 };
-                if let Some(view) = evt.scene.get_view_mut(&kid) {
+                if let Some(view) = pass.scene.get_view_mut(&kid) {
                     center_within(cell_bounds, &mut view.bounds);
                 }
             }

@@ -72,7 +72,14 @@ pub fn layout_hbox_2(pass: &mut LayoutEvent) {
         return;
     };
     // layout self
-    parent.bounds.size = pass.space.clone();
+    if parent.v_flex == Resize {
+        parent.bounds.size.h = pass.space.h
+    }
+    if parent.h_flex == Resize {
+        parent.bounds.size.w = pass.space.w
+    }
+
+    let space = parent.bounds.size;
     let padding = parent.padding.clone();
     let available_space: Size = pass.space - padding;
 
@@ -92,7 +99,7 @@ pub fn layout_hbox_2(pass: &mut LayoutEvent) {
         .map(|id| pass.scene.get_view(id))
         .flatten()
         .fold(0, |a, v| v.bounds.size.w + a);
-    let avail_horizontal_space = (pass.space - padding).h - kids_sum;
+    let avail_horizontal_space = (space - padding).h - kids_sum;
 
     // get the flex children
     let flex_kids = pass
@@ -113,7 +120,7 @@ pub fn layout_hbox_2(pass: &mut LayoutEvent) {
 
     // now position all children
     // let all_kids = pass.scene.get_children(&pass.name);
-    let avail_h = pass.space.h - padding.top - padding.bottom;
+    let avail_h = space.h - padding.top - padding.bottom;
     let mut x = padding.left;
     for kid in pass.scene.get_children_ids(&pass.target) {
         if let Some(kid) = pass.scene.get_view_mut(&kid) {
@@ -126,6 +133,7 @@ pub fn layout_hbox_2(pass: &mut LayoutEvent) {
             } + padding.top;
         }
     }
+
 }
 
 fn layout_button(layout: &mut LayoutEvent) {

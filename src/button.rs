@@ -1,9 +1,9 @@
 use crate::geom::Bounds;
-use crate::gfx::{DrawingContext, HAlign, TextStyle, VAlign, draw_centered_text};
-use crate::view::{View, ViewId};
-use crate::{Action, DrawEvent, EventType, util};
-use alloc::string::ToString;
+use crate::gfx::{draw_centered_text, DrawingContext};
 use crate::view::Flex::Intrinsic;
+use crate::view::{View, ViewId};
+use crate::{util, Action, DrawEvent, EventType};
+use alloc::string::ToString;
 
 fn draw_button(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
@@ -26,7 +26,6 @@ pub fn make_button(name: &'static str, title: &str) -> View {
     View {
         name: ViewId::new(name),
         title: title.to_string(),
-        bounds: Bounds::new(0,0,80,30),
         h_flex: Intrinsic,
         v_flex: Intrinsic,
         input: Some(|e| {

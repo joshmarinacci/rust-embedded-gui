@@ -41,6 +41,7 @@ use rust_embedded_gui::list_view::make_list_view;
 use rust_embedded_gui::panel::{PanelState, make_panel, layout_hbox, layout_vbox, draw_std_panel};
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::{Align, Flex, View, ViewId};
+use rust_embedded_gui::view::Flex::Intrinsic;
 
 const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
 const MEDIUM_FONT_BUTTON: &str = "medium_font";
@@ -117,7 +118,7 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(grid, &tabbed_panel.name);
     }
     {
-        let wrapper = View {
+        let mut wrapper = View {
             name: LAYOUT_PANEL.clone(),
             draw:Some(draw_std_panel),
             padding: Insets::new_same(5),
@@ -150,10 +151,11 @@ fn make_scene() -> Scene {
             scene.add_view_to_parent(col2, &wrapper.name);
         }
 
+        wrapper.visible = false;
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
-        let wrapper = View {
+        let mut wrapper = View {
             name: LISTS_PANEL.clone(),
             layout: Some(layout_hbox_2),
             draw:Some(draw_std_panel),
@@ -172,10 +174,11 @@ fn make_scene() -> Scene {
             1,
         );
         scene.add_view_to_parent(list, &wrapper.name);
+        wrapper.visible = false;
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
-        let panel = View {
+        let mut panel = View {
             name: INPUTS_PANEL.clone(),
             draw:Some(draw_std_panel),
             h_flex: Flex::Resize,
@@ -187,10 +190,11 @@ fn make_scene() -> Scene {
             make_text_input("textinput", "input").position_at(10, 10),
             &panel.name,
         );
+        panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
-        let panel = View {
+        let mut panel = View {
             name: THEMES_PANEL.clone(),
             layout: Some(layout_vbox_2),
             draw:Some(draw_std_panel),
@@ -206,18 +210,21 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(make_button("light-theme", "Light"), &panel.name);
         scene.add_view_to_parent(make_button("dark-theme", "Dark"), &panel.name);
         scene.add_view_to_parent(make_button("colorful-theme", "Colorful"), &panel.name);
+        panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
 
     scene.add_view_to_root(tabbed_panel);
 
-    let mut font_buttons = make_panel("font_buttons", Bounds::new(30, 200, 200, 30));
-    font_buttons.layout = Some(layout_hbox);
-    if let Some(state) = font_buttons.get_state::<PanelState>() {
-        state.border = false;
-        state.gap = 5;
-        state.bg = false;
-    }
+    let mut font_buttons = View {
+        name:ViewId::new("font_buttons"),
+        bounds: Bounds::new(30,200,200,30),
+        layout: Some(layout_hbox_2),
+        h_flex: Intrinsic,
+        v_flex: Intrinsic,
+        draw: Some(draw_std_panel),
+        .. Default::default()
+    };
     scene.add_view_to_parent(make_button(SMALL_FONT_BUTTON.as_str(), "Small"), &font_buttons.name);
     scene.add_view_to_parent(
         make_button(MEDIUM_FONT_BUTTON, "Medium"),
