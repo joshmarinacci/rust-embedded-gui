@@ -24,7 +24,6 @@ use crate::geom::Size;
 use crate::view::{ViewId};
 
 pub mod button;
-pub mod comps;
 pub mod device;
 pub mod geom;
 pub mod gfx;
@@ -132,13 +131,14 @@ impl<'a> LayoutEvent<'a> {
 mod tests {
     use super::*;
     use crate::button::make_button;
-    use crate::gfx::{HAlign, TextStyle};
+    use crate::gfx::{TextStyle};
     use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
     use crate::test::MockDrawingContext;
     use env_logger::Target;
     use gfx::DrawingContext;
     use log::LevelFilter;
     use std::sync::Once;
+    use crate::view::Align;
 
     extern crate std;
 
@@ -487,13 +487,13 @@ mod tests {
                             e.ctx.fill_rect(&e.view.bounds, &e.theme.fg);
                             e.ctx.stroke_rect(&e.view.bounds, &e.theme.bg);
                             let style = TextStyle::new(&e.theme.font, &e.theme.bg)
-                                .with_halign(HAlign::Center);
+                                .with_halign(Align::Center);
                             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
                         } else {
                             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
                             e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
                             let style = TextStyle::new(&e.theme.font, &e.theme.fg)
-                                .with_halign(HAlign::Center);
+                                .with_halign(Align::Center);
                             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
                         }
                     }

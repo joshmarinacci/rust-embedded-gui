@@ -31,7 +31,7 @@ pub enum Flex {
     Intrinsic,
     Resize,
 }
-#[derive(PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Align {
     Start,
     Center,

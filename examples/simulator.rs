@@ -16,9 +16,9 @@ use embedded_graphics::text::{
 };
 use rust_embedded_gui::button::make_button;
 use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint};
-use rust_embedded_gui::scene::{EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene};
+use rust_embedded_gui::scene::{click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene};
 use rust_embedded_gui::toggle_button::make_toggle_button;
-use rust_embedded_gui::toggle_group::{SelectOneOfState, make_toggle_group};
+use rust_embedded_gui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
 use rust_embedded_gui::{Action, EventType, KeyboardAction, Theme};
 use std::ops::Add;
 
@@ -31,16 +31,17 @@ use embedded_graphics_simulator::{
 use embedded_graphics_simulator::sdl2::MouseWheelDirection::Flipped;
 use env_logger::Target;
 use env_logger::fmt::style::Color::Rgb;
-use log::{LevelFilter, info};
+use log::{info, LevelFilter};
 use rust_embedded_gui::device::EmbeddedDrawingContext;
-use rust_embedded_gui::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
-use rust_embedded_gui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
+use rust_embedded_gui::gfx::{DrawingContext, TextStyle};
+use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use rust_embedded_gui::label::make_label;
-use rust_embedded_gui::layouts::{layout_hbox_2, layout_vbox as layout_vbox_2, layout_std_panel, layout_tabbed_panel, layout_tabbed_panel_tabs};
+use rust_embedded_gui::layouts::{layout_hbox_2, layout_std_panel, layout_tabbed_panel, layout_vbox as layout_vbox_2};
 use rust_embedded_gui::list_view::make_list_view;
-use rust_embedded_gui::panel::{draw_std_panel};
+use rust_embedded_gui::panel::draw_std_panel;
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::{Align, Flex, View, ViewId};
+use rust_embedded_gui::view::Align::Center;
 use rust_embedded_gui::view::Flex::Intrinsic;
 
 const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
@@ -108,8 +109,8 @@ fn make_scene() -> Scene {
                 col: 0,
                 col_span: 2,
                 row_span: 1,
-                v_align: VAlign::Center,
-                h_align: HAlign::Center,
+                v_align: Center,
+                h_align: Center,
             },
         );
         scene.add_view_to_parent(button3, &grid.name);

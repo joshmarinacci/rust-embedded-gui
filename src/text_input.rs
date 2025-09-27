@@ -1,13 +1,13 @@
 use crate::geom::Bounds;
-use crate::gfx::{DrawingContext, HAlign, TextStyle};
-use crate::view::{View, ViewId};
+use crate::gfx::{DrawingContext, TextStyle};
+use crate::view::{Align, View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent};
 use log::info;
 
 fn draw_text_input(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-    let style = TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(HAlign::Left);
+    let style = TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(Align::Start);
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 
     if let Some(focused) = e.focused {

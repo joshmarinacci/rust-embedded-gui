@@ -1,5 +1,4 @@
-use crate::geom::Bounds;
-use crate::gfx::{draw_centered_text, DrawingContext};
+use crate::gfx::{draw_centered_text};
 use crate::view::Flex::Intrinsic;
 use crate::view::{View, ViewId};
 use crate::{util, Action, DrawEvent, EventType};

@@ -1,6 +1,5 @@
 use crate::geom::{Bounds, Point};
-use crate::gfx::{HAlign, VAlign};
-use crate::view::{View, ViewId};
+use crate::view::{Align, View, ViewId};
 use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -58,8 +57,8 @@ pub struct LayoutConstraint {
     pub row: usize,
     pub col_span: usize,
     pub row_span: usize,
-    pub h_align: HAlign,
-    pub v_align: VAlign,
+    pub h_align: Align,
+    pub v_align: Align,
 }
 
 impl LayoutConstraint {
@@ -69,8 +68,8 @@ impl LayoutConstraint {
             row,
             col_span: 1,
             row_span: 1,
-            h_align: HAlign::Center,
-            v_align: VAlign::Center,
+            h_align: Align::Center,
+            v_align: Align::Center,
         }
     }
 }
@@ -169,13 +168,12 @@ fn center_within(cell: Bounds, view: &mut Bounds) {
 mod tests {
     use crate::button::make_button;
     use crate::geom::Bounds;
-    use crate::gfx::{HAlign, VAlign};
     use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
     use crate::label::make_label;
     use crate::scene::{Scene, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
     use alloc::boxed::Box;
-    use crate::view::ViewId;
+    use crate::view::{Align, ViewId};
 
     #[test]
     fn test_grid_layout() {
@@ -243,8 +241,8 @@ mod tests {
                 row: 0,
                 col_span: 2,
                 row_span: 1,
-                h_align: HAlign::Center,
-                v_align: VAlign::Center,
+                h_align: Align::Center,
+                v_align: Align::Center,
             },
         );
 

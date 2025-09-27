@@ -1,5 +1,5 @@
-use crate::geom::{Bounds, Insets, Point};
-use crate::gfx::{DrawingContext, HAlign, TextStyle, draw_centered_text};
+use crate::geom::{Bounds, Point};
+use crate::gfx::{draw_centered_text, DrawingContext};
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
@@ -8,7 +8,6 @@ use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
 use hashbrown::Equivalent;
-use crate::layouts::layout_tabbed_panel_tabs;
 use crate::view::Flex::{Intrinsic, Resize};
 
 pub fn make_toggle_group(name: &ViewId, data: Vec<&str>, selected: usize) -> View {
@@ -18,7 +17,7 @@ pub fn make_toggle_group(name: &ViewId, data: Vec<&str>, selected: usize) -> Vie
         bounds: Bounds::new(0, 0, (data.len() * 60) as i32, 30),
         state: Some(SelectOneOfState::new_with(data, selected)),
         input: Some(input_toggle_group),
-        layout: Some(layout_tabbed_panel_tabs),
+        layout: Some(layout_toggle_group),
         draw: Some(draw_toggle_group),
         visible: true,
         h_flex: Resize,
@@ -109,20 +108,30 @@ fn draw_toggle_group(e: &mut DrawEvent) {
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
 }
 
-fn layout_toggle_group(e: &mut LayoutEvent) {
-    if let Some(state) = e.scene.get_view_state::<SelectOneOfState>(e.target) {
-        let ch = e.theme.font.character_size;
-        let mut height = ch.height + (ch.height / 2) * 2; // padding
-        if let Some(view) = e.scene.get_view_mut(e.target) {
-            view.bounds = Bounds::new(view.bounds.x(), view.bounds.y(), view.bounds.w(), height as i32)
+pub fn layout_toggle_group(pass: &mut LayoutEvent) {
+    if let Some(view) = pass.scene.get_view_mut(&pass.target) {
+        let char_size = pass.theme.font.character_size;
+        let mut height = char_size.height + (char_size.height / 2) * 2; // padding
+        if view.h_flex == Resize {
+            view.bounds.size.w = pass.space.w;
+        }
+        if view.h_flex == Intrinsic {
+            view.bounds.size.w = 50;
+        }
+        if view.v_flex == Resize {
+            view.bounds.size.h = pass.space.h;
+        }
+        if view.v_flex == Intrinsic {
+            view.bounds.size.h = height as i32;
         }
     }
+    pass.layout_all_children(&pass.target.clone(),pass.space);
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
+    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
     use alloc::vec;
     use crate::view::ViewId;
 
@@ -159,3 +168,4 @@ mod tests {
         assert_eq!(scene.dirty, false);
     }
 }
+

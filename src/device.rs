@@ -1,5 +1,5 @@
 use crate::geom::{Bounds, Point as GPoint};
-use crate::gfx::{DrawingContext, HAlign, TextStyle};
+use crate::gfx::{DrawingContext, TextStyle};
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::convert::Infallible;
@@ -13,6 +13,7 @@ use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::DrawTarget;
 use embedded_graphics::primitives::{Line, Primitive, PrimitiveStyle, Rectangle};
 use embedded_graphics::text::{Alignment, Baseline, Text, TextStyleBuilder};
+use crate::view::Align;
 
 pub struct EmbeddedDrawingContext<'a, T>
 where
@@ -86,13 +87,13 @@ where
         let w = (FONT_6X10.character_size.width as i32) * (text.len() as i32);
 
         match text_style.halign {
-            HAlign::Left => {
+            Align::Start => {
                 pt.x += 5;
             }
-            HAlign::Center => {
+            Align::Center => {
                 pt.x += (bounds.size.w - w) / 2;
             }
-            HAlign::Right => {}
+            Align::End => {}
         }
 
         Text::new(text, pt, style).draw(&mut display);

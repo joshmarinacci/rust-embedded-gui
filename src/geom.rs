@@ -248,10 +248,8 @@ impl Display for Bounds {
         )
     }
 }
-
-
 impl Bounds {
-        pub fn union(&self, b: Bounds) -> Bounds {
+    pub fn union(&self, b: Bounds) -> Bounds {
             if self.is_empty() {
                 return b;
             }
@@ -265,41 +263,15 @@ impl Bounds {
                 self.y2().max(b.y2()),
             )
         }
-
-}
-// #[derive(Debug, PartialEq, Copy, Clone)]
-// pub struct Bounds {
-//     pub x: i32,
-//     pub y: i32,
-//     pub w: i32,
-//     pub h: i32,
-// }
-//
-impl Bounds {
     pub(crate) fn center(&self) -> Point {
         Point::new(self.position.x + self.size.w / 2, self.position.y + self.size.h / 2)
     }
-}
-//
-// impl Bounds {
-//     pub(crate) fn position(&self) -> Point {
-//         Point {
-//             x: self.x,
-//             y: self.y,
-//         }
-//     }
-// }
-//
-impl Bounds {
     fn from_xyxy2(x: i32, y: i32, x2: i32, y2: i32) -> Bounds {
         Bounds {
             position:Point::new(x,y),
             size: Size::new(x2-x,y2-y),
         }
     }
-}
-
-impl Bounds {
     pub fn x2(&self) -> i32 {
         self.position.x + self.size.w
     }
@@ -330,45 +302,6 @@ impl Bounds {
     pub fn is_empty(&self) -> bool {
         self.size.w < 1 || self.size.h < 1
     }
-  }
-//
-// impl Bounds {
-//     pub fn new(x: i32, y: i32, w: i32, h: i32) -> Bounds {
-//         Bounds { x, y, w, h }
-//     }
-// }
-//
-// #[derive(Debug, PartialEq, Copy, Clone)]
-// pub struct Point {
-//     pub x: i32,
-//     pub y: i32,
-// }
-//
-// impl Point {
-//     pub fn new(x: i32, y: i32) -> Point {
-//         Point { x, y }
-//     }
-//     pub fn add(&self, pt: &Point) -> Point {
-//         Point {
-//             x: self.x + pt.x,
-//             y: self.y + pt.y,
-//         }
-//     }
-//     pub fn subtract(&self, pt: &Point) -> Point {
-//         Point {
-//             x: self.x - pt.x,
-//             y: self.y - pt.y,
-//         }
-//     }
-//     pub fn negate(&self) -> Point {
-//         Point {
-//             x: -self.x,
-//             y: -self.y,
-//         }
-//     }
-// }
-//
-impl Bounds {
     pub fn contains(&self, pt: &Point) -> bool {
         if self.position.x <= pt.x && self.position.y <= pt.y {
             if self.position.x + self.size.w > pt.x && self.position.y + self.size.h > pt.y {

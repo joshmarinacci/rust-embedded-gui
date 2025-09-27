@@ -1,5 +1,5 @@
 use crate::geom::{Bounds, Point};
-use crate::gfx::{DrawingContext, HAlign, TextStyle, draw_centered_text};
+use crate::gfx::{DrawingContext, TextStyle, draw_centered_text};
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction, LayoutEvent};
 use alloc::boxed::Box;

@@ -182,31 +182,14 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
         }
     }
 }
-pub fn layout_tabbed_panel_tabs(pass: &mut LayoutEvent) {
-    if let Some(view) = pass.scene.get_view_mut(&pass.target) {
-        let cs = pass.theme.font.character_size;
-        if view.h_flex == Resize {
-            view.bounds.size.w = pass.space.w;
-        }
-        if view.h_flex == Intrinsic {
-            view.bounds.size.w = 50;
-        }
-        if view.v_flex == Resize {
-            view.bounds.size.h = pass.space.h;
-        }
-        if view.v_flex == Intrinsic {
-            view.bounds.size.h = cs.height as i32;
-        }
-    }
-    pass.layout_all_children(&pass.target.clone(),pass.space);
-}
 
 #[cfg(test)]
 mod tests {
     use crate::geom::{Bounds, Insets, Point, Size};
-    use crate::layouts::{layout_button, layout_hbox_2, layout_std_panel, layout_tabbed_panel, layout_tabbed_panel_tabs, layout_vbox};
+    use crate::layouts::{layout_button, layout_hbox_2, layout_std_panel, layout_tabbed_panel, layout_vbox};
     use crate::scene::{layout_scene, Scene};
     use crate::test::MockDrawingContext;
+    use crate::toggle_group::layout_toggle_group;
     use crate::view::{Align, Flex, View, ViewId};
     use crate::view::Align::{Center, End, Start};
 
@@ -355,7 +338,7 @@ mod tests {
             };
             tabbed_panel_tabs.h_flex = Flex::Resize;
             tabbed_panel_tabs.v_flex = Flex::Intrinsic;
-            tabbed_panel_tabs.layout = Some(layout_tabbed_panel_tabs);
+            tabbed_panel_tabs.layout = Some(layout_toggle_group);
             scene.add_view_to_parent(tabbed_panel_tabs, &tabbed_panel);
         }
 
