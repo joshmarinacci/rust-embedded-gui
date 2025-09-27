@@ -1,6 +1,6 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::{HAlign, VAlign};
-use crate::view::View;
+use crate::view::{View};
 use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -130,7 +130,7 @@ fn draw_grid(evt: &mut DrawEvent) {
 fn layout_grid(evt: &mut LayoutEvent) {
     if let Some(view) = evt.scene.get_view(evt.target) {
         let parent_bounds = view.bounds;
-        let kids = evt.scene.get_children(evt.target);
+        let kids = evt.scene.get_children_ids(evt.target);
         for kid in kids {
             if let Some(state) = evt.scene.get_view_state::<GridLayoutState>(evt.target) {
                 let padding = state.padding;
@@ -194,15 +194,15 @@ mod tests {
         layout_scene(&mut scene, &theme);
 
         {
-            let label1 = scene.get_view("label1").unwrap();
+            let label1 = scene.get_view(&"label1".into()).unwrap();
             assert_eq!(label1.name, "label1");
             assert_eq!(label1.bounds, Bounds::new(0, 0, 63, 25));
 
-            let label2 = scene.get_view("label2").unwrap();
+            let label2 = scene.get_view(&"label2".into()).unwrap();
             assert_eq!(label2.name, "label2");
             assert_eq!(label2.bounds, Bounds::new(100, 0, 63, 25));
 
-            let label3 = scene.get_view("label3").unwrap();
+            let label3 = scene.get_view(&"label3".into()).unwrap();
             assert_eq!(label3.name, "label3");
             assert_eq!(label3.bounds, Bounds::new(0, 70, 63, 25));
         }
@@ -242,7 +242,7 @@ mod tests {
         scene.add_view_to_root(grid);
         layout_scene(&mut scene, &theme);
 
-        if let Some(view) = scene.get_view("b1") {
+        if let Some(view) = scene.get_view(&"b1".into()) {
             assert_eq!(view.bounds, Bounds::new(0, 0, 200, 30));
         }
     }

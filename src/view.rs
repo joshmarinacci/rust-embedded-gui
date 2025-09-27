@@ -1,5 +1,5 @@
-use crate::geom::{Bounds, Insets};
-use crate::{DrawFn, InputFn, LayoutFn};
+use crate::geom::{Bounds, Insets, Size};
+use crate::{DrawFn, InputFn, LayoutFn, Theme};
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::any::Any;
@@ -81,3 +81,4 @@ impl Default for View {
         }
     }
 }
+

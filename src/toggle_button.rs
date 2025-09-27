@@ -1,7 +1,7 @@
 use crate::geom::Bounds;
 use crate::gfx::{DrawingContext, draw_centered_text};
-use crate::view::View;
-use crate::{Action, DrawEvent, GuiEvent, LayoutEvent, util};
+use crate::view::{View};
+use crate::{Action, DrawEvent, GuiEvent, util, LayoutEvent};
 use alloc::boxed::Box;
 use core::option::Option::*;
 
@@ -85,7 +85,7 @@ mod tests {
         layout_scene(&mut scene, &theme);
 
         {
-            let mut button = scene.get_view_mut("toggle").unwrap();
+            let mut button = scene.get_view_mut(&"toggle".into()).unwrap();
             assert_eq!(button.name, "toggle");
             let ch_size = &theme.font.character_size;
             assert_eq!(
@@ -104,7 +104,7 @@ mod tests {
         click_at(&mut scene, &vec![], Point::new(10, 10));
 
         {
-            let state = scene.get_view_state::<SelectedState>("toggle").unwrap();
+            let state = scene.get_view_state::<SelectedState>(&"toggle".into()).unwrap();
             assert_eq!(state.selected, true);
         }
 

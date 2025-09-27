@@ -1,6 +1,6 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::{DrawingContext, HAlign, TextStyle, draw_centered_text};
-use crate::view::View;
+use crate::view::{View};
 use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -163,7 +163,7 @@ mod tests {
         layout_scene(&mut scene, &theme);
 
         {
-            let mut group = scene.get_view_mut("listview").unwrap();
+            let mut group = scene.get_view_mut(&"listview".into()).unwrap();
             let state = &mut group.get_state::<SelectOneOfState>().unwrap();
             assert_eq!(state.selected, 0);
         }
@@ -172,7 +172,7 @@ mod tests {
 
         {
             let state = &mut scene
-                .get_view_state::<SelectOneOfState>("listview")
+                .get_view_state::<SelectOneOfState>(&"listview".into())
                 .unwrap();
             assert_eq!(state.selected, 1);
         }

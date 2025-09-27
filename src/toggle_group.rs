@@ -1,6 +1,6 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::{DrawingContext, HAlign, TextStyle, draw_centered_text};
-use crate::view::View;
+use crate::view::{View};
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -133,7 +133,7 @@ mod tests {
         layout_scene(&mut scene, &theme);
 
         {
-            let mut group = scene.get_view_mut("group").unwrap();
+            let mut group = scene.get_view_mut(&"group".into()).unwrap();
             assert_eq!(group.name, "group");
             assert_eq!(group.bounds, Bounds::new(0, 0, 180, 13 + 7));
             let state = &mut group.get_state::<SelectOneOfState>().unwrap();
@@ -144,7 +144,7 @@ mod tests {
         click_at(&mut scene, &vec![], Point::new(100, 10));
 
         {
-            let state = &mut scene.get_view_state::<SelectOneOfState>("group").unwrap();
+            let state = &mut scene.get_view_state::<SelectOneOfState>(&"group".into()).unwrap();
             assert_eq!(state.items, vec!["A", "BB", "CCC"]);
             assert_eq!(state.selected, 1);
         }

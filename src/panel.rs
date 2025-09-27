@@ -1,10 +1,10 @@
-use crate::LayoutEvent;
 use crate::geom::Bounds;
 use crate::gfx::{DrawingContext, HAlign, VAlign};
-use crate::view::View;
+use crate::view::{View};
 use alloc::boxed::Box;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use log::info;
+use crate::LayoutEvent;
 
 pub struct PanelState {
     pub padding: i32,
@@ -59,7 +59,7 @@ pub fn layout_vbox(evt: &mut LayoutEvent) {
             let gap = state.gap;
             let mut y = padding + 0;
             let halign = state.halign;
-            for kid in evt.scene.get_children(evt.target) {
+            for kid in evt.scene.get_children_ids(evt.target) {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
                     match halign {
                         HAlign::Left => ch.bounds.position.x = padding,
@@ -84,7 +84,7 @@ pub fn layout_hbox(evt: &mut LayoutEvent) {
             let gap = state.gap;
             let mut x = padding;
             let valign = state.valign;
-            for kid in evt.scene.get_children(evt.target) {
+            for kid in evt.scene.get_children_ids(evt.target) {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
                     match valign {
                         VAlign::Top => ch.bounds.position.y= padding,

@@ -1,3 +1,4 @@
+use std::convert::Into;
 use embedded_graphics::Drawable;
 use embedded_graphics::geometry::{Point as EPoint, Size};
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
@@ -39,7 +40,7 @@ use rust_embedded_gui::label::make_label;
 use rust_embedded_gui::list_view::make_list_view;
 use rust_embedded_gui::panel::{PanelState, layout_hbox, layout_vbox, make_panel};
 use rust_embedded_gui::text_input::make_text_input;
-use rust_embedded_gui::view::View;
+use rust_embedded_gui::view::{View, ViewId};
 
 const SMALL_FONT_BUTTON: &str = "small_font";
 const MEDIUM_FONT_BUTTON: &str = "medium_font";
@@ -255,7 +256,7 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
                 if let Some(parent) = e.scene.get_view_mut(e.target) {
                     let bounds = parent.bounds;
                     let mut tabs_height = 50;
-                    for (i, kid) in e.scene.get_children(e.target).iter().enumerate() {
+                    for (i, kid) in e.scene.get_children_ids(e.target).iter().enumerate() {
                         if let Some(ch) = e.scene.get_view_mut(&kid) {
                             if kid == "tabs" {
                                 ch.bounds = Bounds::new(0, 0, bounds.w(), ch.bounds.h());
@@ -443,7 +444,7 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
     if name == "tabs" {
         match action {
             Action::Command(cmd) => {
-                for kid in scene.get_children(TABBED_PANEL) {
+                for kid in scene.get_children_ids(TABBED_PANEL) {
                     if kid != "tabs" {
                         scene.hide_view(&kid);
                     }
