@@ -1,5 +1,6 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::{draw_centered_text, DrawingContext};
+use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
@@ -8,7 +9,6 @@ use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
 use hashbrown::Equivalent;
-use crate::view::Flex::{Intrinsic, Resize};
 
 pub fn make_toggle_group(name: &ViewId, data: Vec<&str>, selected: usize) -> View {
     View {
@@ -132,13 +132,13 @@ mod tests {
     use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::toggle_group::{make_toggle_group, SelectOneOfState};
-    use alloc::vec;
     use crate::view::ViewId;
+    use alloc::vec;
 
     #[test]
     fn test_toggle_group() {
         let theme = MockDrawingContext::make_mock_theme();
-        let mut scene: Scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
+        let mut scene: Scene = Scene::new_with_bounds(Bounds::new(0, 0, 100, 240));
         {
             let group = make_toggle_group(&ViewId::new("group"), vec!["A", "BB", "CCC"], 0);
             scene.add_view_to_root(group);
@@ -148,13 +148,13 @@ mod tests {
         {
             let mut group = scene.get_view_mut(&ViewId::new("group")).unwrap();
             assert_eq!(group.name.as_str(), "group");
-            assert_eq!(group.bounds, Bounds::new(0, 0, 180, 13 + 7));
+            assert_eq!(group.bounds, Bounds::new(0, 0, 100, 13 + 7));
             let state = &mut group.get_state::<SelectOneOfState>().unwrap();
             assert_eq!(state.items, vec!["A", "BB", "CCC"]);
             assert_eq!(state.selected, 0);
         }
 
-        click_at(&mut scene, &vec![], Point::new(100, 10));
+        click_at(&mut scene, &vec![], Point::new(50, 10));
 
         {
             let state = &mut scene.get_view_state::<SelectOneOfState>(&ViewId::new("group")).unwrap();
