@@ -67,7 +67,7 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     }
 }
 
-pub fn layout_hbox_2(pass: &mut LayoutEvent) {
+pub fn layout_hbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
         return;
     };
@@ -136,11 +136,6 @@ pub fn layout_hbox_2(pass: &mut LayoutEvent) {
 
 }
 
-fn layout_button(layout: &mut LayoutEvent) {
-    if let Some(view) = layout.scene.get_view_mut(&layout.target) {
-        view.bounds.size = Size::new((view.title.len() * 10) as i32, 10) + view.padding;
-    }
-}
 pub fn layout_std_panel(pass: &mut LayoutEvent) {
     if let Some(view) = pass.scene.get_view_mut(&pass.target) {
         if view.v_flex == Resize {
@@ -188,13 +183,18 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 #[cfg(test)]
 mod tests {
     use crate::geom::{Bounds, Insets, Point, Size};
-    use crate::layouts::{layout_button, layout_hbox_2, layout_std_panel, layout_tabbed_panel, layout_vbox};
+    use crate::LayoutEvent;
+    use crate::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
     use crate::scene::{layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::toggle_group::layout_toggle_group;
     use crate::view::{Align, Flex, View, ViewId};
     use crate::view::Align::{Center, End, Start};
-
+    fn layout_button(layout: &mut LayoutEvent) {
+        if let Some(view) = layout.scene.get_view_mut(&layout.target) {
+            view.bounds.size = Size::new((view.title.len() * 10) as i32, 10) + view.padding;
+        }
+    }
     #[test]
     fn test_button() {
         let button = View {
@@ -352,7 +352,7 @@ mod tests {
             let mut view = make_standard_view(&tab1);
             view.h_flex = Flex::Resize;
             view.v_flex = Flex::Resize;
-            view.layout = Some(layout_hbox_2);
+            view.layout = Some(layout_hbox);
             scene.add_view_to_parent(view, &tabbed_panel);
 
             let b1: ViewId = "tab1_button1".into();

@@ -1,4 +1,4 @@
-use crate::gfx::{draw_centered_text};
+use crate::gfx::draw_centered_text;
 use crate::view::Flex::Intrinsic;
 use crate::view::{View, ViewId};
 use crate::{util, Action, DrawEvent, EventType};
