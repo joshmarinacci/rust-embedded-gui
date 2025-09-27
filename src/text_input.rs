@@ -1,6 +1,6 @@
 use crate::geom::Bounds;
 use crate::gfx::{DrawingContext, HAlign, TextStyle};
-use crate::view::View;
+use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent};
 use log::info;
 
@@ -55,9 +55,9 @@ fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
     None
 }
 
-pub fn make_text_input(name: &str, title: &str) -> View {
+pub fn make_text_input(name: &'static str, title: &str) -> View {
     View {
-        name: name.into(),
+        name: ViewId::new(name),
         title: title.into(),
         bounds: Bounds::new(0,0,100,30),
         visible: true,

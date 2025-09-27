@@ -1,13 +1,13 @@
 use crate::geom::Bounds;
 use crate::gfx::{DrawingContext, draw_centered_text};
-use crate::view::{View};
+use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, GuiEvent, util, LayoutEvent};
 use alloc::boxed::Box;
 use core::option::Option::*;
 
-pub fn make_toggle_button(name: &str, title: &str) -> View {
+pub fn make_toggle_button(name: &'static str, title: &str) -> View {
     View {
-        name: name.into(),
+        name: ViewId::new(name),
         title: title.into(),
         bounds: Bounds::new(0, 0, 80, 30),
         visible: true,
@@ -73,6 +73,7 @@ mod tests {
     use crate::test::MockDrawingContext;
     use crate::toggle_button::{SelectedState, make_toggle_button};
     use alloc::vec;
+    use crate::view::{View, ViewId};
 
     #[test]
     fn test_toggle_button() {
@@ -85,8 +86,8 @@ mod tests {
         layout_scene(&mut scene, &theme);
 
         {
-            let mut button = scene.get_view_mut(&"toggle".into()).unwrap();
-            assert_eq!(button.name, "toggle");
+            let mut button = scene.get_view_mut(&ViewId::new("toggle")).unwrap();
+            assert_eq!(button.name, ViewId::new("toggle"));
             let ch_size = &theme.font.character_size;
             assert_eq!(
                 button.bounds,
@@ -104,7 +105,7 @@ mod tests {
         click_at(&mut scene, &vec![], Point::new(10, 10));
 
         {
-            let state = scene.get_view_state::<SelectedState>(&"toggle".into()).unwrap();
+            let state = scene.get_view_state::<SelectedState>(&ViewId::new("toggle")).unwrap();
             assert_eq!(state.selected, true);
         }
 

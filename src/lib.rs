@@ -44,7 +44,7 @@ pub mod layouts;
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
     pub theme: &'a Theme,
-    pub focused: &'a Option<String>,
+    pub focused: &'a Option<ViewId>,
     pub view: &'a mut View,
     pub bounds: &'a Bounds,
 }
@@ -157,7 +157,7 @@ mod tests {
     }
     fn make_simple_view(name: &ViewId) -> View {
         View {
-            name: name.to_string(),
+            name: name.clone(),
             title: name.to_string(),
             bounds: Bounds::new(0,0,10,10),
             visible: true,
@@ -185,7 +185,7 @@ mod tests {
     }
     fn make_vbox(name: &ViewId, bounds: Bounds) -> View {
         View {
-            name: name.to_string(),
+            name: name.clone(),
             title: name.to_string(),
             bounds,
             visible: true,
@@ -202,9 +202,9 @@ mod tests {
         drawn: bool,
         got_input: bool,
     }
-    fn make_test_button(name: &str) -> View {
+    fn make_test_button(name: &ViewId) -> View {
         View {
-            name: name.to_string(),
+            name: name.clone(),
             title: name.to_string(),
             bounds: Bounds::new(0,0,20,20),
             visible: true,
@@ -233,9 +233,9 @@ mod tests {
             .. Default::default()
         }
     }
-    fn make_text_box(name: &str, title: &str) -> View {
+    fn make_text_box(name: &ViewId, title: &str) -> View {
         View {
-            name: name.into(),
+            name: name.clone(),
             title: title.into(),
             bounds: Bounds::new(0, 0, 100, 30),
             visible: true,
@@ -264,9 +264,9 @@ mod tests {
             &TextStyle::new(&e.theme.font, &e.theme.fg),
         );
     }
-    fn make_label(name: &str) -> View {
+    fn make_label(name: &ViewId) -> View {
         View {
-            name: name.to_string(),
+            name: name.clone(),
             title: name.to_string(),
             bounds: Bounds::new(0,0,30,20),
             visible: true,
@@ -277,7 +277,7 @@ mod tests {
             .. Default::default()
         }
     }
-    fn get_bounds(scene: &Scene, name: &str) -> Option<Bounds> {
+    fn get_bounds(scene: &Scene, name: &ViewId) -> Option<Bounds> {
         if let Some(view) = scene.keys.get(name) {
             Some(view.bounds)
         } else {
@@ -377,7 +377,7 @@ mod tests {
             Bounds::new(10,10,100,100),
         );
 
-        let mut button = make_test_button("child");
+        let mut button = make_test_button(&ViewId::new("child"));
         button.bounds = Bounds::new(10,10,10,10);
 
         scene.add_child(&scene.root_id.clone(), &vbox.name);
@@ -399,9 +399,9 @@ mod tests {
             Bounds::new(10,10,100,100),
         ));
         // add button 1
-        scene.add_view_to_parent(make_test_button("button1"), &parent);
+        scene.add_view_to_parent(make_test_button(&ViewId::new("button1")), &parent);
         // add button 2
-        scene.add_view_to_parent(make_label("button2"), &parent);
+        scene.add_view_to_parent(make_label(&"button2".into()), &parent);
         // layout
         let space = scene.bounds.size.clone();
         layout_vbox(&mut LayoutEvent {
@@ -411,15 +411,15 @@ mod tests {
             space: space,
         });
         assert_eq!(
-            get_bounds(&scene, "parent"),
+            get_bounds(&scene, &"parent".into()),
             Some(Bounds::new(10,10,100,100))
         );
         assert_eq!(
-            get_bounds(&scene, "button1"),
+            get_bounds(&scene, &"button1".into()),
             Some(Bounds::new(0,0,100,20)),
         );
         assert_eq!(
-            get_bounds(&scene, "button2"),
+            get_bounds(&scene, &"button2".into()),
             Some(Bounds::new(0,20,100,20))
         );
     }
@@ -432,9 +432,9 @@ mod tests {
             Bounds::new(10,10,100,100),
         ));
         // add button 1
-        scene.add_view(make_test_button("button1"));
+        scene.add_view(make_test_button(&ViewId::new("button1")));
         // add button 2
-        scene.add_view(make_test_button("button2"));
+        scene.add_view(make_test_button(&ViewId::new("button2")));
 
         assert_eq!(scene.dirty, true);
         repaint(&mut scene);
@@ -476,7 +476,7 @@ mod tests {
         let mut scene = Scene::new();
         // add toggle button
         let button = View {
-            name: String::from("toggle"),
+            name: ViewId::new("toggle"),
             title: String::from("Off"),
             visible: true,
             bounds: Bounds::new(10,10,20,20),
@@ -544,12 +544,12 @@ mod tests {
         let mut scene = Scene::new();
 
         // create button 1
-        let mut button1 = make_test_button("button1");
+        let mut button1 = make_test_button(&ViewId::new("button1"));
         button1.visible = true;
         scene.add_view_to_root(button1);
 
         // create button 2
-        let mut button2 = make_test_button("button2");
+        let mut button2 = make_test_button(&ViewId::new("button2"));
         button2.bounds.position.x= 100;
         // make button 2 invisible
         button2.visible = false;
@@ -594,17 +594,17 @@ mod tests {
         let mut scene: Scene = Scene::new();
 
         // make text box
-        let text_box = make_text_box("textbox1", "foo");
+        let text_box = make_text_box(&ViewId::new("textbox1"), "foo");
         scene.add_view_to_root(text_box);
         // confirm text is correct
-        assert_eq!(get_view_title(&scene, &"textbox1".into()), "foo");
+        assert_eq!(get_view_title(&scene, ViewId::new("textbox1")), "foo");
         // set text box as focused
         scene.focused = Some("textbox1".into());
 
         // send keyboard event
         event_at_focused(&mut scene, &EventType::Keyboard(b'X'));
         // confirm text is updated
-        assert_eq!(get_view_title(&scene, &"textbox1".into()), "fooX");
+        assert_eq!(get_view_title(&scene, ViewId::new("textbox1")), "fooX");
     }
 
     #[test]
@@ -662,7 +662,7 @@ mod tests {
         // check that button was redrawn
     }
 
-    fn get_view_title(scene: &Scene, name: &ViewId) -> String {
-        scene.get_view(name).unwrap().title.clone()
+    fn get_view_title(scene: &Scene, name: ViewId) -> String {
+        scene.get_view(&name).unwrap().title.clone()
     }
 }

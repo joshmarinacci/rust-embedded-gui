@@ -26,7 +26,7 @@ impl Scene {
             let fo = self.focused.as_ref().unwrap().clone();
             self.mark_dirty_view(&fo);
         }
-        self.focused = Some(name.into());
+        self.focused = Some(name.clone());
         self.mark_dirty_view(name);
     }
     pub fn get_focused(&self) -> Option<ViewId> {
@@ -80,13 +80,13 @@ impl Scene {
     }
     pub fn add_child(&mut self, parent: &ViewId, child: &ViewId) {
         if !self.children.contains_key(parent) {
-            self.children.insert(parent.to_string(), vec![]);
+            self.children.insert(parent.clone(), vec![]);
         }
         if let Some(children) = self.children.get_mut(parent) {
-            children.push(child.to_string());
+            children.push(child.clone());
         }
     }
-    pub fn get_children_ids(&self, name: &ViewId) -> Vec<String> {
+    pub fn get_children_ids(&self, name: &ViewId) -> Vec<ViewId> {
         if let Some(children) = self.children.get(name) {
             children.clone()
         } else {
@@ -128,9 +128,10 @@ impl Scene {
         self.keys.remove(name)
     }
     pub fn new_with_bounds(bounds: Bounds) -> Scene {
+        let rootid = ViewId::new("root");
         let root = View {
-            name: "root".to_string(),
-            title: "root".to_string(),
+            name: rootid.clone(),
+            title:rootid.as_str().into(),
             bounds,
             visible: true,
             input: None,
@@ -139,8 +140,8 @@ impl Scene {
             draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
             .. Default::default()
         };
-        let root_id = String::from("root");
-        let mut keys: HashMap<String, View> = HashMap::new();
+        let root_id = ViewId::new("root");
+        let mut keys: HashMap<ViewId, View> = HashMap::new();
         keys.insert(root_id.clone(), root);
         Scene {
             bounds,
@@ -170,10 +171,10 @@ impl Scene {
     }
     pub fn add_view_to_parent(&mut self, view: View, parent: &ViewId) {
         if !self.children.contains_key(parent) {
-            self.children.insert(parent.to_string(), vec![]);
+            self.children.insert(parent.clone(), vec![]);
         }
         if let Some(children) = self.children.get_mut(parent) {
-            children.push(view.name.to_string());
+            children.push(view.name.clone());
         }
         self.add_view(view);
     }
@@ -187,7 +188,7 @@ impl Scene {
     }
 }
 
-pub type EventResult = (String, Action);
+pub type EventResult = (ViewId, Action);
 
 pub fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) -> Option<EventResult> {
     let targets = pick_at(scene, &pt);
@@ -207,7 +208,7 @@ pub fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) -> Optio
             cb(&mut event);
         }
         if let Some(action) = event.action {
-            return Some((target.into(), action));
+            return Some((target.clone(), action));
         }
     }
     None
@@ -234,13 +235,13 @@ pub fn event_at_focused(scene: &mut Scene, event_type: &EventType) -> Option<Eve
     None
 }
 
-type Pick = (String, Point);
+type Pick = (ViewId, Point);
 
 pub fn pick_at(scene: &mut Scene, pt: &Point) -> Vec<Pick> {
     pick_at_view(scene, pt, &scene.root_id)
 }
 
-fn pick_at_view(scene: &Scene, pt: &Point, name: &str) -> Vec<Pick> {
+fn pick_at_view(scene: &Scene, pt: &Point, name: &ViewId) -> Vec<Pick> {
     let mut coll: Vec<Pick> = vec![];
     if let Some(view) = scene.keys.get(name) {
         if view.bounds.contains(pt) && view.visible {

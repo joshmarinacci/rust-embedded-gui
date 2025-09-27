@@ -1,6 +1,6 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::{HAlign, VAlign};
-use crate::view::{View};
+use crate::view::{View, ViewId};
 use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -8,7 +8,7 @@ use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use hashbrown::HashMap;
 
 pub struct GridLayoutState {
-    pub constraints: HashMap<String, LayoutConstraint>,
+    pub constraints: HashMap<ViewId, LayoutConstraint>,
     row_count: usize,
     col_count: usize,
     col_width: usize,
@@ -43,12 +43,12 @@ impl GridLayoutState {
 impl GridLayoutState {
     pub fn place_at_row_column(
         &mut self,
-        name: &str,
+        name: &ViewId,
         row: usize,
         col: usize,
     ) -> Option<LayoutConstraint> {
         self.constraints
-            .insert(name.into(), LayoutConstraint::at_row_column(row, col))
+            .insert(name.clone(), LayoutConstraint::at_row_column(row, col))
     }
 }
 
@@ -74,10 +74,10 @@ impl LayoutConstraint {
     }
 }
 
-pub fn make_grid_panel(name: &str) -> View {
+pub fn make_grid_panel(name: &ViewId) -> View {
     View {
-        name: name.into(),
-        title: name.into(),
+        name: name.clone(),
+        title: name.as_str().into(),
         bounds: Bounds::new(0, 0, 100, 100),
         input: None,
         state: Some(Box::new(GridLayoutState {
@@ -165,12 +165,13 @@ mod tests {
     use crate::scene::{Scene, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
     use alloc::boxed::Box;
+    use crate::view::ViewId;
 
     #[test]
     fn test_grid_layout() {
         let theme = MockDrawingContext::make_mock_theme();
 
-        let mut grid = make_grid_panel("grid");
+        let mut grid = make_grid_panel(&ViewId::new("grid"));
         grid.bounds = Bounds::new(40,40,200,200);
         let mut grid_layout = GridLayoutState::new_row_column(2, 30, 2, 100);
 
@@ -194,16 +195,16 @@ mod tests {
         layout_scene(&mut scene, &theme);
 
         {
-            let label1 = scene.get_view(&"label1".into()).unwrap();
-            assert_eq!(label1.name, "label1");
+            let label1 = scene.get_view(&ViewId::new("label1")).unwrap();
+            assert_eq!(label1.name, ViewId::new("label1"));
             assert_eq!(label1.bounds, Bounds::new(0, 0, 63, 25));
 
-            let label2 = scene.get_view(&"label2".into()).unwrap();
-            assert_eq!(label2.name, "label2");
+            let label2 = scene.get_view(&ViewId::new("label2")).unwrap();
+            assert_eq!(label2.name, ViewId::new("label2"));
             assert_eq!(label2.bounds, Bounds::new(100, 0, 63, 25));
 
-            let label3 = scene.get_view(&"label3".into()).unwrap();
-            assert_eq!(label3.name, "label3");
+            let label3 = scene.get_view(&ViewId::new("label3")).unwrap();
+            assert_eq!(label3.name, ViewId::new("label3"));
             assert_eq!(label3.bounds, Bounds::new(0, 70, 63, 25));
         }
 
@@ -217,7 +218,7 @@ mod tests {
     #[test]
     fn col_span() {
         let theme = MockDrawingContext::make_mock_theme();
-        let mut grid = make_grid_panel("grid")
+        let mut grid = make_grid_panel(&ViewId::new("grid"))
             .position_at(0, 0)
             .with_size(200, 200);
         let mut layout = GridLayoutState::new_row_column(2, 30, 2, 100);
@@ -226,7 +227,7 @@ mod tests {
 
         let button = make_button("b1", "b1");
         layout.constraints.insert(
-            (&button.name).into(),
+            button.name.clone(),
             LayoutConstraint {
                 col: 0,
                 row: 0,
@@ -242,7 +243,7 @@ mod tests {
         scene.add_view_to_root(grid);
         layout_scene(&mut scene, &theme);
 
-        if let Some(view) = scene.get_view(&"b1".into()) {
+        if let Some(view) = scene.get_view(&ViewId::new("b1")) {
             assert_eq!(view.bounds, Bounds::new(0, 0, 200, 30));
         }
     }

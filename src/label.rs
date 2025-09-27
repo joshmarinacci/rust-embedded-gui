@@ -1,11 +1,11 @@
 use crate::geom::Bounds;
 use crate::gfx::{DrawingContext, TextStyle};
 use crate::util;
-use crate::view::View;
+use crate::view::{View, ViewId};
 
-pub fn make_label(name: &str, title: &str) -> View {
+pub fn make_label(name: &'static str, title: &str) -> View {
     View {
-        name: name.into(),
+        name: ViewId::new(name),
         title: title.into(),
         bounds: Bounds::new(0,0,100,30),
         visible: true,

@@ -42,24 +42,24 @@ use rust_embedded_gui::panel::{PanelState, layout_hbox, layout_vbox, make_panel}
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::{View, ViewId};
 
-const SMALL_FONT_BUTTON: &str = "small_font";
+const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
 const MEDIUM_FONT_BUTTON: &str = "medium_font";
 const LARGE_FONT_BUTTON: &str = "large_font";
 
-const TABBED_PANEL: &str = "tabbed-panel";
-const BUTTONS_PANEL: &str = "buttons";
-const LAYOUT_PANEL: &str = "layout-panel";
-const LISTS_PANEL: &str = "lists-panel";
-const INPUTS_PANEL: &str = "input-panel";
-const THEMES_PANEL: &str = "themes-panel";
+const TABBED_PANEL: &'static ViewId = &ViewId::new("tabbed-panel");
+const BUTTONS_PANEL: &'static ViewId = &ViewId::new("buttons");
+const LAYOUT_PANEL: &'static ViewId = &ViewId::new("layout-panel");
+const LISTS_PANEL: &'static ViewId = &ViewId::new("lists-panel");
+const INPUTS_PANEL: &'static ViewId = &ViewId::new("input-panel");
+const THEMES_PANEL: &'static ViewId = &ViewId::new("themes-panel");
 
-const POPUP_BUTTON: &str = "list-button";
-const POPUP_MENU: &str = "popup-menu";
+const POPUP_BUTTON: &'static ViewId = &ViewId::new("list-button");
+const POPUP_MENU: &'static ViewId = &ViewId::new("popup-menu");
 fn make_scene() -> Scene {
     let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
     let mut tabbed_panel = make_tabs(
-        TABBED_PANEL,
+        TABBED_PANEL.as_str(),
         vec!["buttons", "layouts", "lists", "inputs", "themes"],
         Bounds::new(10,10,320-20,180),
     );
@@ -93,7 +93,7 @@ fn make_scene() -> Scene {
 
         let button3 = make_toggle_group("toggle2", vec!["Apple", "Ball", "Car"], 1);
         grid_layout.constraints.insert(
-            (&button3.name).into(),
+            (&button3.name).clone(),
             LayoutConstraint {
                 row: 2,
                 col: 0,
@@ -109,7 +109,7 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(grid, &tabbed_panel.name);
     }
     {
-        let mut wrapper = make_panel(LAYOUT_PANEL, Bounds::new(0, 50, 100, 100));
+        let mut wrapper = make_panel(LAYOUT_PANEL.as_str(), Bounds::new(0, 50, 100, 100));
         wrapper.state = Some(Box::new(PanelState {
             padding: 5,
             debug: false,
@@ -145,7 +145,7 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
-        let mut wrapper = make_panel(LISTS_PANEL, Bounds::new(0, 50, 100, 100));
+        let mut wrapper = make_panel(LISTS_PANEL.as_str(), Bounds::new(0, 50, 100, 100));
         wrapper.state = Some(Box::new(PanelState {
             padding: 5,
             debug: false,
@@ -158,7 +158,7 @@ fn make_scene() -> Scene {
         wrapper.layout = Some(layout_hbox);
         let col1 = make_column("lists-col1");
         scene.add_view_to_parent(make_label("lists-label", "Lists"), &col1.name);
-        let button = make_button(POPUP_BUTTON, "Open Popup");
+        let button = make_button(POPUP_BUTTON.as_str(), "Open Popup");
         scene.add_view_to_parent(button, &col1.name);
         scene.add_view_to_parent(col1, &wrapper.name);
 
@@ -171,7 +171,7 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
-        let mut panel = make_panel(INPUTS_PANEL, Bounds::new(0, 50, 100, 100));
+        let mut panel = make_panel(INPUTS_PANEL.as_str(), Bounds::new(0, 50, 100, 100));
         if let Some(state) = panel.get_state::<PanelState>() {
             state.border = false;
             state.gap = 5;
@@ -185,7 +185,7 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
-        let mut panel = make_panel(THEMES_PANEL, Bounds::new(0, 50, 100, 100));
+        let mut panel = make_panel(THEMES_PANEL.as_str(), Bounds::new(0, 50, 100, 100));
         panel.layout = Some(layout_vbox);
         panel.state = Some(Box::new(PanelState {
             padding: 10,
@@ -216,7 +216,7 @@ fn make_scene() -> Scene {
         state.gap = 5;
         state.bg = false;
     }
-    scene.add_view_to_parent(make_button(SMALL_FONT_BUTTON, "Small"), &font_buttons.name);
+    scene.add_view_to_parent(make_button(SMALL_FONT_BUTTON.as_str(), "Small"), &font_buttons.name);
     scene.add_view_to_parent(
         make_button(MEDIUM_FONT_BUTTON, "Medium"),
         &font_buttons.name,
@@ -231,7 +231,7 @@ fn make_scene() -> Scene {
     scene
 }
 
-fn make_column(name: &str) -> View {
+fn make_column(name: &'static str) -> View {
     let mut panel = make_panel(name, Bounds::new(0, 0, 100, 100));
     if let Some(state) = panel.get_state::<PanelState>() {
         state.border = false;
@@ -242,7 +242,7 @@ fn make_column(name: &str) -> View {
     panel
 }
 
-fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
+fn make_tabs(name: &'static str, tabs: Vec<&str>, bounds: Bounds) -> View {
     View {
         name: name.into(),
         title: name.into(),
@@ -258,7 +258,7 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
                     let mut tabs_height = 50;
                     for (i, kid) in e.scene.get_children_ids(e.target).iter().enumerate() {
                         if let Some(ch) = e.scene.get_view_mut(&kid) {
-                            if kid == "tabs" {
+                            if kid.as_str() == "tabs" {
                                 ch.bounds = Bounds::new(0, 0, bounds.w(), ch.bounds.h());
                                 tabs_height = ch.bounds.h();
                                 ch.visible = true;
@@ -392,22 +392,22 @@ fn keydown_to_char(keycode: Keycode, keymod: Mod) -> EventType {
 fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
     let (name, action) = result;
     println!("result of event {:?} from {name}", action);
-    if name == SMALL_FONT_BUTTON {
+    if name == *SMALL_FONT_BUTTON {
         theme.font = FONT_5X7;
         theme.bold_font = FONT_5X7;
         scene.mark_layout_dirty();
     }
-    if name == MEDIUM_FONT_BUTTON {
+    if name == MEDIUM_FONT_BUTTON.into() {
         theme.font = FONT_6X10;
         theme.bold_font = FONT_6X10;
         scene.mark_layout_dirty();
     }
-    if name == LARGE_FONT_BUTTON {
+    if name == LARGE_FONT_BUTTON.into() {
         theme.font = FONT_7X13;
         theme.bold_font = FONT_7X13_BOLD;
         scene.mark_layout_dirty();
     }
-    if name == "light-theme" {
+    if name.as_str() == "light-theme" {
         theme.bg = Rgb565::WHITE;
         theme.fg = Rgb565::BLACK;
         theme.panel_bg = Rgb565::CSS_LIGHT_GRAY;
@@ -415,7 +415,7 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.selected_fg = Rgb565::WHITE;
         scene.mark_dirty_all();
     }
-    if name == "dark-theme" {
+    if name.as_str() == "dark-theme" {
         theme.bg = Rgb565::from(Rgb888::new(50, 50, 50));
         theme.fg = Rgb565::WHITE;
         theme.panel_bg = Rgb565::BLACK;
@@ -423,7 +423,7 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.selected_fg = Rgb565::WHITE;
         scene.mark_dirty_all();
     }
-    if name == "colorful-theme" {
+    if name.as_str() == "colorful-theme" {
         theme.bg = Rgb565::CSS_MISTY_ROSE;
         theme.fg = Rgb565::CSS_DARK_BLUE;
         theme.panel_bg = Rgb565::CSS_ANTIQUE_WHITE;
@@ -431,21 +431,21 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.selected_fg = Rgb565::CSS_LIGHT_YELLOW;
         scene.mark_dirty_all();
     }
-    if name == POPUP_BUTTON {
+    if name == *POPUP_BUTTON {
         let menu =
-            make_list_view(POPUP_MENU, vec!["Item 1", "Item 2", "Item 3"], 0).position_at(50, 50);
-        scene.set_focused(&*menu.name);
+            make_list_view(POPUP_MENU.as_str(), vec!["Item 1", "Item 2", "Item 3"], 0).position_at(50, 50);
+        scene.set_focused(&menu.name);
         scene.add_view_to_root(menu);
     }
-    if name == POPUP_MENU {
+    if name == *POPUP_MENU {
         scene.remove_view(POPUP_MENU);
     }
 
-    if name == "tabs" {
+    if name.as_str() == "tabs" {
         match action {
             Action::Command(cmd) => {
                 for kid in scene.get_children_ids(TABBED_PANEL) {
-                    if kid != "tabs" {
+                    if kid.as_str() != "tabs" {
                         scene.hide_view(&kid);
                     }
                 }

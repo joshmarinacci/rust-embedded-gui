@@ -3,8 +3,29 @@ use crate::{DrawFn, InputFn, LayoutFn, Theme};
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::any::Any;
+use core::fmt::{Display, Formatter};
 
-pub type ViewId = String;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ViewId(&'static str);
+impl ViewId {
+    pub const fn new(id: &'static str) -> Self {
+        ViewId(id)
+    }
+    pub const fn as_str(&self) -> &'static str {
+        self.0
+    }
+}
+impl Into<ViewId> for &'static str {
+    fn into(self) -> ViewId {
+        ViewId::new(&self)
+    }
+}
+impl Display for ViewId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+
 #[derive(PartialEq, Debug)]
 pub enum Flex {
     Intrinsic,
@@ -61,10 +82,10 @@ impl View {
 
 impl Default for View {
     fn default() -> Self {
-        let id: ViewId = "noname".into();
+        let id: ViewId = ViewId::new("noname");
         View {
             name: id.clone(),
-            title: id.clone(),
+            title: id.as_str().into(),
             bounds: Default::default(),
             padding: Default::default(),
 

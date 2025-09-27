@@ -1,6 +1,6 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::{DrawingContext, HAlign, TextStyle, draw_centered_text};
-use crate::view::{View};
+use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -10,9 +10,9 @@ use core::option::Option::Some;
 use hashbrown::Equivalent;
 use log::info;
 
-pub fn make_list_view(name: &str, data: Vec<&str>, selected: usize) -> View {
+pub fn make_list_view(name: &'static str, data: Vec<&str>, selected: usize) -> View {
     View {
-        name: name.into(),
+        name: ViewId::new(name),
         title: name.into(),
         bounds: Bounds::new(0, 0, 100, (data.len() * 30) as i32),
         state: Some(SelectOneOf::new_with(data, selected)),
@@ -151,6 +151,7 @@ mod tests {
     use crate::test::MockDrawingContext;
     use crate::toggle_group::{SelectOneOfState, make_toggle_group};
     use alloc::vec;
+    use crate::view::ViewId;
 
     #[test]
     fn test_list_view() {
@@ -163,7 +164,7 @@ mod tests {
         layout_scene(&mut scene, &theme);
 
         {
-            let mut group = scene.get_view_mut(&"listview".into()).unwrap();
+            let mut group = scene.get_view_mut(&ViewId::new("listview")).unwrap();
             let state = &mut group.get_state::<SelectOneOfState>().unwrap();
             assert_eq!(state.selected, 0);
         }
@@ -172,7 +173,7 @@ mod tests {
 
         {
             let state = &mut scene
-                .get_view_state::<SelectOneOfState>(&"listview".into())
+                .get_view_state::<SelectOneOfState>(&ViewId::new("listview"))
                 .unwrap();
             assert_eq!(state.selected, 1);
         }

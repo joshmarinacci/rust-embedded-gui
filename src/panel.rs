@@ -1,6 +1,6 @@
 use crate::geom::Bounds;
 use crate::gfx::{DrawingContext, HAlign, VAlign};
-use crate::view::{View};
+use crate::view::{View, ViewId};
 use alloc::boxed::Box;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use log::info;
@@ -15,9 +15,9 @@ pub struct PanelState {
     pub halign: HAlign,
     pub valign: VAlign,
 }
-pub fn make_panel(name: &str, bounds: Bounds) -> View {
+pub fn make_panel(name: &'static str, bounds: Bounds) -> View {
     View {
-        name: name.into(),
+        name: ViewId::new(name),
         title: name.into(),
         bounds,
         visible: true,
