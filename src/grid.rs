@@ -94,6 +94,7 @@ pub fn make_grid_panel(name: &str) -> View {
         layout: Some(layout_grid),
         draw: Some(draw_grid),
         visible: true,
+        .. Default::default()
     }
 }
 

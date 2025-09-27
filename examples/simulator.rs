@@ -282,6 +282,7 @@ fn make_tabs(name: &str, tabs: Vec<&str>, bounds: Bounds) -> View {
             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
             e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
         }),
+        .. Default::default()
     }
 }
 

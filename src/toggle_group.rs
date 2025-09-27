@@ -20,6 +20,7 @@ pub fn make_toggle_group(name: &str, data: Vec<&str>, selected: usize) -> View {
         layout: Some(layout_toggle_group),
         draw: Some(draw_toggle_group),
         visible: true,
+        .. Default::default()
     }
 }
 

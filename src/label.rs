@@ -20,5 +20,6 @@ pub fn make_label(name: &str, title: &str) -> View {
                 view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
             }
         }),
+        .. Default::default()
     }
 }

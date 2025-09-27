@@ -20,6 +20,7 @@ pub fn make_list_view(name: &str, data: Vec<&str>, selected: usize) -> View {
         layout: Some(layout_list),
         draw: Some(draw_list),
         visible: true,
+        .. Default::default()
     }
 }
 

@@ -69,5 +69,6 @@ pub fn make_text_input(name: &str, title: &str) -> View {
             // }
         }),
         draw: Some(draw_text_input),
+        .. Default::default()
     }
 }

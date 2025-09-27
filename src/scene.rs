@@ -126,6 +126,7 @@ impl Scene {
             state: None,
             layout: None,
             draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
+            .. Default::default()
         };
         let root_id = String::from("root");
         let mut keys: HashMap<String, View> = HashMap::new();

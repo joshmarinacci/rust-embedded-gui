@@ -1,14 +1,34 @@
-use crate::geom::Bounds;
+use crate::geom::{Bounds, Insets};
 use crate::{DrawFn, InputFn, LayoutFn};
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::any::Any;
 
+pub type ViewId = String;
+#[derive(PartialEq, Debug)]
+pub enum Flex {
+    Intrinsic,
+    Resize,
+}
+#[derive(PartialEq, Debug)]
+pub enum Align {
+    Start,
+    Center,
+    End,
+}
+
 #[derive(Debug)]
 pub struct View {
-    pub name: String,
+    pub name: ViewId,
     pub title: String,
     pub bounds: Bounds,
+    pub padding: Insets,
+
+    pub v_flex: Flex,
+    pub h_flex: Flex,
+    pub h_align: Align,
+    pub v_align: Align,
+
     pub visible: bool,
     pub input: Option<InputFn>,
     pub state: Option<Box<dyn Any>>,
@@ -36,5 +56,28 @@ impl View {
             return view.downcast_mut::<T>();
         }
         None
+    }
+}
+
+impl Default for View {
+    fn default() -> Self {
+        let id: ViewId = "noname".into();
+        View {
+            name: id.clone(),
+            title: id.clone(),
+            bounds: Default::default(),
+            padding: Default::default(),
+
+            h_flex: Flex::Intrinsic,
+            v_flex: Flex::Intrinsic,
+            h_align: Align::Center,
+            v_align: Align::Center,
+
+            visible: true,
+            input: None,
+            state: None,
+            layout: None,
+            draw: None,
+        }
     }
 }

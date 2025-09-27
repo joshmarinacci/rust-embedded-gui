@@ -47,6 +47,7 @@ pub fn make_panel(name: &str, bounds: Bounds) -> View {
                 }
             }
         }),
+        .. Default::default()
     }
 }
 

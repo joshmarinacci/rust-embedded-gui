@@ -26,8 +26,6 @@ pub fn make_button(name: &str, title: &str) -> View {
         name: name.to_string(),
         title: title.to_string(),
         bounds: Bounds::new(0,0,80,30),
-        visible: true,
-        state: None,
         input: Some(|e| {
             if let EventType::Tap(_pt) = &e.event_type {
                 e.scene.set_focused(e.target);
@@ -42,5 +40,6 @@ pub fn make_button(name: &str, title: &str) -> View {
             }
         }),
         draw: Some(draw_button),
+        .. Default::default()
     }
 }

@@ -139,6 +139,7 @@ mod tests {
             input: None,
             state: None,
             layout: None,
+            .. Default::default()
         }
     }
     fn layout_vbox(evt: &mut LayoutEvent) {
@@ -168,6 +169,7 @@ mod tests {
             input: None,
             state: None,
             layout: Some(layout_vbox),
+            .. Default::default()
         }
     }
     struct TestButtonState {
@@ -202,6 +204,7 @@ mod tests {
                 got_input: false,
             })),
             layout: None,
+            .. Default::default()
         }
     }
     fn make_text_box(name: &str, title: &str) -> View {
@@ -225,6 +228,7 @@ mod tests {
                 };
                 None
             }),
+            .. Default::default()
         }
     }
     fn draw_label_view(e: &mut DrawEvent) {
@@ -244,6 +248,7 @@ mod tests {
             input: None,
             state: None,
             layout: None,
+            .. Default::default()
         }
     }
     fn get_bounds(scene: &Scene, name: &str) -> Option<Bounds> {
@@ -464,6 +469,7 @@ mod tests {
             input: Some(handle_toggle_button_input),
             state: Some(Box::new(String::from("disabled"))),
             layout: None,
+            .. Default::default()
         };
         scene.add_view_to_root(button);
         // repaint
@@ -587,6 +593,7 @@ mod tests {
             state: None,
             input: None,
             layout: None,
+            .. Default::default()
         };
 
         scene.add_view_to_root(view);

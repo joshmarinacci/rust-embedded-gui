@@ -15,6 +15,7 @@ pub fn make_toggle_button(name: &str, title: &str) -> View {
         draw: Some(draw_toggle_button),
         layout: Some(layout_toggle_button),
         input: Some(input_toggle_button),
+        .. Default::default()
     }
 }
 
