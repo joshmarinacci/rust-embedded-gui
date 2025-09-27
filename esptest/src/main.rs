@@ -198,7 +198,7 @@ fn make_gui_scene() -> Scene {
     let panel = make_panel("panel",Bounds{x:20,y:20,w:200,h:200});
 
 
-    scene.add_view_to_parent(make_label("label1","A Label").position_at(10,30),
+    scene.add_view_to_parent(make_label("label1", "A Label").position_at(10, 30),
                              &panel.name);
 
     scene.add_view_to_root(make_button("button1","A button")
@@ -214,7 +214,7 @@ fn make_gui_scene() -> Scene {
         make_text_input("textinput","type text here")
             .position_at(10,90),&panel.name);
 
-    scene.add_view_to_parent(make_menuview("menuview",vec!["first".into(),"second".into(),"third".into()])
+    scene.add_view_to_parent(make_menuview("menuview", vec!["first".into(), "second".into(), "third".into()])
                                  .position_at(100,30), &panel.name);
     scene.add_view_to_root(panel);
 
