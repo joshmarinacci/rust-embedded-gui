@@ -1,4 +1,4 @@
-use crate::geom::{Bounds, Point};
+use crate::geom::{Bounds, Insets, Point};
 use crate::gfx::{DrawingContext, HAlign, TextStyle, draw_centered_text};
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
@@ -8,18 +8,21 @@ use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
 use hashbrown::Equivalent;
-use log::info;
+use crate::layouts::layout_tabbed_panel_tabs;
+use crate::view::Flex::{Intrinsic, Resize};
 
-pub fn make_toggle_group(name: &'static str, data: Vec<&str>, selected: usize) -> View {
+pub fn make_toggle_group(name: &ViewId, data: Vec<&str>, selected: usize) -> View {
     View {
-        name: ViewId::new(name),
-        title: name.into(),
+        name: name.clone(),
+        title: name.as_str().into(),
         bounds: Bounds::new(0, 0, (data.len() * 60) as i32, 30),
         state: Some(SelectOneOfState::new_with(data, selected)),
         input: Some(input_toggle_group),
-        layout: Some(layout_toggle_group),
+        layout: Some(layout_tabbed_panel_tabs),
         draw: Some(draw_toggle_group),
         visible: true,
+        h_flex: Resize,
+        v_flex: Intrinsic,
         .. Default::default()
     }
 }
@@ -128,7 +131,7 @@ mod tests {
         let theme = MockDrawingContext::make_mock_theme();
         let mut scene: Scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
-            let group = make_toggle_group("group", vec!["A", "BB", "CCC"], 0);
+            let group = make_toggle_group(&ViewId::new("group"), vec!["A", "BB", "CCC"], 0);
             scene.add_view_to_root(group);
         }
         layout_scene(&mut scene, &theme);

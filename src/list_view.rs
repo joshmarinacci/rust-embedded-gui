@@ -158,7 +158,7 @@ mod tests {
         let theme = MockDrawingContext::make_mock_theme();
         let mut scene: Scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
-            let list = make_toggle_group("listview", vec!["A", "BB", "CCC"], 0);
+            let list = make_toggle_group(&ViewId::new("listview"), vec!["A", "BB", "CCC"], 0);
             scene.add_view_to_root(list);
         }
         layout_scene(&mut scene, &theme);

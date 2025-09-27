@@ -3,7 +3,7 @@ use crate::gfx::DrawingContext;
 use crate::view::{View, ViewId};
 use crate::{Action, Callback, DrawEvent, EventType, GuiEvent, LayoutEvent, LayoutFn, Theme};
 use alloc::string::{String, ToString};
-use alloc::vec;
+use alloc::{format, vec};
 use alloc::vec::Vec;
 use hashbrown::HashMap;
 use log::{info, warn};
@@ -26,11 +26,11 @@ impl Scene {
     }
     fn dump_view(&self, id: &ViewId, indent: &str) {
         if let Some(view) = self.get_view(&id) {
-            println!("{indent}{id} ---");
-            println!("{indent}  padding {:?}", view.padding);
-            println!("{indent}  bounds  {:?}", view.bounds);
-            println!("{indent}  h = {:?} {:?}", view.h_flex, view.h_align);
-            println!("{indent}  v = {:?} {:?}", view.v_flex, view.v_align);
+            info!("{indent}{id} ---");
+            // info!("{indent}  padding {}", view.padding);
+            info!("{indent}  bounds  {}", view.bounds);
+            info!("{indent}  h = {:?} {:?}", view.h_flex, view.h_align);
+            info!("{indent}  v = {:?} {:?}", view.v_flex, view.v_align);
         }
         let kids = self.get_children_ids(id);
         for kid in kids {

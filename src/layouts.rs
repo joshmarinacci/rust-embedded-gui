@@ -1,8 +1,10 @@
 use log::info;
+use Flex::Intrinsic;
 use crate::geom::{Insets, Size};
 use crate::LayoutEvent;
 use crate::view::Align::{Center, End, Start};
 use crate::view::{Flex, ViewId};
+use crate::view::Flex::Resize;
 
 pub fn layout_vbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
@@ -15,7 +17,7 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     // get the intrinsic children
     let fixed_kids = pass
         .scene
-        .get_children_ids_filtered(&pass.target, |v| v.v_flex == Flex::Intrinsic);
+        .get_children_ids_filtered(&pass.target, |v| v.v_flex == Intrinsic);
     // lay out the intrinsic children
     for kid in &fixed_kids {
         pass.layout_child(kid, available_space);
@@ -77,7 +79,7 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
     // get the fixed children
     let fixed_kids = pass
         .scene
-        .get_children_ids_filtered(&pass.target, |v| v.h_flex == Flex::Intrinsic);
+        .get_children_ids_filtered(&pass.target, |v| v.h_flex == Intrinsic);
 
     // layout the fixed width children
     for kid in &fixed_kids {
@@ -131,51 +133,61 @@ fn layout_button(layout: &mut LayoutEvent) {
         view.bounds.size = Size::new((view.title.len() * 10) as i32, 10) + view.padding;
     }
 }
-fn layout_panel(pass: &mut LayoutEvent) {
+pub fn layout_std_panel(pass: &mut LayoutEvent) {
     if let Some(view) = pass.scene.get_view_mut(&pass.target) {
-        if view.v_flex == Flex::Resize {
+        if view.v_flex == Resize {
             view.bounds.size.h = pass.space.h;
         }
-        if view.h_flex == Flex::Resize {
+        if view.h_flex == Resize {
             view.bounds.size.w = pass.space.w;
         }
+        let space = view.bounds.size.clone() - view.padding;
+        pass.layout_all_children(&pass.target.clone(),space);
     }
-    pass.layout_all_children(&pass.target.clone(),pass.space);
 }
 
-fn layout_tabbed_panel(pass: &mut LayoutEvent) {
-    // layout self
+pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
     if let Some(view) = pass.scene.get_view_mut(&pass.target) {
-        view.bounds.size.w = pass.space.w;
-        view.bounds.size.h = pass.space.h;
-    }
-    let tabs_id: ViewId = "tabs".into();
-    // layout tabs
-    pass.layout_child(&tabs_id, pass.space);
-    for kid in &pass.scene.get_children_ids(&pass.target) {
-        if kid == &tabs_id {
-            continue;
+        // layout self
+        if view.h_flex == Resize {
+            view.bounds.size.w = pass.space.w;
         }
-        let space = pass.space - Insets::new(10, 0, 0, 0);
-        pass.layout_child(kid,space);
-        if let Some(view) = pass.scene.get_view_mut(kid) {
-            view.bounds.position.y = 10;
+        if view.v_flex == Resize {
+            view.bounds.size.h = pass.space.h;
+        }
+
+        // layout tabs
+        let space = view.bounds.size.clone();
+        let tabs_id: ViewId = "tabs".into();
+        pass.layout_child(&tabs_id, space);
+
+        // layout content panels
+        let insets = Insets::new(10,0,0,0);
+        for kid in &pass.scene.get_children_ids(&pass.target) {
+            if kid == &tabs_id {
+                continue;
+            }
+            pass.layout_child(kid,space - insets);
+            if let Some(view) = pass.scene.get_view_mut(kid) {
+                view.bounds.position.y = 10;
+            }
         }
     }
 }
-fn layout_tabbed_panel_tabs(pass: &mut LayoutEvent) {
+pub fn layout_tabbed_panel_tabs(pass: &mut LayoutEvent) {
     if let Some(view) = pass.scene.get_view_mut(&pass.target) {
-        if view.h_flex == Flex::Resize {
+        let cs = pass.theme.font.character_size;
+        if view.h_flex == Resize {
             view.bounds.size.w = pass.space.w;
         }
-        if view.h_flex == Flex::Intrinsic {
+        if view.h_flex == Intrinsic {
             view.bounds.size.w = 50;
         }
-        if view.v_flex == Flex::Resize {
+        if view.v_flex == Resize {
             view.bounds.size.h = pass.space.h;
         }
-        if view.v_flex == Flex::Intrinsic {
-            view.bounds.size.h = 10;
+        if view.v_flex == Intrinsic {
+            view.bounds.size.h = cs.height as i32;
         }
     }
     pass.layout_all_children(&pass.target.clone(),pass.space);
@@ -184,7 +196,7 @@ fn layout_tabbed_panel_tabs(pass: &mut LayoutEvent) {
 #[cfg(test)]
 mod tests {
     use crate::geom::{Bounds, Insets, Point, Size};
-    use crate::layouts::{layout_button, layout_hbox, layout_panel, layout_tabbed_panel, layout_tabbed_panel_tabs, layout_vbox};
+    use crate::layouts::{layout_button, layout_hbox, layout_std_panel, layout_tabbed_panel, layout_tabbed_panel_tabs, layout_vbox};
     use crate::scene::{layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::{Align, Flex, View, ViewId};
@@ -273,7 +285,7 @@ mod tests {
             title: "ch4".into(),
             h_flex: Flex::Resize,
             v_flex: Flex::Resize,
-            layout: Some(layout_panel),
+            layout: Some(layout_std_panel),
             ..Default::default()
         }, &parent_id);
 
@@ -393,7 +405,7 @@ mod tests {
                 b1_view.h_flex = Flex::Resize;
                 b1_view.v_flex = Flex::Resize;
                 b1_view.title = "b11".into();
-                b1_view.layout = Some(layout_panel);
+                b1_view.layout = Some(layout_std_panel);
                 scene.add_view_to_parent(b1_view, &tab2);
             }
 
@@ -415,7 +427,7 @@ mod tests {
             let mut view = make_standard_view(&tab3);
             view.h_flex = Flex::Resize;
             view.v_flex = Flex::Resize;
-            view.layout = Some(layout_panel);
+            view.layout = Some(layout_std_panel);
             scene.add_view_to_parent(view, &tabbed_panel);
         }
 
