@@ -1,5 +1,5 @@
 use crate::geom::{Bounds, Point};
-use crate::gfx::{draw_centered_text, DrawingContext, HAlign, TextStyle};
+use crate::gfx::{DrawingContext, HAlign, TextStyle, draw_centered_text};
 use crate::view::View;
 use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction, LayoutEvent};
 use alloc::boxed::Box;
@@ -14,7 +14,7 @@ pub fn make_list_view(name: &str, data: Vec<&str>, selected: usize) -> View {
     View {
         name: name.into(),
         title: name.into(),
-        bounds: Bounds::new(0, 0, 100,(data.len() * 30) as i32),
+        bounds: Bounds::new(0, 0, 100, (data.len() * 30) as i32),
         state: Some(SelectOneOf::new_with(data, selected)),
         input: Some(input_list),
         layout: Some(layout_list),
@@ -30,7 +30,7 @@ pub struct SelectOneOf {
 
 impl SelectOneOf {
     pub fn select_next(&mut self) {
-        if self.selected < self.items.len() -1 {
+        if self.selected < self.items.len() - 1 {
             self.selected += 1;
         }
     }
@@ -68,7 +68,7 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
                 }
             }
         }
-        EventType::Scroll(x,y) => {
+        EventType::Scroll(x, y) => {
             e.scene.mark_dirty_view(e.target);
             if let Some(state) = e.scene.get_view_state::<SelectOneOf>(e.target) {
                 if *y > 0 {
@@ -91,12 +91,9 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
                             state.items[state.selected as usize].clone(),
                         ));
                     }
-                    _ => {
-
-                    }
+                    _ => {}
                 }
             }
-
         }
         _ => {}
     }
@@ -119,20 +116,20 @@ fn draw_list(e: &mut DrawEvent) {
                 bounds.x,
                 bounds.y + (i as i32) * cell_height + 1,
                 bounds.w,
-                cell_height -1,
+                cell_height - 1,
             );
             // draw background only if selected
             if i == state.selected {
                 e.ctx.fill_rect(&bds, bg);
                 if let Some(focused) = e.focused {
                     if focused == &name {
-                        e.ctx.stroke_rect(&bds.contract(2),fg);
+                        e.ctx.stroke_rect(&bds.contract(2), fg);
                     }
                 }
             }
 
             // draw text
-            draw_centered_text(e.ctx,item,&bds,&e.theme.font,fg);
+            draw_centered_text(e.ctx, item, &bds, &e.theme.font, fg);
         }
     }
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
@@ -173,7 +170,9 @@ mod tests {
         click_at(&mut scene, &vec![], Point::new(100, 10));
 
         {
-            let state = &mut scene.get_view_state::<SelectOneOfState>("listview").unwrap();
+            let state = &mut scene
+                .get_view_state::<SelectOneOfState>("listview")
+                .unwrap();
             assert_eq!(state.selected, 1);
         }
 

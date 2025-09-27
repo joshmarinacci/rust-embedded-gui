@@ -56,13 +56,15 @@ pub fn layout_vbox(evt: &mut LayoutEvent) {
         if let Some(state) = evt.scene.get_view_state::<PanelState>(evt.target) {
             let padding = state.padding;
             let gap = state.gap;
-            let mut y = padding +0;
+            let mut y = padding + 0;
             let halign = state.halign;
             for kid in evt.scene.get_children(evt.target) {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
                     match halign {
                         HAlign::Left => ch.bounds.x = padding,
-                        HAlign::Center => ch.bounds.x = padding + (bounds.w - padding * 2 - ch.bounds.w) / 2,
+                        HAlign::Center => {
+                            ch.bounds.x = padding + (bounds.w - padding * 2 - ch.bounds.w) / 2
+                        }
                         HAlign::Right => ch.bounds.x = bounds.w - padding - ch.bounds.w,
                     }
                     ch.bounds.y = y;
@@ -85,7 +87,9 @@ pub fn layout_hbox(evt: &mut LayoutEvent) {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
                     match valign {
                         VAlign::Top => ch.bounds.y = padding,
-                        VAlign::Center => ch.bounds.y = padding + (height - padding * 2 - ch.bounds.h) / 2,
+                        VAlign::Center => {
+                            ch.bounds.y = padding + (height - padding * 2 - ch.bounds.h) / 2
+                        }
                         VAlign::Bottom => ch.bounds.y = height - padding - ch.bounds.h,
                     }
                     ch.bounds.x = x;

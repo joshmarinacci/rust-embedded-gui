@@ -1,4 +1,5 @@
 use crate::geom::{Bounds, Point};
+use crate::gfx::DrawingContext;
 use crate::view::View;
 use crate::{Action, Callback, DrawEvent, EventType, GuiEvent, LayoutEvent, Theme};
 use alloc::string::{String, ToString};
@@ -6,7 +7,6 @@ use alloc::vec;
 use alloc::vec::Vec;
 use hashbrown::HashMap;
 use log::{info, warn};
-use crate::gfx::DrawingContext;
 
 #[derive(Debug)]
 pub struct Scene {

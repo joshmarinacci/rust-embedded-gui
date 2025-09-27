@@ -1,16 +1,16 @@
-use embedded_graphics::Drawable;
-use embedded_graphics::mock_display::MockDisplay;
-use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
-use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
-use embedded_graphics::mono_font::MonoTextStyle;
-use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
-use embedded_graphics::primitives::{Line, Primitive, PrimitiveStyle};
-use embedded_graphics::geometry::{Point as EPoint};
-use embedded_graphics::text::Text;
 use crate::geom::{Bounds, Point};
 use crate::gfx::{DrawingContext, TextStyle};
 use crate::scene::Scene;
-use crate::{util, Theme};
+use crate::{Theme, util};
+use embedded_graphics::Drawable;
+use embedded_graphics::geometry::Point as EPoint;
+use embedded_graphics::mock_display::MockDisplay;
+use embedded_graphics::mono_font::MonoTextStyle;
+use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
+use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
+use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
+use embedded_graphics::primitives::{Line, Primitive, PrimitiveStyle};
+use embedded_graphics::text::Text;
 
 pub struct MockDrawingContext {
     pub clip_rect: Bounds,
@@ -60,8 +60,10 @@ impl DrawingContext for MockDrawingContext {
     }
 
     fn line(&mut self, start: &Point, end: &Point, color: &Rgb565) {
-        let line = Line::new(EPoint::new(start.x,start.y),EPoint::new(end.x,end.y));
-        line.into_styled(PrimitiveStyle::with_stroke(*color,1)).draw(&mut self.display).unwrap();
+        let line = Line::new(EPoint::new(start.x, start.y), EPoint::new(end.x, end.y));
+        line.into_styled(PrimitiveStyle::with_stroke(*color, 1))
+            .draw(&mut self.display)
+            .unwrap();
     }
 
     // fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
@@ -75,9 +77,7 @@ impl DrawingContext for MockDrawingContext {
         Text::new(text, pt, style).draw(&mut self.display).unwrap();
     }
 
-    fn text(&mut self, text: &str, position: &Point, style: &TextStyle) {
-
-    }
+    fn text(&mut self, text: &str, position: &Point, style: &TextStyle) {}
 
     fn translate(&mut self, offset: &Point) {
         self.offset = self.offset.add(offset);

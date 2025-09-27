@@ -1,10 +1,10 @@
-use embedded_graphics::pixelcolor::Rgb565;
-use embedded_graphics::primitives::PrimitiveStyle;
-use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
-use embedded_graphics::text::Text;
-use embedded_graphics::prelude::Primitive;
-use embedded_graphics::Drawable;
 use crate::geom::{Bounds, Point};
+use embedded_graphics::Drawable;
+use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
+use embedded_graphics::pixelcolor::Rgb565;
+use embedded_graphics::prelude::Primitive;
+use embedded_graphics::primitives::PrimitiveStyle;
+use embedded_graphics::text::Text;
 
 #[derive(Copy, Clone)]
 pub enum HAlign {
@@ -61,20 +61,28 @@ impl<'a> TextStyle<'a> {
 pub trait DrawingContext {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565);
     fn stroke_rect(&mut self, bounds: &Bounds, color: &Rgb565);
-    fn line(&mut self, start:&Point, end:&Point, color:&Rgb565);
+    fn line(&mut self, start: &Point, end: &Point, color: &Rgb565);
     fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle);
-    fn text(&mut self, text:&str, position:&Point, style:&TextStyle);
+    fn text(&mut self, text: &str, position: &Point, style: &TextStyle);
     fn translate(&mut self, offset: &Point);
 }
 
-
-
-pub fn draw_centered_text(ctx: &mut dyn DrawingContext, text: &str, bounds: &Bounds, font: &MonoFont<'static>, color: &Rgb565) {
-    ctx.text(text,&bounds.center(),&TextStyle {
-        font,
-        color,
-        valign: VAlign::Center,
-        halign: HAlign::Center,
-        underline: false,
-    })
+pub fn draw_centered_text(
+    ctx: &mut dyn DrawingContext,
+    text: &str,
+    bounds: &Bounds,
+    font: &MonoFont<'static>,
+    color: &Rgb565,
+) {
+    ctx.text(
+        text,
+        &bounds.center(),
+        &TextStyle {
+            font,
+            color,
+            valign: VAlign::Center,
+            halign: HAlign::Center,
+            underline: false,
+        },
+    )
 }

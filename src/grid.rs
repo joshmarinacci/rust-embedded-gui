@@ -1,11 +1,11 @@
 use crate::geom::{Bounds, Point};
+use crate::gfx::{HAlign, VAlign};
 use crate::view::View;
 use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::String;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use hashbrown::HashMap;
-use crate::gfx::{HAlign, VAlign};
 
 pub struct GridLayoutState {
     pub constraints: HashMap<String, LayoutConstraint>,
@@ -14,7 +14,7 @@ pub struct GridLayoutState {
     col_width: usize,
     row_height: usize,
     pub padding: i32,
-    pub debug:bool,
+    pub debug: bool,
     pub border: bool,
     pub bg: bool,
 }
@@ -98,7 +98,6 @@ pub fn make_grid_panel(name: &str) -> View {
 }
 
 fn draw_grid(evt: &mut DrawEvent) {
-
     let bounds = evt.view.bounds;
     if let Some(state) = evt.view.get_state::<GridLayoutState>() {
         let padding = state.padding;
@@ -109,17 +108,19 @@ fn draw_grid(evt: &mut DrawEvent) {
             evt.ctx.stroke_rect(&bounds, &evt.theme.fg);
         }
         if state.debug {
-            for i in 0..state.col_count+1 {
+            for i in 0..state.col_count + 1 {
                 let x = (i * state.col_width) as i32 + bounds.x + padding;
                 let y = bounds.y + padding;
                 let y2 = bounds.y + bounds.h - padding * 2;
-                evt.ctx.line(&Point::new(x,y), &Point::new(x,y2), &Rgb565::RED);
+                evt.ctx
+                    .line(&Point::new(x, y), &Point::new(x, y2), &Rgb565::RED);
             }
-            for j in 0 .. state.row_count+1 {
+            for j in 0..state.row_count + 1 {
                 let y = (j * state.row_height) as i32 + bounds.y + padding;
                 let x = bounds.x + padding;
                 let x2 = bounds.x + bounds.w - padding * 2;
-                evt.ctx.line(&Point::new(x,y), &Point::new(x2,y), &Rgb565::RED);
+                evt.ctx
+                    .line(&Point::new(x, y), &Point::new(x2, y), &Rgb565::RED);
             }
         }
     }
@@ -150,19 +151,19 @@ fn layout_grid(evt: &mut LayoutEvent) {
 }
 
 fn center_within(cell: Bounds, view: &mut Bounds) {
-    view.x = (cell.w - view.w)/2 + cell.x;
-    view.y = (cell.h - view.h)/2 + cell.y;
+    view.x = (cell.w - view.w) / 2 + cell.x;
+    view.y = (cell.h - view.h) / 2 + cell.y;
 }
 
 mod tests {
     use crate::button::make_button;
-    use crate::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
     use crate::geom::Bounds;
-    use crate::scene::{draw_scene, layout_scene, Scene};
-    use alloc::boxed::Box;
     use crate::gfx::{HAlign, VAlign};
+    use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
     use crate::label::make_label;
+    use crate::scene::{Scene, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
+    use alloc::boxed::Box;
 
     #[test]
     fn test_grid_layout() {
@@ -218,28 +219,33 @@ mod tests {
     #[test]
     fn col_span() {
         let theme = MockDrawingContext::make_mock_theme();
-        let mut grid = make_grid_panel("grid").position_at(0,0).with_size(200,200);
+        let mut grid = make_grid_panel("grid")
+            .position_at(0, 0)
+            .with_size(200, 200);
         let mut layout = GridLayoutState::new_row_column(2, 30, 2, 100);
         layout.debug = true;
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
-        let button = make_button("b1","b1");
-        layout.constraints.insert((&button.name).into(),LayoutConstraint{
-            col:0,
-            row:0,
-            col_span: 2,
-            row_span: 1,
-            h_align: HAlign::Center,
-            v_align: VAlign::Center,
-        });
+        let button = make_button("b1", "b1");
+        layout.constraints.insert(
+            (&button.name).into(),
+            LayoutConstraint {
+                col: 0,
+                row: 0,
+                col_span: 2,
+                row_span: 1,
+                h_align: HAlign::Center,
+                v_align: VAlign::Center,
+            },
+        );
 
         grid.state = Some(Box::new(layout));
-        scene.add_view_to_parent(button,&grid.name);
+        scene.add_view_to_parent(button, &grid.name);
         scene.add_view_to_root(grid);
         layout_scene(&mut scene, &theme);
 
         if let Some(view) = scene.get_view("b1") {
-            assert_eq!(view.bounds, Bounds::new(0,0,200,30));
+            assert_eq!(view.bounds, Bounds::new(0, 0, 200, 30));
         }
     }
 }

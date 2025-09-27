@@ -11,32 +11,32 @@ use alloc::vec::Vec;
 use core::any::Any;
 use embedded_graphics::Drawable;
 use embedded_graphics::mock_display::MockDisplay;
+use embedded_graphics::mono_font::MonoFont;
 use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
 use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
-use embedded_graphics::mono_font::MonoFont;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
 use embedded_graphics::primitives::Primitive;
 use geom::{Bounds, Point};
-use log::info;
 use gfx::DrawingContext;
+use log::info;
 use view::View;
 
+pub mod button;
 pub mod comps;
-pub mod grid;
+pub mod device;
 pub mod geom;
+pub mod gfx;
+pub mod grid;
+pub mod label;
+pub mod list_view;
 pub mod panel;
 pub mod scene;
+pub mod test;
+pub mod text_input;
 pub mod toggle_button;
 pub mod toggle_group;
 pub mod util;
 pub mod view;
-pub mod text_input;
-pub mod gfx;
-pub mod test;
-pub mod label;
-pub mod button;
-pub mod list_view;
-pub mod device;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
@@ -106,13 +106,13 @@ pub struct LayoutEvent<'a> {
 mod tests {
     use super::*;
     use crate::button::make_button;
+    use crate::gfx::{HAlign, TextStyle};
     use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
+    use crate::test::MockDrawingContext;
     use env_logger::Target;
+    use gfx::DrawingContext;
     use log::LevelFilter;
     use std::sync::Once;
-    use gfx::DrawingContext;
-    use crate::gfx::{HAlign, TextStyle};
-    use crate::test::MockDrawingContext;
 
     extern crate std;
 
@@ -686,4 +686,3 @@ mod tests {
         scene.get_view(name).unwrap().title.clone()
     }
 }
-

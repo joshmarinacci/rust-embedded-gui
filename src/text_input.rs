@@ -1,8 +1,8 @@
-use log::info;
-use crate::{Action, DrawEvent, EventType, GuiEvent};
 use crate::geom::Bounds;
 use crate::gfx::{DrawingContext, HAlign, TextStyle};
 use crate::view::View;
+use crate::{Action, DrawEvent, EventType, GuiEvent};
+use log::info;
 
 fn draw_text_input(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
@@ -16,7 +16,10 @@ fn draw_text_input(e: &mut DrawEvent) {
             let n = e.view.title.len() as i32;
             let w = e.theme.font.character_size.width as i32;
             let h = e.theme.font.character_size.height as i32;
-            e.ctx.fill_rect(&Bounds::new(e.view.bounds.x + n*w + 5, e.view.bounds.y + 5, 2, h + 4), &e.theme.fg);
+            e.ctx.fill_rect(
+                &Bounds::new(e.view.bounds.x + n * w + 5, e.view.bounds.y + 5, 2, h + 4),
+                &e.theme.fg,
+            );
         }
     }
 }

@@ -1,5 +1,5 @@
 use crate::geom::{Bounds, Point};
-use crate::gfx::{draw_centered_text, DrawingContext, HAlign, TextStyle};
+use crate::gfx::{DrawingContext, HAlign, TextStyle, draw_centered_text};
 use crate::view::View;
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
@@ -75,7 +75,7 @@ fn draw_toggle_group(e: &mut DrawEvent) {
             let bds = Bounds::new(
                 bounds.x + (i as i32) * cell_width + 1,
                 bounds.y,
-                cell_width-1,
+                cell_width - 1,
                 bounds.h,
             );
             // draw background only if selected
@@ -83,18 +83,22 @@ fn draw_toggle_group(e: &mut DrawEvent) {
                 e.ctx.fill_rect(&bds, bg);
                 if let Some(focused) = e.focused {
                     if focused == &name {
-                        e.ctx.stroke_rect(&bds.contract(2),fg);
+                        e.ctx.stroke_rect(&bds.contract(2), fg);
                     }
                 }
             }
 
             // draw text
-            draw_centered_text(e.ctx,item,&bds,&e.theme.font,fg);
+            draw_centered_text(e.ctx, item, &bds, &e.theme.font, fg);
 
             // draw left edge except for the first one
             if i != 0 {
-                let x = bounds.x + ((i as i32))*cell_width;
-                e.ctx.line(&Point::new(x, bounds.y), &Point::new(x, bounds.y+bounds.h-1), &e.theme.fg);
+                let x = bounds.x + (i as i32) * cell_width;
+                e.ctx.line(
+                    &Point::new(x, bounds.y),
+                    &Point::new(x, bounds.y + bounds.h - 1),
+                    &e.theme.fg,
+                );
             }
         }
     }
