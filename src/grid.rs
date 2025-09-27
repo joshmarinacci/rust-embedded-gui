@@ -78,8 +78,6 @@ pub fn make_grid_panel(name: &ViewId) -> View {
     View {
         name: name.clone(),
         title: name.as_str().into(),
-        bounds: Bounds::new(0, 0, 100, 100),
-        input: None,
         state: Some(Box::new(GridLayoutState {
             constraints: HashMap::new(),
             col_count: 2,

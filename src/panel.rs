@@ -1,10 +1,8 @@
 use crate::geom::Bounds;
 use crate::gfx::{DrawingContext, HAlign, VAlign};
 use crate::view::{View, ViewId};
+use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
-use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
-use log::info;
-use crate::LayoutEvent;
 
 pub struct PanelState {
     pub padding: i32,
@@ -32,25 +30,31 @@ pub fn make_panel(name: &'static str, bounds: Bounds) -> View {
             valign: VAlign::Center,
         })),
         layout: None,
-        draw: Some(|e| {
-            let bounds = e.view.bounds;
-            if let Some(state) = e.view.get_state::<PanelState>() {
-                if state.bg {
-                    e.ctx.fill_rect(&bounds, &e.theme.bg);
-                }
-                if state.border {
-                    e.ctx.stroke_rect(&bounds, &e.theme.fg);
-                }
-                if state.debug {
-                    let bds = bounds.contract(state.padding);
-                    e.ctx.stroke_rect(&bds, &Rgb565::RED);
-                }
-            }
-        }),
+        draw: Some(draw_std_panel),
+        // draw: Some(|e| {
+        //     let bounds = e.view.bounds;
+        //     if let Some(state) = e.view.get_state::<PanelState>() {
+        //         if state.bg {
+        //             e.ctx.fill_rect(&bounds, &e.theme.bg);
+        //         }
+        //         if state.border {
+        //             e.ctx.stroke_rect(&bounds, &e.theme.fg);
+        //         }
+        //         if state.debug {
+        //             let bds = bounds.contract(state.padding);
+        //             e.ctx.stroke_rect(&bds, &Rgb565::RED);
+        //         }
+        //     }
+        // }),
         .. Default::default()
     }
 }
 
+pub fn draw_std_panel(e: &mut DrawEvent) {
+    let bounds = e.view.bounds;
+    e.ctx.fill_rect(&bounds, &e.theme.bg);
+    e.ctx.stroke_rect(&bounds, &e.theme.fg);
+}
 pub fn layout_vbox(evt: &mut LayoutEvent) {
     if let Some(view) = evt.scene.get_view(evt.target) {
         let bounds = view.bounds;

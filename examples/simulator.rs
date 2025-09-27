@@ -15,10 +15,8 @@ use embedded_graphics::text::{
     Alignment, Baseline, Text, TextStyle as ETextStyle, TextStyleBuilder,
 };
 use rust_embedded_gui::button::make_button;
-use rust_embedded_gui::geom::{Bounds, Point as GPoint};
-use rust_embedded_gui::scene::{
-    EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene,
-};
+use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint};
+use rust_embedded_gui::scene::{EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene};
 use rust_embedded_gui::toggle_button::make_toggle_button;
 use rust_embedded_gui::toggle_group::{SelectOneOfState, make_toggle_group};
 use rust_embedded_gui::{Action, EventType, KeyboardAction, Theme};
@@ -30,6 +28,7 @@ use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
+use embedded_graphics_simulator::sdl2::MouseWheelDirection::Flipped;
 use env_logger::Target;
 use env_logger::fmt::style::Color::Rgb;
 use log::{LevelFilter, info};
@@ -37,10 +36,11 @@ use rust_embedded_gui::device::EmbeddedDrawingContext;
 use rust_embedded_gui::gfx::{DrawingContext, HAlign, TextStyle, VAlign};
 use rust_embedded_gui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
 use rust_embedded_gui::label::make_label;
+use rust_embedded_gui::layouts::{layout_hbox_2, layout_vbox as layout_vbox_2, layout_std_panel, layout_tabbed_panel, layout_tabbed_panel_tabs};
 use rust_embedded_gui::list_view::make_list_view;
-use rust_embedded_gui::panel::{PanelState, layout_hbox, layout_vbox, make_panel};
+use rust_embedded_gui::panel::{PanelState, make_panel, layout_hbox, layout_vbox, draw_std_panel};
 use rust_embedded_gui::text_input::make_text_input;
-use rust_embedded_gui::view::{View, ViewId};
+use rust_embedded_gui::view::{Align, Flex, View, ViewId};
 
 const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
 const MEDIUM_FONT_BUTTON: &str = "medium_font";
@@ -58,14 +58,22 @@ const POPUP_MENU: &'static ViewId = &ViewId::new("popup-menu");
 fn make_scene() -> Scene {
     let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
-    let mut tabbed_panel = make_tabs(
-        TABBED_PANEL.as_str(),
-        vec!["buttons", "layouts", "lists", "inputs", "themes"],
-        Bounds::new(10,10,320-20,180),
-    );
+    let mut tabbed_panel: View = View {
+        name: TABBED_PANEL.clone(),
+        bounds: Bounds::new(10,10,320-20,180),
+        h_flex: Flex::Intrinsic,
+        v_flex: Flex::Intrinsic,
+        draw: Some(|e| {
+            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+        }),
+        layout: Some(layout_tabbed_panel),
+        .. Default::default()
+    };
 
+    let tabs_id = ViewId::new("tabs");
     let tabs = make_toggle_group(
-        "tabs",
+        &tabs_id,
         vec!["buttons", "layouts", "lists", "inputs", "themes"],
         0,
     );
@@ -91,7 +99,7 @@ fn make_scene() -> Scene {
         grid_layout.place_at_row_column(&button2.name, 1, 1);
         scene.add_view_to_parent(button2, &grid.name);
 
-        let button3 = make_toggle_group("toggle2", vec!["Apple", "Ball", "Car"], 1);
+        let button3 = make_toggle_group(&ViewId::new("toggle2"), vec!["Apple", "Ball", "Car"], 1);
         grid_layout.constraints.insert(
             (&button3.name).clone(),
             LayoutConstraint {
@@ -109,59 +117,55 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(grid, &tabbed_panel.name);
     }
     {
-        let mut wrapper = make_panel(LAYOUT_PANEL.as_str(), Bounds::new(0, 50, 100, 100));
-        wrapper.state = Some(Box::new(PanelState {
-            padding: 5,
-            debug: false,
-            border: false,
-            bg: true,
-            gap: 5,
-            halign: HAlign::Center,
-            valign: VAlign::Top,
-        }));
-        wrapper.layout = Some(layout_hbox);
+        let wrapper = View {
+            name: LAYOUT_PANEL.clone(),
+            draw:Some(draw_std_panel),
+            padding: Insets::new_same(5),
+            h_flex: Flex::Resize,
+            v_flex: Flex::Resize,
+            layout: Some(layout_hbox_2),
+            ..Default::default()
+        };
 
-        let mut col1 = make_column("vbox2");
-        scene.add_view_to_parent(make_label("vbox-label", "vbox layout"), &col1.name);
-        let mut vbox = make_panel("vbox", Bounds::new(0, 0, 100, 100));
-        vbox.layout = Some(layout_vbox);
-        scene.add_view_to_parent(make_button("vbox-button1", "A"), &vbox.name);
-        scene.add_view_to_parent(make_button("vbox-button2", "B"), &vbox.name);
-        scene.add_view_to_parent(make_button("vbox-button3", "C"), &vbox.name);
-        scene.add_view_to_parent(vbox, &col1.name);
-        scene.add_view_to_parent(col1, &wrapper.name);
+        {
+            let col1 = make_column("vbox2");
+            scene.add_view_to_parent(make_label("vbox-label", "vbox layout"), &col1.name);
+            let mut vbox = make_panel("vbox", Bounds::new(0, 0, 100, 100));
+            vbox.layout = Some(layout_vbox);
+            scene.add_view_to_parent(make_button("vbox-button1", "A"), &vbox.name);
+            scene.add_view_to_parent(make_button("vbox-button2", "B"), &vbox.name);
+            scene.add_view_to_parent(make_button("vbox-button3", "C"), &vbox.name);
+            scene.add_view_to_parent(vbox, &col1.name);
+            scene.add_view_to_parent(col1, &wrapper.name);
+        }
 
-        let mut col2 = make_column("vbox3");
-        scene.add_view_to_parent(make_label("hbox-label", "hbox layout"), &col2.name);
-
-        let mut hbox = make_panel("hbox", Bounds::new(0, 0, 100, 100));
-        hbox.layout = Some(layout_hbox);
-        scene.add_view_to_parent(make_button("hbox-button1", "A"), &hbox.name);
-        scene.add_view_to_parent(make_button("hbox-button2", "B"), &hbox.name);
-        scene.add_view_to_parent(make_button("hbox-button3", "C"), &hbox.name);
-        scene.add_view_to_parent(hbox, &col2.name);
-        scene.add_view_to_parent(col2, &wrapper.name);
+        {
+            let col2 = make_column("vbox3");
+            scene.add_view_to_parent(make_label("hbox-label", "hbox layout"), &col2.name);
+            let hbox = make_row("hbox");
+            scene.add_view_to_parent(make_button("hbox-button1", "A"), &hbox.name);
+            scene.add_view_to_parent(make_button("hbox-button2", "B"), &hbox.name);
+            scene.add_view_to_parent(make_button("hbox-button3", "C"), &hbox.name);
+            scene.add_view_to_parent(hbox, &col2.name);
+            scene.add_view_to_parent(col2, &wrapper.name);
+        }
 
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
-        let mut wrapper = make_panel(LISTS_PANEL.as_str(), Bounds::new(0, 50, 100, 100));
-        wrapper.state = Some(Box::new(PanelState {
-            padding: 5,
-            debug: false,
-            border: false,
-            bg: true,
-            gap: 5,
-            halign: HAlign::Left,
-            valign: VAlign::Top,
-        }));
-        wrapper.layout = Some(layout_hbox);
+        let wrapper = View {
+            name: LISTS_PANEL.clone(),
+            layout: Some(layout_hbox_2),
+            draw:Some(draw_std_panel),
+            h_flex: Flex::Resize,
+            v_flex: Flex::Resize,
+            .. Default::default()
+        };
         let col1 = make_column("lists-col1");
         scene.add_view_to_parent(make_label("lists-label", "Lists"), &col1.name);
         let button = make_button(POPUP_BUTTON.as_str(), "Open Popup");
         scene.add_view_to_parent(button, &col1.name);
         scene.add_view_to_parent(col1, &wrapper.name);
-
         let list = make_list_view(
             "list-view",
             vec!["First", "Second", "Third", "Fourth", "Fifth"],
@@ -171,13 +175,14 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
-        let mut panel = make_panel(INPUTS_PANEL.as_str(), Bounds::new(0, 50, 100, 100));
-        if let Some(state) = panel.get_state::<PanelState>() {
-            state.border = false;
-            state.gap = 5;
-            state.bg = false;
-        }
-
+        let panel = View {
+            name: INPUTS_PANEL.clone(),
+            draw:Some(draw_std_panel),
+            h_flex: Flex::Resize,
+            v_flex: Flex::Resize,
+            layout: Some(layout_std_panel),
+            .. Default::default()
+        };
         scene.add_view_to_parent(
             make_text_input("textinput", "input").position_at(10, 10),
             &panel.name,
@@ -185,17 +190,14 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
-        let mut panel = make_panel(THEMES_PANEL.as_str(), Bounds::new(0, 50, 100, 100));
-        panel.layout = Some(layout_vbox);
-        panel.state = Some(Box::new(PanelState {
-            padding: 10,
-            debug: false,
-            border: false,
-            bg: true,
-            gap: 10,
-            halign: HAlign::Center,
-            valign: VAlign::Bottom,
-        }));
+        let panel = View {
+            name: THEMES_PANEL.clone(),
+            layout: Some(layout_vbox_2),
+            draw:Some(draw_std_panel),
+            h_flex: Flex::Resize,
+            v_flex: Flex::Resize,
+            .. Default::default()
+        };
 
         scene.add_view_to_parent(
             make_label("themes-label", "Themes").position_at(30, 90),
@@ -232,60 +234,74 @@ fn make_scene() -> Scene {
 }
 
 fn make_column(name: &'static str) -> View {
-    let mut panel = make_panel(name, Bounds::new(0, 0, 100, 100));
-    if let Some(state) = panel.get_state::<PanelState>() {
-        state.border = false;
-        state.gap = 5;
-        state.bg = false;
-    }
-    panel.layout = Some(layout_vbox);
+    let panel = View {
+        name: ViewId::new(name),
+        draw:Some(draw_std_panel),
+        h_flex: Flex::Resize,
+        v_flex: Flex::Resize,
+        h_align: Align::Center,
+        v_align: Align::Start,
+        layout: Some(layout_vbox_2),
+        ..Default::default()
+    };
     panel
 }
 
-fn make_tabs(name: &'static str, tabs: Vec<&str>, bounds: Bounds) -> View {
+fn make_row(name: &'static str) -> View {
     View {
-        name: name.into(),
-        title: name.into(),
-        bounds,
-        visible: true,
-        state: Some(SelectOneOfState::new_with(tabs, 0)),
-        input: None,
-        layout: Some(|e| {
-            if let Some(state) = e.scene.get_view_state::<SelectOneOfState>(e.target) {
-                let selected = state.selected;
-                if let Some(parent) = e.scene.get_view_mut(e.target) {
-                    let bounds = parent.bounds;
-                    let mut tabs_height = 50;
-                    for (i, kid) in e.scene.get_children_ids(e.target).iter().enumerate() {
-                        if let Some(ch) = e.scene.get_view_mut(&kid) {
-                            if kid.as_str() == "tabs" {
-                                ch.bounds = Bounds::new(0, 0, bounds.w(), ch.bounds.h());
-                                tabs_height = ch.bounds.h();
-                                ch.visible = true;
-                            } else {
-                                ch.bounds = Bounds::new(
-                                    0 + 1,
-                                    0 + tabs_height + 1,
-                                    bounds.size.w- 2,
-                                    bounds.size.h- tabs_height - 2,
-                                );
-                                ch.visible = false;
-                                if i == selected + 1 {
-                                    ch.visible = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }),
-        draw: Some(|e| {
-            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-        }),
-        .. Default::default()
+        name: ViewId::new(name),
+        draw:Some(draw_std_panel),
+        h_flex: Flex::Resize,
+        v_flex: Flex::Resize,
+        layout: Some(layout_hbox_2),
+        ..Default::default()
     }
 }
+
+// fn make_tabs(name: &'static str, tabs: Vec<&str>, bounds: Bounds) -> View {
+//     View {
+//         name: name.into(),
+//         title: name.into(),
+//         bounds,
+//         visible: true,
+//         state: Some(SelectOneOfState::new_with(tabs, 0)),
+//         input: None,
+//         layout: Some(|e| {
+//             if let Some(state) = e.scene.get_view_state::<SelectOneOfState>(e.target) {
+//                 let selected = state.selected;
+//                 if let Some(parent) = e.scene.get_view_mut(e.target) {
+//                     let bounds = parent.bounds;
+//                     let mut tabs_height = 50;
+//                     for (i, kid) in e.scene.get_children_ids(e.target).iter().enumerate() {
+//                         if let Some(ch) = e.scene.get_view_mut(&kid) {
+//                             if kid.as_str() == "tabs" {
+//                                 ch.bounds = Bounds::new(0, 0, bounds.w(), ch.bounds.h());
+//                                 tabs_height = ch.bounds.h();
+//                                 ch.visible = true;
+//                             } else {
+//                                 ch.bounds = Bounds::new(
+//                                     0 + 1,
+//                                     0 + tabs_height + 1,
+//                                     bounds.size.w- 2,
+//                                     bounds.size.h- tabs_height - 2,
+//                                 );
+//                                 ch.visible = false;
+//                                 if i == selected + 1 {
+//                                     ch.visible = true;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }),
+//         draw: Some(|e| {
+//             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+//             e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+//         }),
+//         .. Default::default()
+//     }
+// }
 
 fn main() -> Result<(), std::convert::Infallible> {
     env_logger::Builder::new()

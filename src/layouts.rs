@@ -67,7 +67,7 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     }
 }
 
-pub fn layout_hbox(pass: &mut LayoutEvent) {
+pub fn layout_hbox_2(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
         return;
     };
@@ -196,7 +196,7 @@ pub fn layout_tabbed_panel_tabs(pass: &mut LayoutEvent) {
 #[cfg(test)]
 mod tests {
     use crate::geom::{Bounds, Insets, Point, Size};
-    use crate::layouts::{layout_button, layout_hbox, layout_std_panel, layout_tabbed_panel, layout_tabbed_panel_tabs, layout_vbox};
+    use crate::layouts::{layout_button, layout_hbox_2, layout_std_panel, layout_tabbed_panel, layout_tabbed_panel_tabs, layout_vbox};
     use crate::scene::{layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::{Align, Flex, View, ViewId};
@@ -359,7 +359,7 @@ mod tests {
             let mut view = make_standard_view(&tab1);
             view.h_flex = Flex::Resize;
             view.v_flex = Flex::Resize;
-            view.layout = Some(layout_hbox);
+            view.layout = Some(layout_hbox_2);
             scene.add_view_to_parent(view, &tabbed_panel);
 
             let b1: ViewId = "tab1_button1".into();
