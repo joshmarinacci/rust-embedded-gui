@@ -96,7 +96,7 @@ fn make_scene() -> Scene {
         grid_layout.place_at_row_column(&button1.name, 1, 0);
         scene.add_view_to_parent(button1, &grid.name);
 
-        let button2 = make_toggle_button("toggle1", "Toggle");
+        let button2 = make_toggle_button(&ViewId::new("toggle1"), "Toggle");
         grid_layout.place_at_row_column(&button2.name, 1, 1);
         scene.add_view_to_parent(button2, &grid.name);
 
