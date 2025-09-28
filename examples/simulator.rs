@@ -10,9 +10,6 @@ use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
-use embedded_graphics::text::{
-    Alignment, Baseline, Text, TextStyle as ETextStyle, TextStyleBuilder,
-};
 use rust_embedded_gui::button::make_button;
 use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint};
 use rust_embedded_gui::scene::{
@@ -22,11 +19,9 @@ use rust_embedded_gui::toggle_button::make_toggle_button;
 use rust_embedded_gui::toggle_group::{SelectOneOfState, layout_toggle_group, make_toggle_group};
 use rust_embedded_gui::{Action, EventType, KeyboardAction, Theme};
 use std::convert::Into;
-use std::ops::Add;
 
 #[cfg(feature = "std")]
 use embedded_graphics::prelude::*;
-use embedded_graphics_simulator::sdl2::MouseWheelDirection::Flipped;
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
@@ -35,7 +30,6 @@ use env_logger::Target;
 use env_logger::fmt::style::Color::Rgb;
 use log::{LevelFilter, info};
 use rust_embedded_gui::device::EmbeddedDrawingContext;
-use rust_embedded_gui::gfx::{DrawingContext, TextStyle};
 use rust_embedded_gui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
 use rust_embedded_gui::label::make_label;
 use rust_embedded_gui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};

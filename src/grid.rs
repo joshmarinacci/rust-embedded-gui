@@ -161,6 +161,7 @@ mod tests {
     use crate::test::MockDrawingContext;
     use crate::view::{Align, ViewId};
     use alloc::boxed::Box;
+    use crate::button::make_button;
 
     #[test]
     fn test_grid_layout() {

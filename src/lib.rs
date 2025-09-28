@@ -126,26 +126,11 @@ mod tests {
     use crate::test::MockDrawingContext;
     use crate::view::Align;
     use alloc::vec::Vec;
-    use env_logger::Target;
-    use gfx::DrawingContext;
     use log::{LevelFilter, info};
     use std::sync::Once;
 
     extern crate std;
 
-    static INIT: Once = Once::new();
-
-    pub fn initialize() {
-        INIT.call_once(|| {
-            env_logger::Builder::new()
-                // .format(|f, record| {
-                //     writeln!(f,"[{}] - {}",record.level(),record.args())
-                // })
-                .target(Target::Stdout) // <-- redirects to stdout
-                .filter(None, LevelFilter::Info)
-                .init();
-        });
-    }
     fn make_simple_view(name: &ViewId) -> View {
         View {
             name: name.clone(),
@@ -307,7 +292,6 @@ mod tests {
 
     #[test]
     fn test_geometry() {
-        initialize();
         let bounds = Bounds::new(0, 0, 100, 100);
         assert_eq!(bounds.contains(&Point::new(10, 10)), true);
         assert_eq!(bounds.contains(&Point::new(-1, -1)), false);
@@ -361,7 +345,6 @@ mod tests {
     }
     #[test]
     fn test_pick_at() {
-        initialize();
         let mut scene: Scene = Scene::new();
         let vbox = make_vbox(&"parent".into(), Bounds::new(10, 10, 100, 100));
 
@@ -454,7 +437,6 @@ mod tests {
     }
     #[test]
     fn test_toggle_button() {
-        initialize();
         let mut scene = Scene::new();
         // add toggle button
         let button = View {
@@ -522,7 +504,6 @@ mod tests {
     #[test]
     fn test_make_visible() {
         // create scene
-        initialize();
         let mut scene = Scene::new();
 
         // create button 1
@@ -572,7 +553,6 @@ mod tests {
     #[test]
     fn test_keyboard_events() {
         // make scene
-        initialize();
         let mut scene: Scene = Scene::new();
 
         // make text box
@@ -591,7 +571,6 @@ mod tests {
 
     #[test]
     fn test_draw2() {
-        initialize();
         let mut scene = Scene::new();
         let view = View {
             name: "view".into(),
@@ -617,7 +596,6 @@ mod tests {
 
     #[test]
     fn test_cliprect() {
-        initialize();
         // make scene
         let mut scene = Scene::new();
         // add button
