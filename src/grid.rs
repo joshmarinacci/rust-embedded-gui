@@ -1,11 +1,11 @@
 use crate::geom::{Bounds, Point};
+use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{Align, View, ViewId};
 use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::String;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use hashbrown::HashMap;
-use crate::view::Flex::{Intrinsic, Resize};
 
 pub struct GridLayoutState {
     pub constraints: HashMap<ViewId, LayoutConstraint>,
@@ -83,7 +83,7 @@ pub fn make_grid_panel(name: &ViewId) -> View {
         layout: Some(layout_grid),
         draw: Some(draw_grid),
         visible: true,
-        .. Default::default()
+        ..Default::default()
     }
 }
 
@@ -118,20 +118,18 @@ fn layout_grid(pass: &mut LayoutEvent) {
         if view.h_flex == Resize {
             view.bounds.size.w = pass.space.w;
         }
-        if view.h_flex == Intrinsic {
-        }
+        if view.h_flex == Intrinsic {}
         if view.v_flex == Resize {
             view.bounds.size.h = pass.space.h;
         }
-        if view.v_flex == Intrinsic {
-        }
+        if view.v_flex == Intrinsic {}
 
         let parent_bounds = view.bounds.clone();
         let padding = view.padding.clone();
         let kids = pass.scene.get_children_ids(pass.target);
         let space = parent_bounds.size.clone() - padding;
         for kid in kids {
-            pass.layout_child(&kid,space);
+            pass.layout_child(&kid, space);
             if let Some(state) = pass.scene.get_view_state::<GridLayoutState>(pass.target) {
                 let cell_bounds = if let Some(cons) = &state.constraints.get(&kid) {
                     let x = (cons.col * state.col_width) as i32 + padding.left;
@@ -156,21 +154,20 @@ fn center_within(cell: Bounds, view: &mut Bounds) {
 }
 
 mod tests {
-    use crate::button::make_button;
     use crate::geom::Bounds;
     use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
     use crate::label::make_label;
     use crate::scene::{Scene, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
-    use alloc::boxed::Box;
     use crate::view::{Align, ViewId};
+    use alloc::boxed::Box;
 
     #[test]
     fn test_grid_layout() {
         let theme = MockDrawingContext::make_mock_theme();
 
         let mut grid = make_grid_panel(&ViewId::new("grid"));
-        grid.bounds = Bounds::new(40,40,200,200);
+        grid.bounds = Bounds::new(40, 40, 200, 200);
         let mut grid_layout = GridLayoutState::new_row_column(2, 30, 2, 100);
 
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));

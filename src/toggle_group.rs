@@ -1,5 +1,5 @@
 use crate::geom::{Bounds, Point};
-use crate::gfx::{draw_centered_text, DrawingContext};
+use crate::gfx::{DrawingContext, draw_centered_text};
 use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
@@ -22,7 +22,7 @@ pub fn make_toggle_group(name: &ViewId, data: Vec<&str>, selected: usize) -> Vie
         visible: true,
         h_flex: Resize,
         v_flex: Intrinsic,
-        .. Default::default()
+        ..Default::default()
     }
 }
 
@@ -48,7 +48,7 @@ fn input_toggle_group(e: &mut GuiEvent) -> Option<Action> {
             if let Some(view) = e.scene.get_view_mut(e.target) {
                 let bounds = view.bounds;
                 if let Some(state) = view.get_state::<SelectOneOfState>() {
-                    let cell_width = bounds.size.w/ (state.items.len() as i32);
+                    let cell_width = bounds.size.w / (state.items.len() as i32);
                     let x = pt.x - bounds.x();
                     let n = x / cell_width;
                     if n >= 0 && n < state.items.len() as i32 {
@@ -68,7 +68,7 @@ fn draw_toggle_group(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     let name = e.view.name.clone();
     if let Some(state) = e.view.get_state::<SelectOneOfState>() {
-        let cell_width = bounds.size.w/ (state.items.len() as i32);
+        let cell_width = bounds.size.w / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
             let (bg, fg) = if i == state.selected {
                 (&e.theme.selected_bg, &e.theme.selected_fg)
@@ -76,7 +76,7 @@ fn draw_toggle_group(e: &mut DrawEvent) {
                 (&e.theme.bg, &e.theme.fg)
             };
             let bds = Bounds::new(
-                bounds.position.x+ (i as i32) * cell_width + 1,
+                bounds.position.x + (i as i32) * cell_width + 1,
                 bounds.y(),
                 cell_width - 1,
                 bounds.h(),
@@ -96,10 +96,10 @@ fn draw_toggle_group(e: &mut DrawEvent) {
 
             // draw left edge except for the first one
             if i != 0 {
-                let x = bounds.position.x+ (i as i32) * cell_width;
+                let x = bounds.position.x + (i as i32) * cell_width;
                 e.ctx.line(
                     &Point::new(x, bounds.y()),
-                    &Point::new(x, bounds.position.y+ bounds.size.h- 1),
+                    &Point::new(x, bounds.position.y + bounds.size.h - 1),
                     &e.theme.fg,
                 );
             }
@@ -125,13 +125,13 @@ pub fn layout_toggle_group(pass: &mut LayoutEvent) {
             view.bounds.size.h = height as i32;
         }
     }
-    pass.layout_all_children(&pass.target.clone(),pass.space);
+    pass.layout_all_children(&pass.target.clone(), pass.space);
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
+    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
     use crate::view::ViewId;
     use alloc::vec;
 
@@ -157,7 +157,9 @@ mod tests {
         click_at(&mut scene, &vec![], Point::new(50, 10));
 
         {
-            let state = &mut scene.get_view_state::<SelectOneOfState>(&ViewId::new("group")).unwrap();
+            let state = &mut scene
+                .get_view_state::<SelectOneOfState>(&ViewId::new("group"))
+                .unwrap();
             assert_eq!(state.items, vec!["A", "BB", "CCC"]);
             assert_eq!(state.selected, 1);
         }
@@ -168,4 +170,3 @@ mod tests {
         assert_eq!(scene.dirty, false);
     }
 }
-

@@ -1,8 +1,6 @@
 use crate::geom::{Bounds, Point as GPoint};
 use crate::gfx::{DrawingContext, TextStyle};
-use alloc::boxed::Box;
-use alloc::string::String;
-use core::convert::Infallible;
+use crate::view::Align;
 use core::ops::Add;
 use embedded_graphics::Drawable;
 use embedded_graphics::draw_target::DrawTargetExt;
@@ -13,7 +11,6 @@ use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::DrawTarget;
 use embedded_graphics::primitives::{Line, Primitive, PrimitiveStyle, Rectangle};
 use embedded_graphics::text::{Alignment, Baseline, Text, TextStyleBuilder};
-use crate::view::Align;
 
 pub struct EmbeddedDrawingContext<'a, T>
 where
@@ -30,7 +27,7 @@ where
 {
     pub fn new(display: &'a mut T) -> Self {
         EmbeddedDrawingContext {
-            display: display,
+            display,
             clip: Bounds::new_empty(),
             offset: EPoint::new(0, 0),
         }
@@ -111,7 +108,7 @@ where
         let estyle = text_builder.build();
         let etext = Text {
             position: pt,
-            text: text,
+            text,
             character_style: estyle,
             text_style: TextStyleBuilder::new()
                 .alignment(Alignment::Center)

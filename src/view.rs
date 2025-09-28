@@ -1,5 +1,5 @@
-use crate::geom::{Bounds, Insets, Size};
-use crate::{DrawFn, InputFn, LayoutFn, Theme};
+use crate::geom::{Bounds, Insets};
+use crate::{DrawFn, InputFn, LayoutFn};
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::any::Any;
@@ -22,7 +22,7 @@ impl Into<ViewId> for &'static str {
 }
 impl Display for ViewId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f,"{}",self.0)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -59,13 +59,13 @@ pub struct View {
 
 impl View {
     pub fn position_at(mut self, x: i32, y: i32) -> View {
-        self.bounds.position.x= x;
-        self.bounds.position.y= y;
+        self.bounds.position.x = x;
+        self.bounds.position.y = y;
         self
     }
     pub fn with_size(mut self, w: i32, h: i32) -> View {
-        self.bounds.size.w= w;
-        self.bounds.size.h= h;
+        self.bounds.size.w = w;
+        self.bounds.size.h = h;
         self
     }
     pub fn hide(mut self) -> View {
@@ -102,4 +102,3 @@ impl Default for View {
         }
     }
 }
-

@@ -2,8 +2,8 @@ use crate::geom::{Bounds, Point};
 use crate::gfx::DrawingContext;
 use crate::view::{View, ViewId};
 use crate::{Action, Callback, DrawEvent, EventType, GuiEvent, LayoutEvent, LayoutFn, Theme};
-use alloc::{format, vec};
 use alloc::vec::Vec;
+use alloc::{format, vec};
 use hashbrown::HashMap;
 use log::{info, warn};
 
@@ -125,7 +125,6 @@ impl Scene {
             .collect()
     }
 
-
     pub(crate) fn has_view(&self, name: &ViewId) -> bool {
         self.keys.contains_key(name)
     }
@@ -151,7 +150,6 @@ impl Scene {
         }
     }
 
-
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
     }
@@ -163,14 +161,14 @@ impl Scene {
         let rootid = ViewId::new("root");
         let root = View {
             name: rootid.clone(),
-            title:rootid.as_str().into(),
+            title: rootid.as_str().into(),
             bounds,
             visible: true,
             input: None,
             state: None,
             layout: Some(layout_root_panel),
             draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
-            .. Default::default()
+            ..Default::default()
         };
         let root_id = ViewId::new("root");
         let mut keys: HashMap<ViewId, View> = HashMap::new();
@@ -187,7 +185,7 @@ impl Scene {
         }
     }
     pub fn new() -> Scene {
-        let bounds = Bounds::new(0,0,200,200);
+        let bounds = Bounds::new(0, 0, 200, 200);
         Self::new_with_bounds(bounds)
     }
     pub fn add_view(&mut self, view: View) {
@@ -225,7 +223,6 @@ impl Scene {
         }
         None
     }
-
 }
 
 fn layout_root_panel(pass: &mut LayoutEvent) {
@@ -234,7 +231,7 @@ fn layout_root_panel(pass: &mut LayoutEvent) {
         view.bounds.size.h = pass.space.h;
     }
     for kid in &pass.scene.get_children_ids(&pass.target) {
-        pass.layout_child(kid,pass.space);
+        pass.layout_child(kid, pass.space);
     }
 }
 
@@ -352,7 +349,7 @@ pub fn layout_scene(scene: &mut Scene, theme: &Theme) {
             target: &scene.root_id(),
             space: scene.bounds.size.clone(),
             scene,
-            theme
+            theme,
         };
         if let Some(layout) = pass.scene.get_view_layout(&pass.scene.root_id()) {
             layout(&mut pass);
@@ -381,4 +378,3 @@ pub fn layout_scene(scene: &mut Scene, theme: &Theme) {
 //         }
 //     }
 // }
-

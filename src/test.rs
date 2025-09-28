@@ -70,10 +70,10 @@ impl DrawingContext for MockDrawingContext {
     fn fill_text(&mut self, bounds: &Bounds, text: &str, style: &TextStyle) {
         let style = MonoTextStyle::new(&style.font, *style.color);
         let mut pt = embedded_graphics::geometry::Point::new(bounds.position.x, bounds.position.y);
-        pt.y += bounds.size.h/ 2;
+        pt.y += bounds.size.h / 2;
         pt.y += (style.font.baseline as i32) / 2;
         let w = (style.font.character_size.width as i32) * (text.len() as i32);
-        pt.x += (bounds.size.w- w) / 2;
+        pt.x += (bounds.size.w - w) / 2;
         Text::new(text, pt, style).draw(&mut self.display).unwrap();
     }
 

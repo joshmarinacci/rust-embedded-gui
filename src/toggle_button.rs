@@ -1,8 +1,8 @@
+use crate::geom::Insets;
 use crate::gfx::draw_centered_text;
 use crate::view::{View, ViewId};
-use crate::{util, Action, DrawEvent, GuiEvent, LayoutEvent};
+use crate::{Action, DrawEvent, GuiEvent, LayoutEvent, util};
 use alloc::boxed::Box;
-use crate::geom::Insets;
 
 pub fn make_toggle_button(name: &ViewId, title: &str) -> View {
     View {
@@ -12,7 +12,7 @@ pub fn make_toggle_button(name: &ViewId, title: &str) -> View {
         draw: Some(draw_toggle_button),
         layout: Some(layout_toggle_button),
         input: Some(input_toggle_button),
-        .. Default::default()
+        ..Default::default()
     }
 }
 
@@ -67,9 +67,9 @@ fn layout_toggle_button(event: &mut LayoutEvent) {
 
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_button::{make_toggle_button, SelectedState};
+    use crate::toggle_button::{SelectedState, make_toggle_button};
     use crate::view::ViewId;
     use alloc::vec;
 
@@ -103,7 +103,9 @@ mod tests {
         click_at(&mut scene, &vec![], Point::new(10, 10));
 
         {
-            let state = scene.get_view_state::<SelectedState>(&ViewId::new("toggle")).unwrap();
+            let state = scene
+                .get_view_state::<SelectedState>(&ViewId::new("toggle"))
+                .unwrap();
             assert_eq!(state.selected, true);
         }
 

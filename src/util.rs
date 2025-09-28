@@ -1,7 +1,7 @@
 use crate::geom::{Bounds, Size};
+use embedded_graphics::geometry::Size as ESize;
 use embedded_graphics::mono_font::MonoFont;
 use embedded_graphics::primitives::Rectangle;
-use embedded_graphics::geometry::{Size as ESize} ;
 
 pub fn calc_bounds(bounds: Bounds, font: MonoFont<'static>, title: &str) -> Bounds {
     let fsize = &font.character_size;

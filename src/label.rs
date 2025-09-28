@@ -1,7 +1,7 @@
-use crate::gfx::{TextStyle};
+use crate::gfx::TextStyle;
 use crate::util;
-use crate::view::{View, ViewId};
 use crate::view::Flex::Intrinsic;
+use crate::view::{View, ViewId};
 
 pub fn make_label(name: &'static str, title: &str) -> View {
     View {
@@ -18,6 +18,6 @@ pub fn make_label(name: &'static str, title: &str) -> View {
             let style = TextStyle::new(&e.theme.font, &e.theme.fg);
             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
         }),
-        .. Default::default()
+        ..Default::default()
     }
 }

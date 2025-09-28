@@ -3,25 +3,15 @@
 extern crate alloc;
 extern crate core;
 
+use crate::geom::Size;
 use crate::scene::Scene;
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-use alloc::vec;
-use alloc::vec::Vec;
-use core::any::Any;
-use embedded_graphics::Drawable;
-use embedded_graphics::mock_display::MockDisplay;
+use crate::view::ViewId;
+use alloc::string::String;
 use embedded_graphics::mono_font::MonoFont;
-use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
-use embedded_graphics::mono_font::iso_8859_9::FONT_6X10;
-use embedded_graphics::pixelcolor::{Rgb565, RgbColor, WebColors};
-use embedded_graphics::primitives::Primitive;
+use embedded_graphics::pixelcolor::Rgb565;
 use geom::{Bounds, Point};
 use gfx::DrawingContext;
-use log::info;
 use view::View;
-use crate::geom::Size;
-use crate::view::{ViewId};
 
 pub mod button;
 pub mod device;
@@ -29,6 +19,7 @@ pub mod geom;
 pub mod gfx;
 pub mod grid;
 pub mod label;
+pub mod layouts;
 pub mod list_view;
 pub mod panel;
 pub mod scene;
@@ -38,7 +29,6 @@ pub mod toggle_button;
 pub mod toggle_group;
 pub mod util;
 pub mod view;
-pub mod layouts;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
@@ -131,14 +121,15 @@ impl<'a> LayoutEvent<'a> {
 mod tests {
     use super::*;
     use crate::button::make_button;
-    use crate::gfx::{TextStyle};
+    use crate::gfx::TextStyle;
     use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
     use crate::test::MockDrawingContext;
+    use crate::view::Align;
+    use alloc::vec::Vec;
     use env_logger::Target;
     use gfx::DrawingContext;
-    use log::LevelFilter;
+    use log::{LevelFilter, info};
     use std::sync::Once;
-    use crate::view::Align;
 
     extern crate std;
 
@@ -159,13 +150,13 @@ mod tests {
         View {
             name: name.clone(),
             title: name.to_string(),
-            bounds: Bounds::new(0,0,10,10),
+            bounds: Bounds::new(0, 0, 10, 10),
             visible: true,
             draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.bg)),
             input: None,
             state: None,
             layout: None,
-            .. Default::default()
+            ..Default::default()
         }
     }
     fn layout_vbox(evt: &mut LayoutEvent) {
@@ -175,9 +166,9 @@ mod tests {
             let kids = evt.scene.get_children_ids(evt.target);
             for kid in kids {
                 if let Some(ch) = evt.scene.get_view_mut(&kid) {
-                    ch.bounds.position.x= 0;
-                    ch.bounds.position.y= y;
-                    ch.bounds.size.w= bounds.w();
+                    ch.bounds.position.x = 0;
+                    ch.bounds.position.y = y;
+                    ch.bounds.size.w = bounds.w();
                     y += ch.bounds.h();
                 }
             }
@@ -195,7 +186,7 @@ mod tests {
             input: None,
             state: None,
             layout: Some(layout_vbox),
-            .. Default::default()
+            ..Default::default()
         }
     }
     struct TestButtonState {
@@ -206,7 +197,7 @@ mod tests {
         View {
             name: name.clone(),
             title: name.to_string(),
-            bounds: Bounds::new(0,0,20,20),
+            bounds: Bounds::new(0, 0, 20, 20),
             visible: true,
             draw: Some(|e| {
                 if let Some(state) = &mut e.view.state {
@@ -230,7 +221,7 @@ mod tests {
                 got_input: false,
             })),
             layout: None,
-            .. Default::default()
+            ..Default::default()
         }
     }
     fn make_text_box(name: &ViewId, title: &str) -> View {
@@ -254,7 +245,7 @@ mod tests {
                 };
                 None
             }),
-            .. Default::default()
+            ..Default::default()
         }
     }
     fn draw_label_view(e: &mut DrawEvent) {
@@ -268,13 +259,13 @@ mod tests {
         View {
             name: name.clone(),
             title: name.to_string(),
-            bounds: Bounds::new(0,0,30,20),
+            bounds: Bounds::new(0, 0, 30, 20),
             visible: true,
             draw: Some(draw_label_view),
             input: None,
             state: None,
             layout: None,
-            .. Default::default()
+            ..Default::default()
         }
     }
     fn get_bounds(scene: &Scene, name: &ViewId) -> Option<Bounds> {
@@ -317,7 +308,7 @@ mod tests {
     #[test]
     fn test_geometry() {
         initialize();
-        let bounds = Bounds::new(0,0,100,100);
+        let bounds = Bounds::new(0, 0, 100, 100);
         assert_eq!(bounds.contains(&Point::new(10, 10)), true);
         assert_eq!(bounds.contains(&Point::new(-1, -1)), false);
 
@@ -344,17 +335,17 @@ mod tests {
     #[test]
     fn parent_child() {
         let mut scene: Scene = Scene::new();
-        let parent_id:ViewId = "parent".into();
+        let parent_id: ViewId = "parent".into();
         let parent = &parent_id;
-        let child_id:ViewId = "child".into();
+        let child_id: ViewId = "child".into();
         let child = &child_id;
         scene.add_view(make_simple_view(parent));
         scene.add_view(make_simple_view(child));
         assert_eq!(scene.get_children_ids(parent).len(), 0);
         assert_eq!(scene.viewcount(), 3);
-        scene.add_child(parent,child);
+        scene.add_child(parent, child);
         assert_eq!(scene.get_children_ids(parent).len(), 1);
-        scene.remove_child(parent,child);
+        scene.remove_child(parent, child);
         assert_eq!(scene.get_children_ids(parent).len(), 0);
 
         scene.add_child(parent, child);
@@ -372,13 +363,10 @@ mod tests {
     fn test_pick_at() {
         initialize();
         let mut scene: Scene = Scene::new();
-        let vbox = make_vbox(
-            &"parent".into(),
-            Bounds::new(10,10,100,100),
-        );
+        let vbox = make_vbox(&"parent".into(), Bounds::new(10, 10, 100, 100));
 
         let mut button = make_test_button(&ViewId::new("child"));
-        button.bounds = Bounds::new(10,10,10,10);
+        button.bounds = Bounds::new(10, 10, 10, 10);
 
         scene.add_child(&scene.root_id.clone(), &vbox.name);
         scene.add_child(&vbox.name, &button.name);
@@ -390,14 +378,11 @@ mod tests {
     }
     #[test]
     fn test_layout() {
-        let parent:ViewId = "parent".into();
+        let parent: ViewId = "parent".into();
         let theme = MockDrawingContext::make_mock_theme();
         let mut scene: Scene = Scene::new();
         // add panel
-        scene.add_view(make_vbox(
-            &parent,
-            Bounds::new(10,10,100,100),
-        ));
+        scene.add_view(make_vbox(&parent, Bounds::new(10, 10, 100, 100)));
         // add button 1
         scene.add_view_to_parent(make_test_button(&ViewId::new("button1")), &parent);
         // add button 2
@@ -412,25 +397,22 @@ mod tests {
         });
         assert_eq!(
             get_bounds(&scene, &"parent".into()),
-            Some(Bounds::new(10,10,100,100))
+            Some(Bounds::new(10, 10, 100, 100))
         );
         assert_eq!(
             get_bounds(&scene, &"button1".into()),
-            Some(Bounds::new(0,0,100,20)),
+            Some(Bounds::new(0, 0, 100, 20)),
         );
         assert_eq!(
             get_bounds(&scene, &"button2".into()),
-            Some(Bounds::new(0,20,100,20))
+            Some(Bounds::new(0, 20, 100, 20))
         );
     }
     #[test]
     fn test_repaint() {
         let mut scene = Scene::new();
         // add panel
-        scene.add_view(make_vbox(
-            &"parent".into(),
-            Bounds::new(10,10,100,100),
-        ));
+        scene.add_view(make_vbox(&"parent".into(), Bounds::new(10, 10, 100, 100)));
         // add button 1
         scene.add_view(make_test_button(&ViewId::new("button1")));
         // add button 2
@@ -479,7 +461,7 @@ mod tests {
             name: ViewId::new("toggle"),
             title: String::from("Off"),
             visible: true,
-            bounds: Bounds::new(10,10,20,20),
+            bounds: Bounds::new(10, 10, 20, 20),
             draw: Some(|e| {
                 if let Some(state) = &e.view.state {
                     if let Some(state) = state.downcast_ref::<String>() {
@@ -502,7 +484,7 @@ mod tests {
             input: Some(handle_toggle_button_input),
             state: Some(Box::new(String::from("disabled"))),
             layout: None,
-            .. Default::default()
+            ..Default::default()
         };
         scene.add_view_to_root(button);
         // repaint
@@ -550,7 +532,7 @@ mod tests {
 
         // create button 2
         let mut button2 = make_test_button(&ViewId::new("button2"));
-        button2.bounds.position.x= 100;
+        button2.bounds.position.x = 100;
         // make button 2 invisible
         button2.visible = false;
         scene.add_view_to_root(button2);
@@ -626,7 +608,7 @@ mod tests {
             state: None,
             input: None,
             layout: None,
-            .. Default::default()
+            ..Default::default()
         };
 
         scene.add_view_to_root(view);
@@ -654,7 +636,10 @@ mod tests {
         click_at(&mut scene, &vec![], Point::new(30, 30));
         // check that dirty area is just for the button
         assert_eq!(scene.dirty, true);
-        assert_eq!(scene.dirty_rect, scene.get_view(&"button".into()).unwrap().bounds);
+        assert_eq!(
+            scene.dirty_rect,
+            scene.get_view(&"button".into()).unwrap().bounds
+        );
         // draw
         repaint(&mut scene);
         assert_eq!(scene.dirty, false);

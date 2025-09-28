@@ -1,4 +1,3 @@
-use std::convert::Into;
 use embedded_graphics::Drawable;
 use embedded_graphics::geometry::{Point as EPoint, Size};
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
@@ -16,33 +15,36 @@ use embedded_graphics::text::{
 };
 use rust_embedded_gui::button::make_button;
 use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint};
-use rust_embedded_gui::scene::{click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene};
+use rust_embedded_gui::scene::{
+    EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene,
+};
 use rust_embedded_gui::toggle_button::make_toggle_button;
-use rust_embedded_gui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
+use rust_embedded_gui::toggle_group::{SelectOneOfState, layout_toggle_group, make_toggle_group};
 use rust_embedded_gui::{Action, EventType, KeyboardAction, Theme};
+use std::convert::Into;
 use std::ops::Add;
 
 #[cfg(feature = "std")]
 use embedded_graphics::prelude::*;
+use embedded_graphics_simulator::sdl2::MouseWheelDirection::Flipped;
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
-use embedded_graphics_simulator::sdl2::MouseWheelDirection::Flipped;
 use env_logger::Target;
 use env_logger::fmt::style::Color::Rgb;
-use log::{info, LevelFilter};
+use log::{LevelFilter, info};
 use rust_embedded_gui::device::EmbeddedDrawingContext;
 use rust_embedded_gui::gfx::{DrawingContext, TextStyle};
-use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
+use rust_embedded_gui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
 use rust_embedded_gui::label::make_label;
 use rust_embedded_gui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
 use rust_embedded_gui::list_view::make_list_view;
 use rust_embedded_gui::panel::draw_std_panel;
 use rust_embedded_gui::text_input::make_text_input;
-use rust_embedded_gui::view::{Align, Flex, View, ViewId};
 use rust_embedded_gui::view::Align::Center;
 use rust_embedded_gui::view::Flex::{Intrinsic, Resize};
+use rust_embedded_gui::view::{Align, Flex, View, ViewId};
 
 const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
 const MEDIUM_FONT_BUTTON: &str = "medium_font";
@@ -62,7 +64,7 @@ fn make_scene() -> Scene {
 
     let mut tabbed_panel: View = View {
         name: TABBED_PANEL.clone(),
-        bounds: Bounds::new(10,10,320-20,180),
+        bounds: Bounds::new(10, 10, 320 - 20, 180),
         h_flex: Flex::Intrinsic,
         v_flex: Flex::Intrinsic,
         draw: Some(|e| {
@@ -70,7 +72,7 @@ fn make_scene() -> Scene {
             e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
         }),
         layout: Some(layout_tabbed_panel),
-        .. Default::default()
+        ..Default::default()
     };
 
     let tabs_id = ViewId::new("tabs");
@@ -120,7 +122,7 @@ fn make_scene() -> Scene {
     {
         let mut wrapper = View {
             name: LAYOUT_PANEL.clone(),
-            draw:Some(draw_std_panel),
+            draw: Some(draw_std_panel),
             padding: Insets::new_same(5),
             h_flex: Flex::Resize,
             v_flex: Flex::Resize,
@@ -133,7 +135,7 @@ fn make_scene() -> Scene {
             scene.add_view_to_parent(make_label("vbox-label", "vbox layout"), &col1.name);
             let vbox = View {
                 name: ViewId::new("vbox"),
-                draw:Some(draw_std_panel),
+                draw: Some(draw_std_panel),
                 layout: Some(layout_vbox),
                 ..Default::default()
             };
@@ -162,17 +164,18 @@ fn make_scene() -> Scene {
         let mut wrapper = View {
             name: LISTS_PANEL.clone(),
             layout: Some(layout_hbox),
-            draw:Some(draw_std_panel),
+            draw: Some(draw_std_panel),
             h_flex: Flex::Resize,
             v_flex: Flex::Resize,
-            .. Default::default()
+            ..Default::default()
         };
         let col1 = make_column("lists-col1");
         scene.add_view_to_parent(make_label("lists-label", "Lists"), &col1.name);
         let button = make_button(POPUP_BUTTON.as_str(), "Open Popup");
         scene.add_view_to_parent(button, &col1.name);
         scene.add_view_to_parent(col1, &wrapper.name);
-        let list = make_list_view(&ViewId::new("list-view"),
+        let list = make_list_view(
+            &ViewId::new("list-view"),
             vec!["First", "Second", "Third", "Fourth", "Fifth"],
             1,
         );
@@ -183,11 +186,11 @@ fn make_scene() -> Scene {
     {
         let mut panel = View {
             name: INPUTS_PANEL.clone(),
-            draw:Some(draw_std_panel),
+            draw: Some(draw_std_panel),
             h_flex: Flex::Resize,
             v_flex: Flex::Resize,
             layout: Some(layout_std_panel),
-            .. Default::default()
+            ..Default::default()
         };
         scene.add_view_to_parent(
             make_text_input("textinput", "input").position_at(10, 10),
@@ -200,10 +203,10 @@ fn make_scene() -> Scene {
         let mut panel = View {
             name: THEMES_PANEL.clone(),
             layout: Some(layout_vbox),
-            draw:Some(draw_std_panel),
+            draw: Some(draw_std_panel),
             h_flex: Flex::Resize,
             v_flex: Flex::Resize,
-            .. Default::default()
+            ..Default::default()
         };
 
         scene.add_view_to_parent(
@@ -220,15 +223,18 @@ fn make_scene() -> Scene {
     scene.add_view_to_root(tabbed_panel);
 
     let mut font_buttons = View {
-        name:ViewId::new("font_buttons"),
-        bounds: Bounds::new(30,200,200,30),
+        name: ViewId::new("font_buttons"),
+        bounds: Bounds::new(30, 200, 200, 30),
         layout: Some(layout_hbox),
         h_flex: Intrinsic,
         v_flex: Intrinsic,
         draw: Some(draw_std_panel),
-        .. Default::default()
+        ..Default::default()
     };
-    scene.add_view_to_parent(make_button(SMALL_FONT_BUTTON.as_str(), "Small"), &font_buttons.name);
+    scene.add_view_to_parent(
+        make_button(SMALL_FONT_BUTTON.as_str(), "Small"),
+        &font_buttons.name,
+    );
     scene.add_view_to_parent(
         make_button(MEDIUM_FONT_BUTTON, "Medium"),
         &font_buttons.name,
@@ -246,7 +252,7 @@ fn make_scene() -> Scene {
 fn make_column(name: &'static str) -> View {
     let panel = View {
         name: ViewId::new(name),
-        draw:Some(draw_std_panel),
+        draw: Some(draw_std_panel),
         h_flex: Flex::Resize,
         v_flex: Flex::Resize,
         h_align: Align::Center,
@@ -260,7 +266,7 @@ fn make_column(name: &'static str) -> View {
 fn make_row(name: &'static str) -> View {
     View {
         name: ViewId::new(name),
-        draw:Some(draw_std_panel),
+        draw: Some(draw_std_panel),
         h_flex: Flex::Resize,
         v_flex: Flex::Resize,
         layout: Some(layout_hbox),

@@ -9,16 +9,13 @@ pub struct Size {
 
 impl Size {
     fn empty() -> Size {
-        Size {
-            w: -99,
-            h: -99,
-        }
+        Size { w: -99, h: -99 }
     }
 }
 
 impl Size {
     pub fn new(w: i32, h: i32) -> Size {
-        Size { w: w, h: h }
+        Size { w, h }
     }
     pub fn sub(&self, b: &Insets) -> Size {
         Size {
@@ -195,7 +192,7 @@ impl Bounds {
             size: Size {
                 w: self.size.w - i - i,
                 h: self.size.h - i - i,
-            }
+            },
         }
     }
 }
@@ -208,10 +205,7 @@ impl Bounds {
         }
     }
     pub fn new_from(position: Point, size: Size) -> Bounds {
-        Bounds {
-            position: position,
-            size: size,
-        }
+        Bounds { position, size }
     }
 }
 impl Default for Bounds {
@@ -251,7 +245,7 @@ impl Add<Insets> for Bounds {
             size: Size {
                 w: self.size.w + rhs.left + rhs.right,
                 h: self.size.h + rhs.top + rhs.bottom,
-            }
+            },
         }
     }
 }
@@ -267,7 +261,7 @@ impl Sub<Insets> for Bounds {
             size: Size {
                 w: self.size.w - rhs.left - rhs.right,
                 h: self.size.h - rhs.top - rhs.bottom,
-            }
+            },
         }
     }
 }
@@ -282,26 +276,29 @@ impl Display for Bounds {
 }
 impl Bounds {
     pub fn union(&self, b: Bounds) -> Bounds {
-            if self.is_empty() {
-                return b;
-            }
-            if b.is_empty() {
-                return *self;
-            }
-            Bounds::from_xyxy2(
-                self.position.x.min(b.position.x),
-                self.position.y.min(b.position.y),
-                self.x2().max(b.x2()),
-                self.y2().max(b.y2()),
-            )
+        if self.is_empty() {
+            return b;
         }
+        if b.is_empty() {
+            return *self;
+        }
+        Bounds::from_xyxy2(
+            self.position.x.min(b.position.x),
+            self.position.y.min(b.position.y),
+            self.x2().max(b.x2()),
+            self.y2().max(b.y2()),
+        )
+    }
     pub(crate) fn center(&self) -> Point {
-        Point::new(self.position.x + self.size.w / 2, self.position.y + self.size.h / 2)
+        Point::new(
+            self.position.x + self.size.w / 2,
+            self.position.y + self.size.h / 2,
+        )
     }
     fn from_xyxy2(x: i32, y: i32, x2: i32, y2: i32) -> Bounds {
         Bounds {
-            position:Point::new(x,y),
-            size: Size::new(x2-x,y2-y),
+            position: Point::new(x, y),
+            size: Size::new(x2 - x, y2 - y),
         }
     }
     pub fn x2(&self) -> i32 {
@@ -312,11 +309,8 @@ impl Bounds {
     }
     pub fn center_at(&self, x: i32, y: i32) -> Bounds {
         Bounds {
-            position: Point::new(
-                x-self.size.w/2,
-                y-self.size.h/2
-            ),
-            size: self.size
+            position: Point::new(x - self.size.w / 2, y - self.size.h / 2),
+            size: self.size,
         }
     }
 }
@@ -324,8 +318,8 @@ impl Bounds {
 impl Bounds {
     pub fn new_empty() -> Bounds {
         Bounds {
-            position:Point::zero(),
-            size:Size::empty(),
+            position: Point::zero(),
+            size: Size::empty(),
         }
     }
 }
@@ -346,8 +340,8 @@ impl Bounds {
 
 #[cfg(test)]
 mod tests {
-    use alloc::format;
     use crate::geom::{Bounds, Insets, Point, Size};
+    use alloc::format;
 
     #[test]
     fn points() {
@@ -382,7 +376,7 @@ mod tests {
 
     #[test]
     fn test_geometry() {
-        let bounds = Bounds::new(0,0,100,100);
+        let bounds = Bounds::new(0, 0, 100, 100);
         assert_eq!(bounds.contains(&Point::new(10, 10)), true);
         assert_eq!(bounds.contains(&Point::new(-1, -1)), false);
 

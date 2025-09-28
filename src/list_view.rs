@@ -1,5 +1,5 @@
-use crate::geom::{Bounds};
-use crate::gfx::{draw_centered_text};
+use crate::geom::Bounds;
+use crate::gfx::draw_centered_text;
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction, LayoutEvent};
 use alloc::boxed::Box;
@@ -17,7 +17,7 @@ pub fn make_list_view(name: &ViewId, data: Vec<&str>, selected: usize) -> View {
         input: Some(input_list),
         layout: Some(layout_list),
         draw: Some(draw_list),
-        .. Default::default()
+        ..Default::default()
     }
 }
 
@@ -144,8 +144,8 @@ fn layout_list(e: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::list_view::{make_list_view, ListState};
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::list_view::{ListState, make_list_view};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
     use crate::view::ViewId;
     use alloc::vec;
@@ -157,7 +157,7 @@ mod tests {
 
         let listview = ViewId::new("listview");
         {
-            let list = make_list_view(&listview,vec!["A", "BB", "CCC"], 0);
+            let list = make_list_view(&listview, vec!["A", "BB", "CCC"], 0);
             scene.add_view_to_root(list);
         }
         layout_scene(&mut scene, &theme);

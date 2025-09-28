@@ -1,5 +1,5 @@
 use crate::geom::Bounds;
-use crate::gfx::{TextStyle};
+use crate::gfx::TextStyle;
 use crate::view::{Align, View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction};
 use log::info;
@@ -17,7 +17,12 @@ fn draw_text_input(e: &mut DrawEvent) {
             let w = e.theme.font.character_size.width as i32;
             let h = e.theme.font.character_size.height as i32;
             e.ctx.fill_rect(
-                &Bounds::new(e.view.bounds.position.x+ n * w + 5, e.view.bounds.position.y+ 5, 2, h + 4),
+                &Bounds::new(
+                    e.view.bounds.position.x + n * w + 5,
+                    e.view.bounds.position.y + 5,
+                    2,
+                    h + 4,
+                ),
                 &e.theme.fg,
             );
         }
@@ -47,23 +52,21 @@ fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
             }
             event.scene.mark_dirty_view(event.target);
         }
-        EventType::KeyboardAction(act) => {
-            match act {
-                KeyboardAction::Left => {}
-                KeyboardAction::Right => {}
-                KeyboardAction::Up => {}
-                KeyboardAction::Down => {}
-                KeyboardAction::Backspace => {
-                    if let Some(view) = event.scene.get_view_mut(event.target) {
-                        if view.title.len() > 0 {
-                            view.title.remove(view.title.len() - 1);
-                            event.scene.mark_dirty_view(event.target);
-                        }
+        EventType::KeyboardAction(act) => match act {
+            KeyboardAction::Left => {}
+            KeyboardAction::Right => {}
+            KeyboardAction::Up => {}
+            KeyboardAction::Down => {}
+            KeyboardAction::Backspace => {
+                if let Some(view) = event.scene.get_view_mut(event.target) {
+                    if view.title.len() > 0 {
+                        view.title.remove(view.title.len() - 1);
+                        event.scene.mark_dirty_view(event.target);
                     }
                 }
-                KeyboardAction::Return => {}
             }
-        }
+            KeyboardAction::Return => {}
+        },
         EventType::Tap(_pt) => {
             event.scene.set_focused(event.target);
         }
@@ -76,7 +79,7 @@ pub fn make_text_input(name: &'static str, title: &str) -> View {
     View {
         name: ViewId::new(name),
         title: title.into(),
-        bounds: Bounds::new(0,0,100,30),
+        bounds: Bounds::new(0, 0, 100, 30),
         visible: true,
         state: None,
         input: Some(input_text_input),
@@ -86,6 +89,6 @@ pub fn make_text_input(name: &'static str, title: &str) -> View {
             // }
         }),
         draw: Some(draw_text_input),
-        .. Default::default()
+        ..Default::default()
     }
 }

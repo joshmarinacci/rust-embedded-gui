@@ -1,10 +1,10 @@
-use log::info;
-use Flex::Intrinsic;
-use crate::geom::{Insets, Size};
 use crate::LayoutEvent;
+use crate::geom::{Insets, Size};
 use crate::view::Align::{Center, End, Start};
-use crate::view::{Flex, ViewId};
 use crate::view::Flex::Resize;
+use crate::view::{Flex, ViewId};
+use Flex::Intrinsic;
+use log::info;
 
 pub fn layout_vbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
@@ -53,7 +53,7 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
         let avail_w = pass.space.w - padding.left - padding.right;
         if let Some(kid) = pass.scene.get_view_mut(&kid) {
             kid.bounds.position.x = match &kid.h_align {
-                Start => padding.left + (avail_w - kid.bounds.size.w) * 0,
+                Start => padding.left + (avail_w - kid.bounds.size.w),
                 Center => padding.left + (avail_w - kid.bounds.size.w) / 2,
                 End => padding.left + (avail_w - kid.bounds.size.w),
             };
@@ -127,13 +127,12 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
             kid.bounds.position.x = x;
             x += kid.bounds.size.w;
             kid.bounds.position.y = match &kid.v_align {
-                Start => (avail_h - kid.bounds.size.h) * 0,
+                Start => (avail_h - kid.bounds.size.h),
                 Center => (avail_h - kid.bounds.size.h) / 2,
                 End => (avail_h - kid.bounds.size.h),
             } + padding.top;
         }
     }
-
 }
 
 pub fn layout_std_panel(pass: &mut LayoutEvent) {
@@ -145,7 +144,7 @@ pub fn layout_std_panel(pass: &mut LayoutEvent) {
             view.bounds.size.w = pass.space.w;
         }
         let space = view.bounds.size.clone() - view.padding;
-        pass.layout_all_children(&pass.target.clone(),space);
+        pass.layout_all_children(&pass.target.clone(), space);
     }
 }
 
@@ -166,12 +165,12 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 
         // layout content panels
         if let Some(view) = pass.scene.get_view(&tabs_id) {
-            let insets = Insets::new(view.bounds.size.h,0,0,0);
+            let insets = Insets::new(view.bounds.size.h, 0, 0, 0);
             for kid in &pass.scene.get_children_ids(&pass.target) {
                 if kid == &tabs_id {
                     continue;
                 }
-                pass.layout_child(kid,space - insets);
+                pass.layout_child(kid, space - insets);
                 if let Some(view) = pass.scene.get_view_mut(kid) {
                     view.bounds.position.y = insets.top;
                 }
@@ -182,14 +181,14 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 
 #[cfg(test)]
 mod tests {
-    use crate::geom::{Bounds, Insets, Point, Size};
     use crate::LayoutEvent;
+    use crate::geom::{Bounds, Insets, Point, Size};
     use crate::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
-    use crate::scene::{layout_scene, Scene};
+    use crate::scene::{Scene, layout_scene};
     use crate::test::MockDrawingContext;
     use crate::toggle_group::layout_toggle_group;
-    use crate::view::{Align, Flex, View, ViewId};
     use crate::view::Align::{Center, End, Start};
+    use crate::view::{Align, Flex, View, ViewId};
     fn layout_button(layout: &mut LayoutEvent) {
         if let Some(view) = layout.scene.get_view_mut(&layout.target) {
             view.bounds.size = Size::new((view.title.len() * 10) as i32, 10) + view.padding;
@@ -246,41 +245,53 @@ mod tests {
         };
 
         let child1_id: ViewId = "child1".into();
-        scene.add_view_to_parent(View {
-            name: child1_id.clone(),
-            title: "ch1".into(),
-            h_align: Align::Start,
-            layout: Some(layout_button),
-            ..Default::default()
-        }, &parent_id);
+        scene.add_view_to_parent(
+            View {
+                name: child1_id.clone(),
+                title: "ch1".into(),
+                h_align: Align::Start,
+                layout: Some(layout_button),
+                ..Default::default()
+            },
+            &parent_id,
+        );
 
         let child2_id: ViewId = "child2".into();
-        scene.add_view_to_parent(View {
-            name: child2_id.clone(),
-            title: "ch2".into(),
-            h_align: Align::Center,
-            layout: Some(layout_button),
-            ..Default::default()
-        }, &parent_id);
+        scene.add_view_to_parent(
+            View {
+                name: child2_id.clone(),
+                title: "ch2".into(),
+                h_align: Align::Center,
+                layout: Some(layout_button),
+                ..Default::default()
+            },
+            &parent_id,
+        );
 
         let child3_id: ViewId = "child3".into();
-        scene.add_view_to_parent(View {
-            name: child3_id.clone(),
-            title: "ch3".into(),
-            h_align: Align::End,
-            layout: Some(layout_button),
-            ..Default::default()
-        }, &parent_id);
+        scene.add_view_to_parent(
+            View {
+                name: child3_id.clone(),
+                title: "ch3".into(),
+                h_align: Align::End,
+                layout: Some(layout_button),
+                ..Default::default()
+            },
+            &parent_id,
+        );
 
         let child4_id: ViewId = "child4".into();
-        scene.add_view_to_parent(View {
-            name: child4_id.clone(),
-            title: "ch4".into(),
-            h_flex: Flex::Resize,
-            v_flex: Flex::Resize,
-            layout: Some(layout_std_panel),
-            ..Default::default()
-        }, &parent_id);
+        scene.add_view_to_parent(
+            View {
+                name: child4_id.clone(),
+                title: "ch4".into(),
+                h_flex: Flex::Resize,
+                v_flex: Flex::Resize,
+                layout: Some(layout_std_panel),
+                ..Default::default()
+            },
+            &parent_id,
+        );
 
         scene.add_view_to_parent(parent_view, &scene.root_id());
 
@@ -326,7 +337,7 @@ mod tests {
         {
             let mut tabbed_panel_view: View = View {
                 name: tabbed_panel.clone(),
-                .. Default::default()
+                ..Default::default()
             };
             tabbed_panel_view.h_flex = Flex::Resize;
             tabbed_panel_view.v_flex = Flex::Resize;
@@ -336,7 +347,7 @@ mod tests {
             // tab panel tabs has intrisic height but flex width
             let mut tabbed_panel_tabs: View = View {
                 name: tabs.clone(),
-                .. Default::default()
+                ..Default::default()
             };
             tabbed_panel_tabs.h_flex = Flex::Resize;
             tabbed_panel_tabs.v_flex = Flex::Intrinsic;
@@ -460,7 +471,7 @@ mod tests {
     fn make_standard_view(name: &ViewId) -> View {
         View {
             name: name.clone(),
-            .. Default::default()
+            ..Default::default()
         }
     }
 }

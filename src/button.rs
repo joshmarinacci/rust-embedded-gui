@@ -1,7 +1,7 @@
 use crate::gfx::draw_centered_text;
 use crate::view::Flex::Intrinsic;
 use crate::view::{View, ViewId};
-use crate::{util, Action, DrawEvent, EventType};
+use crate::{Action, DrawEvent, EventType, util};
 use alloc::string::ToString;
 
 fn draw_button(e: &mut DrawEvent) {
@@ -41,6 +41,6 @@ pub fn make_button(name: &'static str, title: &str) -> View {
             }
         }),
         draw: Some(draw_button),
-        .. Default::default()
+        ..Default::default()
     }
 }
