@@ -239,6 +239,38 @@ impl Sub<Point> for Bounds {
         }
     }
 }
+impl Add<Insets> for Bounds {
+    type Output = Bounds;
+
+    fn add(self, rhs: Insets) -> Self::Output {
+        Bounds {
+            position: Point {
+                x: self.position.x - rhs.left,
+                y: self.position.y - rhs.top,
+            },
+            size: Size {
+                w: self.size.w + rhs.left + rhs.right,
+                h: self.size.h + rhs.top + rhs.bottom,
+            }
+        }
+    }
+}
+impl Sub<Insets> for Bounds {
+    type Output = Bounds;
+
+    fn sub(self, rhs: Insets) -> Self::Output {
+        Bounds {
+            position: Point {
+                x: self.position.x + rhs.left,
+                y: self.position.y + rhs.top,
+            },
+            size: Size {
+                w: self.size.w - rhs.left - rhs.right,
+                h: self.size.h - rhs.top - rhs.bottom,
+            }
+        }
+    }
+}
 impl Display for Bounds {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(

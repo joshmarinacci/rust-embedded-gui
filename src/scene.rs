@@ -1,8 +1,7 @@
-use crate::geom::{Bounds, Point, Size};
+use crate::geom::{Bounds, Point};
 use crate::gfx::DrawingContext;
 use crate::view::{View, ViewId};
 use crate::{Action, Callback, DrawEvent, EventType, GuiEvent, LayoutEvent, LayoutFn, Theme};
-use alloc::string::{String, ToString};
 use alloc::{format, vec};
 use alloc::vec::Vec;
 use hashbrown::HashMap;
@@ -21,7 +20,7 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub(crate) fn dump(&self) {
+    pub fn dump(&self) {
         self.dump_view(&self.root_id.clone(), "");
     }
     fn dump_view(&self, id: &ViewId, indent: &str) {
@@ -35,16 +34,6 @@ impl Scene {
         let kids = self.get_children_ids(id);
         for kid in kids {
             self.dump_view(&kid, &format!("{indent}    "));
-        }
-    }
-}
-
-impl Scene {
-    pub(crate) fn view_bounds(&self, p0: &ViewId) -> Bounds {
-        if let Some(view) = self.get_view(p0) {
-            view.bounds.clone()
-        } else {
-            Bounds::new(-99, -99, -99, -99)
         }
     }
 }
@@ -154,6 +143,14 @@ impl Scene {
         }
         None
     }
+    pub(crate) fn view_bounds(&self, p0: &ViewId) -> Bounds {
+        if let Some(view) = self.get_view(p0) {
+            view.bounds.clone()
+        } else {
+            Bounds::new(-99, -99, -99, -99)
+        }
+    }
+
 
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
