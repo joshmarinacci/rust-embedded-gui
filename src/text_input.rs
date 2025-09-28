@@ -1,13 +1,13 @@
 use crate::geom::Bounds;
-use crate::gfx::{DrawingContext, HAlign, TextStyle};
-use crate::view::View;
+use crate::gfx::{DrawingContext, TextStyle};
+use crate::view::{Align, View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent};
 use log::info;
 
 fn draw_text_input(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-    let style = TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(HAlign::Left);
+    let style = TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(Align::Start);
     e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
 
     if let Some(focused) = e.focused {
@@ -17,7 +17,7 @@ fn draw_text_input(e: &mut DrawEvent) {
             let w = e.theme.font.character_size.width as i32;
             let h = e.theme.font.character_size.height as i32;
             e.ctx.fill_rect(
-                &Bounds::new(e.view.bounds.x + n * w + 5, e.view.bounds.y + 5, 2, h + 4),
+                &Bounds::new(e.view.bounds.position.x+ n * w + 5, e.view.bounds.position.y+ 5, 2, h + 4),
                 &e.theme.fg,
             );
         }
@@ -47,6 +47,14 @@ fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
             }
             event.scene.mark_dirty_view(event.target);
         }
+        EventType::KeyboardAction(act) => {
+            if let Some(view) = event.scene.get_view_mut(event.target) {
+                if view.title.len() > 0 {
+                    view.title.remove(view.title.len() - 1);
+                    event.scene.mark_dirty_view(event.target);
+                }
+            }
+        }
         EventType::Tap(_pt) => {
             event.scene.set_focused(event.target);
         }
@@ -55,16 +63,11 @@ fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
     None
 }
 
-pub fn make_text_input(name: &str, title: &str) -> View {
+pub fn make_text_input(name: &'static str, title: &str) -> View {
     View {
-        name: name.into(),
+        name: ViewId::new(name),
         title: title.into(),
-        bounds: Bounds {
-            x: 0,
-            y: 0,
-            w: 100,
-            h: 30,
-        },
+        bounds: Bounds::new(0,0,100,30),
         visible: true,
         state: None,
         input: Some(input_text_input),
@@ -74,5 +77,6 @@ pub fn make_text_input(name: &str, title: &str) -> View {
             // }
         }),
         draw: Some(draw_text_input),
+        .. Default::default()
     }
 }

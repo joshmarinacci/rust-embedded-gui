@@ -1,28 +1,11 @@
 use crate::geom::{Bounds, Point};
-use embedded_graphics::Drawable;
-use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
+use crate::view::Align;
+use embedded_graphics::mono_font::MonoFont;
 use embedded_graphics::pixelcolor::Rgb565;
-use embedded_graphics::prelude::Primitive;
-use embedded_graphics::primitives::PrimitiveStyle;
-use embedded_graphics::text::Text;
-
-#[derive(Copy, Clone)]
-pub enum HAlign {
-    Left,
-    Center,
-    Right,
-}
-
-#[derive(Copy, Clone)]
-pub enum VAlign {
-    Top,
-    Center,
-    Bottom,
-}
 
 pub struct TextStyle<'a> {
-    pub halign: HAlign,
-    pub valign: VAlign,
+    pub halign: Align,
+    pub valign: Align,
     pub underline: bool,
     pub font: &'a MonoFont<'static>,
     pub color: &'a Rgb565,
@@ -34,8 +17,8 @@ impl<'a> TextStyle<'a> {
             font,
             color,
             underline: false,
-            valign: VAlign::Center,
-            halign: HAlign::Left,
+            valign: Align::Center,
+            halign: Align::Start,
         }
     }
     pub fn with_underline(&self, underline: bool) -> Self {
@@ -47,7 +30,7 @@ impl<'a> TextStyle<'a> {
             valign: self.valign,
         }
     }
-    pub fn with_halign(&self, halign: HAlign) -> Self {
+    pub fn with_halign(&self, halign: Align) -> Self {
         TextStyle {
             color: self.color,
             font: self.font,
@@ -80,8 +63,8 @@ pub fn draw_centered_text(
         &TextStyle {
             font,
             color,
-            valign: VAlign::Center,
-            halign: HAlign::Center,
+            valign: Align::Center,
+            halign: Align::Center,
             underline: false,
         },
     )

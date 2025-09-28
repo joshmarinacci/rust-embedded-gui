@@ -1,20 +1,18 @@
-use crate::geom::Bounds;
-use crate::gfx::{DrawingContext, draw_centered_text};
-use crate::view::View;
-use crate::{Action, DrawEvent, GuiEvent, LayoutEvent, util};
+use crate::gfx::draw_centered_text;
+use crate::view::{View, ViewId};
+use crate::{util, Action, DrawEvent, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
-use core::option::Option::*;
+use crate::geom::Insets;
 
-pub fn make_toggle_button(name: &str, title: &str) -> View {
+pub fn make_toggle_button(name: &ViewId, title: &str) -> View {
     View {
-        name: name.into(),
+        name: name.clone(),
         title: title.into(),
-        bounds: Bounds::new(0, 0, 80, 30),
-        visible: true,
         state: Some(Box::new(SelectedState::new())),
         draw: Some(draw_toggle_button),
         layout: Some(layout_toggle_button),
         input: Some(input_toggle_button),
+        .. Default::default()
     }
 }
 
@@ -42,8 +40,9 @@ fn draw_toggle_button(e: &mut DrawEvent) {
     e.ctx.fill_rect(&e.view.bounds, bg);
     e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
     if let Some(focused) = e.focused {
+        let focus_insets = Insets::new_same(2);
         if focused == &e.view.name {
-            e.ctx.stroke_rect(&e.view.bounds.contract(2), fg);
+            e.ctx.stroke_rect(&((*&e.view.bounds) - focus_insets), fg);
         }
     }
 
@@ -68,9 +67,10 @@ fn layout_toggle_button(event: &mut LayoutEvent) {
 
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_button::{SelectedState, make_toggle_button};
+    use crate::toggle_button::{make_toggle_button, SelectedState};
+    use crate::view::ViewId;
     use alloc::vec;
 
     #[test]
@@ -78,14 +78,14 @@ mod tests {
         let theme = MockDrawingContext::make_mock_theme();
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
         {
-            let mut button = make_toggle_button("toggle", "Toggle");
+            let button = make_toggle_button(&ViewId::new("toggle"), "Toggle");
             scene.add_view_to_root(button);
         }
         layout_scene(&mut scene, &theme);
 
         {
-            let mut button = scene.get_view_mut("toggle").unwrap();
-            assert_eq!(button.name, "toggle");
+            let mut button = scene.get_view_mut(&ViewId::new("toggle")).unwrap();
+            assert_eq!(button.name, ViewId::new("toggle"));
             let ch_size = &theme.font.character_size;
             assert_eq!(
                 button.bounds,
@@ -103,7 +103,7 @@ mod tests {
         click_at(&mut scene, &vec![], Point::new(10, 10));
 
         {
-            let state = scene.get_view_state::<SelectedState>("toggle").unwrap();
+            let state = scene.get_view_state::<SelectedState>(&ViewId::new("toggle")).unwrap();
             assert_eq!(state.selected, true);
         }
 

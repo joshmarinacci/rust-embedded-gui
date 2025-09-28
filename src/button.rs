@@ -1,7 +1,7 @@
-use crate::geom::Bounds;
-use crate::gfx::{DrawingContext, HAlign, TextStyle, VAlign, draw_centered_text};
-use crate::view::View;
-use crate::{Action, DrawEvent, EventType, util};
+use crate::gfx::draw_centered_text;
+use crate::view::Flex::Intrinsic;
+use crate::view::{View, ViewId};
+use crate::{util, Action, DrawEvent, EventType};
 use alloc::string::ToString;
 
 fn draw_button(e: &mut DrawEvent) {
@@ -21,18 +21,12 @@ fn draw_button(e: &mut DrawEvent) {
     );
 }
 
-pub fn make_button(name: &str, title: &str) -> View {
+pub fn make_button(name: &'static str, title: &str) -> View {
     View {
-        name: name.to_string(),
+        name: ViewId::new(name),
         title: title.to_string(),
-        bounds: Bounds {
-            x: 0,
-            y: 0,
-            w: 80,
-            h: 30,
-        },
-        visible: true,
-        state: None,
+        h_flex: Intrinsic,
+        v_flex: Intrinsic,
         input: Some(|e| {
             if let EventType::Tap(_pt) = &e.event_type {
                 e.scene.set_focused(e.target);
@@ -42,10 +36,11 @@ pub fn make_button(name: &str, title: &str) -> View {
             None
         }),
         layout: Some(|e| {
-            if let Some(view) = e.scene.get_view_mut(e.target) {
-                view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
+            if let Some(view) = e.scene.get_view_mut(&e.target) {
+                view.bounds.size = util::calc_size(e.theme.bold_font, &view.title);
             }
         }),
         draw: Some(draw_button),
+        .. Default::default()
     }
 }
