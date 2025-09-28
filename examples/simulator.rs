@@ -216,25 +216,27 @@ fn make_scene() -> Scene {
 
     scene.add_view_to_root(tabbed_panel);
 
-    let mut font_buttons = View {
-        name: ViewId::new("font_buttons"),
-        bounds: Bounds::new(30, 200, 200, 30),
-        layout: Some(layout_hbox),
-        h_flex: Intrinsic,
-        v_flex: Intrinsic,
-        draw: Some(draw_std_panel),
-        ..Default::default()
-    };
-    scene.add_view_to_parent(
-        make_button(SMALL_FONT_BUTTON.as_str(), "Small"),
-        &font_buttons.name,
-    );
-    scene.add_view_to_parent(
-        make_button(MEDIUM_FONT_BUTTON, "Medium"),
-        &font_buttons.name,
-    );
-    scene.add_view_to_parent(make_button(LARGE_FONT_BUTTON, "Large"), &font_buttons.name);
-    scene.add_view_to_root(font_buttons);
+    {
+        let mut font_buttons = View {
+            name: ViewId::new("font_buttons"),
+            bounds: Bounds::new(30, 200, 200, 30),
+            layout: Some(layout_hbox),
+            h_flex: Intrinsic,
+            v_flex: Intrinsic,
+            draw: Some(draw_std_panel),
+            ..Default::default()
+        };
+        scene.add_view_to_parent(
+            make_button(SMALL_FONT_BUTTON.as_str(), "Small"),
+            &font_buttons.name,
+        );
+        scene.add_view_to_parent(
+            make_button(MEDIUM_FONT_BUTTON, "Medium"),
+            &font_buttons.name,
+        );
+        scene.add_view_to_parent(make_button(LARGE_FONT_BUTTON, "Large"), &font_buttons.name);
+        scene.add_view_to_root(font_buttons);
+    }
 
     if let Some(state) = scene.get_view_state::<SelectOneOfState>(TABBED_PANEL) {
         state.selected = 2;

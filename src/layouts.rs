@@ -33,7 +33,7 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     });
     let vert_leftover = (pass.space - padding).h - kids_sum;
 
-    // get the flex children
+    // layout the flex children
     let flex_kids = pass
         .scene
         .get_children_ids_filtered(&pass.target, |v| v.v_flex == Flex::Resize);
@@ -47,6 +47,15 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
         }
     }
 
+    // calculate the max width of any child
+    let mut max_width = 0;
+    for kid in pass.scene.get_children_ids(&pass.target) {
+        if let Some(kid) = pass.scene.get_view_mut(&kid) {
+            max_width = max_width.max(kid.bounds.size.w);
+        }
+    }
+
+    // position all the children
     let mut y = padding.top as i32;
     let all_kids = pass.scene.get_children_ids(&pass.target);
     for kid in all_kids {
@@ -63,7 +72,17 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     }
     // layout self
     if let Some(view) = pass.scene.get_view_mut(&pass.target) {
-        view.bounds.size = pass.space.clone();
+        if view.v_flex == Resize {
+            view.bounds.size.h = pass.space.h
+        }
+        if view.v_flex == Intrinsic {
+        }
+        if view.h_flex == Resize {
+            view.bounds.size.w = pass.space.w
+        }
+        if view.h_flex == Intrinsic {
+            view.bounds.size.w = max_width
+        }
     }
 }
 
@@ -79,7 +98,7 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
         parent.bounds.size.w = pass.space.w
     }
 
-    let space = parent.bounds.size;
+    let mut space = parent.bounds.size;
     let padding = parent.padding.clone();
     let available_space: Size = pass.space - padding;
 
@@ -118,8 +137,17 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
         }
     }
 
+    // calculate the max height of any child
+    let mut max_height = 0;
+    for kid in pass.scene.get_children_ids(&pass.target) {
+        if let Some(kid) = pass.scene.get_view_mut(&kid) {
+            max_height = max_height.max(kid.bounds.size.h);
+        }
+    }
+
     // now position all children
     // let all_kids = pass.scene.get_children(&pass.name);
+    space.h = max_height;
     let avail_h = space.h - padding.top - padding.bottom;
     let mut x = padding.left;
     for kid in pass.scene.get_children_ids(&pass.target) {
@@ -131,6 +159,14 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
                 Center => (avail_h - kid.bounds.size.h) / 2,
                 End => (avail_h - kid.bounds.size.h),
             } + padding.top;
+        }
+    }
+    if let Some(parent) = pass.scene.get_view_mut(pass.target) {
+        if parent.v_flex == Intrinsic {
+            parent.bounds.size.h = space.h;
+        }
+        if parent.h_flex == Intrinsic {
+            parent.bounds.size.w = x;
         }
     }
 }
