@@ -1,11 +1,7 @@
 use crate::geom::{Bounds, Point};
-use embedded_graphics::Drawable;
-use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
-use embedded_graphics::pixelcolor::Rgb565;
-use embedded_graphics::prelude::Primitive;
-use embedded_graphics::primitives::PrimitiveStyle;
-use embedded_graphics::text::Text;
 use crate::view::Align;
+use embedded_graphics::mono_font::MonoFont;
+use embedded_graphics::pixelcolor::Rgb565;
 
 pub struct TextStyle<'a> {
     pub halign: Align,

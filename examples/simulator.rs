@@ -172,8 +172,7 @@ fn make_scene() -> Scene {
         let button = make_button(POPUP_BUTTON.as_str(), "Open Popup");
         scene.add_view_to_parent(button, &col1.name);
         scene.add_view_to_parent(col1, &wrapper.name);
-        let list = make_list_view(
-            "list-view",
+        let list = make_list_view(&ViewId::new("list-view"),
             vec!["First", "Second", "Third", "Fourth", "Fifth"],
             1,
         );
@@ -415,7 +414,7 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
     }
     if name == *POPUP_BUTTON {
         let menu =
-            make_list_view(POPUP_MENU.as_str(), vec!["Item 1", "Item 2", "Item 3"], 0).position_at(50, 50);
+            make_list_view(POPUP_MENU, vec!["Item 1", "Item 2", "Item 3"], 0).position_at(50, 50);
         scene.set_focused(&menu.name);
         scene.add_view_to_root(menu);
     }

@@ -1,4 +1,4 @@
-use crate::gfx::{DrawingContext, TextStyle};
+use crate::gfx::{TextStyle};
 use crate::util;
 use crate::view::{View, ViewId};
 use crate::view::Flex::Intrinsic;
@@ -11,7 +11,7 @@ pub fn make_label(name: &'static str, title: &str) -> View {
         v_flex: Intrinsic,
         layout: Some(|e| {
             if let Some(view) = e.scene.get_view_mut(e.target) {
-                view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
+                view.bounds.size = util::calc_size(e.theme.bold_font, &view.title);
             }
         }),
         draw: Some(|e| {

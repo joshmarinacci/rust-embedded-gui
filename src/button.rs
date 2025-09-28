@@ -37,7 +37,7 @@ pub fn make_button(name: &'static str, title: &str) -> View {
         }),
         layout: Some(|e| {
             if let Some(view) = e.scene.get_view_mut(&e.target) {
-                view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
+                view.bounds.size = util::calc_size(e.theme.bold_font, &view.title);
             }
         }),
         draw: Some(draw_button),
