@@ -1,7 +1,7 @@
 use crate::geom::Bounds;
-use crate::gfx::{DrawingContext, TextStyle};
+use crate::gfx::{TextStyle};
 use crate::view::{Align, View, ViewId};
-use crate::{Action, DrawEvent, EventType, GuiEvent};
+use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction};
 use log::info;
 
 fn draw_text_input(e: &mut DrawEvent) {
@@ -48,11 +48,20 @@ fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
             event.scene.mark_dirty_view(event.target);
         }
         EventType::KeyboardAction(act) => {
-            if let Some(view) = event.scene.get_view_mut(event.target) {
-                if view.title.len() > 0 {
-                    view.title.remove(view.title.len() - 1);
-                    event.scene.mark_dirty_view(event.target);
+            match act {
+                KeyboardAction::Left => {}
+                KeyboardAction::Right => {}
+                KeyboardAction::Up => {}
+                KeyboardAction::Down => {}
+                KeyboardAction::Backspace => {
+                    if let Some(view) = event.scene.get_view_mut(event.target) {
+                        if view.title.len() > 0 {
+                            view.title.remove(view.title.len() - 1);
+                            event.scene.mark_dirty_view(event.target);
+                        }
+                    }
                 }
+                KeyboardAction::Return => {}
             }
         }
         EventType::Tap(_pt) => {
