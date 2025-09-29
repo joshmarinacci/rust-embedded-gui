@@ -21,9 +21,9 @@ fn draw_button(e: &mut DrawEvent) {
     );
 }
 
-pub fn make_button(name: &'static str, title: &str) -> View {
+pub fn make_button(name: &ViewId, title: &str) -> View {
     View {
-        name: ViewId::new(name),
+        name: name.clone(),
         title: title.to_string(),
         h_flex: Intrinsic,
         v_flex: Intrinsic,

@@ -11,8 +11,9 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
         info!("view not found!");
         return;
     };
+    let h_flex = parent.h_flex.clone();
     let padding = parent.padding.clone();
-    let available_space: Size = pass.space - parent.padding;
+    let mut available_space: Size = pass.space - parent.padding;
 
     // get the intrinsic children
     let fixed_kids = pass
@@ -54,12 +55,15 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
             max_width = max_width.max(kid.bounds.size.w);
         }
     }
+    if h_flex == Intrinsic {
+        available_space.w = max_width;
+    }
 
     // position all the children
     let mut y = padding.top;
     let all_kids = pass.scene.get_children_ids(&pass.target);
+    let avail_w = available_space.w;
     for kid in all_kids {
-        let avail_w = pass.space.w - padding.left - padding.right;
         if let Some(kid) = pass.scene.get_view_mut(&kid) {
             kid.bounds.position.x = match &kid.h_align {
                 Start => (avail_w - kid.bounds.size.w)*0,
@@ -72,16 +76,16 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     }
     // layout self
     if let Some(view) = pass.scene.get_view_mut(&pass.target) {
-        if view.v_flex == Resize {
-            view.bounds.size.h = pass.space.h
-        }
-        if view.v_flex == Intrinsic {
-        }
         if view.h_flex == Resize {
             view.bounds.size.w = pass.space.w
         }
         if view.h_flex == Intrinsic {
-            view.bounds.size.w = max_width
+            view.bounds.size.w = max_width + padding.left + padding.right
+        }
+        if view.v_flex == Resize {
+            view.bounds.size.h = pass.space.h
+        }
+        if view.v_flex == Intrinsic {
         }
     }
 }

@@ -15,18 +15,13 @@ impl ViewId {
         self.0
     }
 }
-impl Into<ViewId> for &'static str {
-    fn into(self) -> ViewId {
-        ViewId::new(&self)
-    }
-}
 impl Display for ViewId {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Flex {
     Intrinsic,
     Resize,

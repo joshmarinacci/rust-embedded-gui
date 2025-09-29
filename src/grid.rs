@@ -151,6 +151,12 @@ fn layout_grid(pass: &mut LayoutEvent) {
     }
 }
 
+impl Into<ViewId> for &'static str {
+    fn into(self) -> ViewId {
+        ViewId::new(self)
+    }
+}
+
 mod tests {
     use crate::geom::Bounds;
     use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
@@ -219,7 +225,7 @@ mod tests {
         layout.debug = true;
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
-        let button = make_button("b1", "b1");
+        let button = make_button(&"b1".into(), "b1");
         layout.constraints.insert(
             button.name.clone(),
             LayoutConstraint {

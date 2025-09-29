@@ -600,7 +600,7 @@ mod tests {
         // make scene
         let mut scene = Scene::new();
         // add button
-        let button = make_button("button", "Button").position_at(20, 20);
+        let button = make_button(&"button".into(), "Button").position_at(20, 20);
         scene.add_view_to_root(button);
         assert_eq!(scene.dirty, true);
         // check that dirty area is same as bounds
