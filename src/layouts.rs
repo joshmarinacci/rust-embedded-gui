@@ -94,17 +94,18 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
         return;
     };
+    let h_flex = parent.h_flex.clone();
+    let v_flex = parent.v_flex.clone();
     // layout self
-    if parent.v_flex == Resize {
+    if v_flex == Resize {
         parent.bounds.size.h = pass.space.h
     }
-    if parent.h_flex == Resize {
+    if h_flex == Resize {
         parent.bounds.size.w = pass.space.w
     }
 
-    let mut space = parent.bounds.size;
     let padding = parent.padding.clone();
-    let available_space= pass.space - padding;
+    let mut available_space = pass.space - padding;
 
     // get the fixed children
     let fixed_kids = pass
@@ -122,7 +123,7 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
         .map(|id| pass.scene.get_view(id))
         .flatten()
         .fold(0, |a, v| v.bounds.size.w + a);
-    let avail_horizontal_space = (space - padding).h - kids_sum;
+    let avail_horizontal_space = (available_space - padding).h - kids_sum;
 
     // get the flex children
     let flex_kids = pass
@@ -150,16 +151,17 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
     }
 
     // now position all children
-    // let all_kids = pass.scene.get_children(&pass.name);
-    space.h = max_height;
-    let avail_h = space.h - padding.top - padding.bottom;
+    if v_flex == Intrinsic {
+        available_space.h = max_height;
+    }
+    let avail_h = available_space.h;
     let mut x = padding.left;
     for kid in pass.scene.get_children_ids(&pass.target) {
         if let Some(kid) = pass.scene.get_view_mut(&kid) {
             kid.bounds.position.x = x;
             x += kid.bounds.size.w;
             kid.bounds.position.y = match &kid.v_align {
-                Start => (avail_h - kid.bounds.size.h),
+                Start => (avail_h - kid.bounds.size.h)*0,
                 Center => (avail_h - kid.bounds.size.h) / 2,
                 End => (avail_h - kid.bounds.size.h),
             } + padding.top;
@@ -167,7 +169,7 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
     }
     if let Some(parent) = pass.scene.get_view_mut(pass.target) {
         if parent.v_flex == Intrinsic {
-            parent.bounds.size.h = space.h;
+            parent.bounds.size.h = available_space.h + padding.top + padding.bottom;
         }
         if parent.h_flex == Intrinsic {
             parent.bounds.size.w = x;
