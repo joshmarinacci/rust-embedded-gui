@@ -166,6 +166,8 @@ mod tests {
     use crate::view::{Align, ViewId};
     use alloc::boxed::Box;
     use crate::button::make_button;
+    use crate::view::Align::Start;
+    use crate::view::Flex::Resize;
 
     #[test]
     fn test_grid_layout() {
@@ -177,15 +179,21 @@ mod tests {
 
         let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
-        let label1 = make_label("label1", "Label 1");
+        let mut label1 = make_label("label1", "Label 1");
+        label1.h_align = Start;
+        label1.v_align = Start;
         grid_layout.place_at_row_column(&label1.name, 0, 0);
         scene.add_view_to_parent(label1, &grid.name);
 
-        let label2 = make_label("label2", "Label 2");
+        let mut label2 = make_label("label2", "Label 2");
+        label2.h_align = Start;
+        label2.v_align = Start;
         grid_layout.place_at_row_column(&label2.name, 0, 1);
         scene.add_view_to_parent(label2, &grid.name);
 
-        let label3 = make_label("label3", "Label 3");
+        let mut label3 = make_label("label3", "Label 3");
+        label3.h_align = Start;
+        label3.v_align = Start;
         grid_layout.place_at_row_column(&label3.name, 1, 0);
         scene.add_view_to_parent(label3, &grid.name);
 
@@ -205,7 +213,7 @@ mod tests {
 
             let label3 = scene.get_view(&ViewId::new("label3")).unwrap();
             assert_eq!(label3.name, ViewId::new("label3"));
-            assert_eq!(label3.bounds, Bounds::new(0, 70, 63, 25));
+            assert_eq!(label3.bounds, Bounds::new(0, 30, 63, 25));
         }
 
         let mut ctx = MockDrawingContext::new(&scene);
@@ -242,7 +250,7 @@ mod tests {
         layout_scene(&mut scene, &theme);
 
         if let Some(view) = scene.get_view(&ViewId::new("b1")) {
-            assert_eq!(view.bounds, Bounds::new(0, 0, 200, 30));
+            assert_eq!(view.bounds, Bounds::new(86, 2, 28, 25));
         }
     }
 }
