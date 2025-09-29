@@ -100,7 +100,7 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
 
     let mut space = parent.bounds.size;
     let padding = parent.padding.clone();
-    let available_space: Size = pass.space - padding;
+    let available_space= pass.space - padding;
 
     // get the fixed children
     let fixed_kids = pass
