@@ -30,7 +30,6 @@ pub fn make_button(name: &ViewId, title: &str) -> View {
         input: Some(|e| {
             if let EventType::Tap(_pt) = &e.event_type {
                 e.scene.set_focused(e.target);
-                e.scene.mark_dirty_view(e.target);
                 return Some(Action::Generic);
             }
             None

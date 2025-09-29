@@ -36,13 +36,13 @@ use rust_embedded_gui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_pa
 use rust_embedded_gui::list_view::make_list_view;
 use rust_embedded_gui::panel::draw_std_panel;
 use rust_embedded_gui::text_input::make_text_input;
-use rust_embedded_gui::view::Align::Center;
+use rust_embedded_gui::view::Align::{Center, Start};
 use rust_embedded_gui::view::Flex::{Intrinsic, Resize};
 use rust_embedded_gui::view::{Align, Flex, View, ViewId};
 
 const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
-const MEDIUM_FONT_BUTTON: &str = "medium_font";
-const LARGE_FONT_BUTTON: &str = "large_font";
+const MEDIUM_FONT_BUTTON: &'static ViewId = &ViewId::new("medium_font");
+const LARGE_FONT_BUTTON: &'static ViewId = &ViewId::new("large_font");
 
 const TABBED_PANEL: &'static ViewId = &ViewId::new("tabbed-panel");
 const BUTTONS_PANEL: &'static ViewId = &ViewId::new("buttons");
@@ -88,7 +88,7 @@ fn make_scene() -> Scene {
         grid_layout.place_at_row_column(&label1.name, 0, 0);
         scene.add_view_to_parent(label1, &grid.name);
 
-        let button1 = make_button("button1", "Basic Button");
+        let button1 = make_button(&ViewId::new("button1"), "Basic Button");
         grid_layout.place_at_row_column(&button1.name, 1, 0);
         scene.add_view_to_parent(button1, &grid.name);
 
@@ -133,9 +133,9 @@ fn make_scene() -> Scene {
                 layout: Some(layout_vbox),
                 ..Default::default()
             };
-            scene.add_view_to_parent(make_button("vbox-button1", "A"), &vbox.name);
-            scene.add_view_to_parent(make_button("vbox-button2", "B"), &vbox.name);
-            scene.add_view_to_parent(make_button("vbox-button3", "C"), &vbox.name);
+            scene.add_view_to_parent(make_button(&ViewId::new("vbox-button1"), "A"), &vbox.name);
+            scene.add_view_to_parent(make_button(&ViewId::new("vbox-button2"), "B"), &vbox.name);
+            scene.add_view_to_parent(make_button(&ViewId::new("vbox-button3"), "C"), &vbox.name);
             scene.add_view_to_parent(vbox, &col1.name);
             scene.add_view_to_parent(col1, &wrapper.name);
         }
@@ -144,9 +144,9 @@ fn make_scene() -> Scene {
             let col2 = make_column("vbox3");
             scene.add_view_to_parent(make_label("hbox-label", "hbox layout"), &col2.name);
             let hbox = make_row("hbox");
-            scene.add_view_to_parent(make_button("hbox-button1", "A"), &hbox.name);
-            scene.add_view_to_parent(make_button("hbox-button2", "B"), &hbox.name);
-            scene.add_view_to_parent(make_button("hbox-button3", "C"), &hbox.name);
+            scene.add_view_to_parent(make_button(&ViewId::new("hbox-button1"), "A"), &hbox.name);
+            scene.add_view_to_parent(make_button(&ViewId::new("hbox-button2"), "B"), &hbox.name);
+            scene.add_view_to_parent(make_button(&ViewId::new("hbox-button3"), "C"), &hbox.name);
             scene.add_view_to_parent(hbox, &col2.name);
             scene.add_view_to_parent(col2, &wrapper.name);
         }
@@ -165,7 +165,7 @@ fn make_scene() -> Scene {
         };
         let col1 = make_column("lists-col1");
         scene.add_view_to_parent(make_label("lists-label", "Lists"), &col1.name);
-        let button = make_button(POPUP_BUTTON.as_str(), "Open Popup");
+        let button = make_button(POPUP_BUTTON, "Open Popup");
         scene.add_view_to_parent(button, &col1.name);
         scene.add_view_to_parent(col1, &wrapper.name);
         let list = make_list_view(
@@ -207,9 +207,9 @@ fn make_scene() -> Scene {
             make_label("themes-label", "Themes").position_at(30, 90),
             &panel.name,
         );
-        scene.add_view_to_parent(make_button("light-theme", "Light"), &panel.name);
-        scene.add_view_to_parent(make_button("dark-theme", "Dark"), &panel.name);
-        scene.add_view_to_parent(make_button("colorful-theme", "Colorful"), &panel.name);
+        scene.add_view_to_parent(make_button(&ViewId::new("light-theme"), "Light"), &panel.name);
+        scene.add_view_to_parent(make_button(&ViewId::new("dark-theme"), "Dark"), &panel.name);
+        scene.add_view_to_parent(make_button(&ViewId::new("colorful-theme"), "Colorful"), &panel.name);
         panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
@@ -227,7 +227,7 @@ fn make_scene() -> Scene {
             ..Default::default()
         };
         scene.add_view_to_parent(
-            make_button(SMALL_FONT_BUTTON.as_str(), "Small"),
+            make_button(SMALL_FONT_BUTTON, "Small"),
             &font_buttons.name,
         );
         scene.add_view_to_parent(
@@ -242,6 +242,90 @@ fn make_scene() -> Scene {
         state.selected = 2;
     }
 
+    scene
+}
+fn make_vbox_test() -> Scene {
+    let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
+    let parent_id: ViewId = "parent".into();
+    let parent_view = View {
+        name: parent_id.clone(),
+        title: "parent".into(),
+        padding: Insets::new_same(10),
+        bounds: Bounds::new(0,0,100,100),
+        h_flex: Resize,
+        v_flex: Resize,
+        h_align: Start,
+        v_align: Start,
+        layout: Some(layout_hbox),
+        draw: Some(draw_std_panel),
+        ..Default::default()
+    };
+    {
+        let child1_id: ViewId = "child1".into();
+        let mut child = make_button(&child1_id, "ch1");
+        child.h_align = Align::Start;
+        child.v_align = Start;
+        scene.add_view_to_parent(child, &parent_id);
+
+        let child2_id: ViewId = "child2".into();
+        let mut child = make_button(&child2_id, "ch2");
+        child.h_align = Align::Center;
+        child.v_align = Center;
+        scene.add_view_to_parent(child, &parent_id);
+
+        let child3_id: ViewId = "child3".into();
+        let mut child = make_button(&child3_id, "ch3");
+        child.h_align = Align::End;
+        child.v_align = Align::End;
+        scene.add_view_to_parent(child, &parent_id );
+    }
+
+    let child_box = View {
+        name:ViewId::new("foo"),
+        padding: Insets::new_same(5),
+        layout: Some(layout_vbox),
+        draw: Some(draw_std_panel),
+        bounds: Bounds::new(0,0,100,100),
+        h_flex: Intrinsic,
+        v_flex: Resize,
+        h_align: Center,
+        .. Default::default()
+    };
+    {
+        let child1_id: ViewId = "child1a".into();
+        let mut child = make_button(&child1_id, "ch1");
+        child.h_align = Align::Start;
+        child.v_align = Start;
+        scene.add_view_to_parent(child, &child_box.name);
+
+        let child2_id: ViewId = "child2a".into();
+        let mut child = make_button(&child2_id, "ch2");
+        child.h_align = Align::Center;
+        child.v_align = Center;
+        scene.add_view_to_parent(child, &child_box.name);
+
+        let child3_id: ViewId = "child3a".into();
+        let mut child = make_button(&child3_id, "ch3");
+        child.h_align = Align::End;
+        child.v_align = Align::End;
+        scene.add_view_to_parent(child, &child_box.name);
+    }
+    scene.add_view_to_parent(child_box, &parent_id);
+
+    // let child4_id: ViewId = "child4".into();
+    // scene.add_view_to_parent(
+    //     View {
+    //         name: child4_id.clone(),
+    //         title: "ch4".into(),
+    //         h_flex: Flex::Resize,
+    //         v_flex: Flex::Resize,
+    //         layout: Some(layout_std_panel),
+    //         ..Default::default()
+    //     },
+    //     &parent_id,
+    // );
+
+    scene.add_view_to_parent(parent_view, &scene.root_id());
     scene
 }
 
@@ -279,6 +363,7 @@ fn main() -> Result<(), std::convert::Infallible> {
     let mut display: SimulatorDisplay<Rgb565> = SimulatorDisplay::new(Size::new(320, 240));
 
     let mut scene = make_scene();
+    // let mut scene = make_vbox_test();
     let mut theme = Theme {
         bg: Rgb565::WHITE,
         fg: Rgb565::BLACK,
@@ -380,12 +465,12 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.bold_font = FONT_5X7;
         scene.mark_layout_dirty();
     }
-    if name == MEDIUM_FONT_BUTTON.into() {
+    if name == *MEDIUM_FONT_BUTTON {
         theme.font = FONT_6X10;
         theme.bold_font = FONT_6X10;
         scene.mark_layout_dirty();
     }
-    if name == LARGE_FONT_BUTTON.into() {
+    if name == *LARGE_FONT_BUTTON {
         theme.font = FONT_7X13;
         theme.bold_font = FONT_7X13_BOLD;
         scene.mark_layout_dirty();

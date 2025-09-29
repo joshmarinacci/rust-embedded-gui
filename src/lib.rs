@@ -119,7 +119,9 @@ impl<'a> LayoutEvent<'a> {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
     use alloc::boxed::Box;
+    use alloc::vec;
     use super::*;
     use crate::button::make_button;
     use crate::gfx::TextStyle;

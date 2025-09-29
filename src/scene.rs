@@ -80,13 +80,10 @@ impl Scene {
         self.dirty = true;
     }
     pub fn mark_dirty_view(&mut self, name: &ViewId) {
-        // info!("Marking dirty view {}", name);
         if let Some(view) = self.get_view(name) {
             self.dirty_rect = self.dirty_rect.union(view.bounds);
-            // info!("dirty rect now {:?}", self.dirty_rect);
             self.dirty = true;
         }
-        self.mark_dirty_all();
     }
     pub fn mark_layout_dirty(&mut self) {
         self.layout_dirty = true;
