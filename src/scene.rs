@@ -139,7 +139,13 @@ impl Scene {
         }
         None
     }
-    pub(crate) fn view_bounds(&self, p0: &ViewId) -> Bounds {
+    pub fn get_view_layout(&mut self, name: &ViewId) -> Option<LayoutFn> {
+        if let Some(view) = self.get_view_mut(name) {
+            return view.layout;
+        }
+        None
+    }
+    pub(crate) fn get_view_bounds(&self, p0: &ViewId) -> Bounds {
         if let Some(view) = self.get_view(p0) {
             view.bounds.clone()
         } else {
@@ -155,10 +161,10 @@ impl Scene {
         self.keys.remove(name)
     }
     pub fn new_with_bounds(bounds: Bounds) -> Scene {
-        let rootid = ViewId::new("root");
+        let root_id = ViewId::new("root");
         let root = View {
-            name: rootid.clone(),
-            title: rootid.as_str().into(),
+            name: root_id.clone(),
+            title: root_id.as_str().into(),
             bounds,
             visible: true,
             input: None,
@@ -167,7 +173,6 @@ impl Scene {
             draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
             ..Default::default()
         };
-        let root_id = ViewId::new("root");
         let mut keys: HashMap<ViewId, View> = HashMap::new();
         keys.insert(root_id.clone(), root);
         Scene {
@@ -212,13 +217,6 @@ impl Scene {
             self.remove_child(name, &kid);
         }
         self.remove_view(name);
-    }
-
-    pub fn get_view_layout(&mut self, name: &ViewId) -> Option<LayoutFn> {
-        if let Some(view) = self.get_view_mut(name) {
-            return view.layout;
-        }
-        None
     }
 }
 
