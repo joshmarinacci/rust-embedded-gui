@@ -116,7 +116,15 @@ pub fn layout_toggle_group(pass: &mut LayoutEvent) {
             view.bounds.size.w = pass.space.w;
         }
         if view.h_flex == Intrinsic {
-            view.bounds.size.w = 50;
+            if let Some(state) = view.get_state::<SelectOneOfState>() {
+                let mut width = 0;
+                for item in &state.items {
+                    width += char_size.width as i32;
+                    width += item.len() as i32 * char_size.width as i32;
+                    width += char_size.width as i32;
+                }
+                view.bounds.size.w = width;
+            }
         }
         if view.v_flex == Resize {
             view.bounds.size.h = pass.space.h;

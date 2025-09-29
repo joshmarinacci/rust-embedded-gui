@@ -96,7 +96,9 @@ fn make_scene() -> Scene {
         grid_layout.place_at_row_column(&button2.name, 1, 1);
         scene.add_view_to_parent(button2, &grid.name);
 
-        let button3 = make_toggle_group(&ViewId::new("toggle2"), vec!["Apple", "Ball", "Car"], 1);
+        let mut button3 = make_toggle_group(&ViewId::new("toggle2"), vec!["Apple", "Ball", "Car"], 1);
+        button3.h_flex = Intrinsic;
+        button3.h_align = Align::Center;
         grid_layout.constraints.insert(
             (&button3.name).clone(),
             LayoutConstraint {
@@ -104,8 +106,6 @@ fn make_scene() -> Scene {
                 col: 0,
                 col_span: 2,
                 row_span: 1,
-                v_align: Center,
-                h_align: Center,
             },
         );
         scene.add_view_to_parent(button3, &grid.name);

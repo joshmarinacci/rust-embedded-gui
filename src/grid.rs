@@ -51,8 +51,6 @@ pub struct LayoutConstraint {
     pub row: usize,
     pub col_span: usize,
     pub row_span: usize,
-    pub h_align: Align,
-    pub v_align: Align,
 }
 
 impl LayoutConstraint {
@@ -62,8 +60,6 @@ impl LayoutConstraint {
             row,
             col_span: 1,
             row_span: 1,
-            h_align: Align::Center,
-            v_align: Align::Center,
         }
     }
 }
@@ -114,7 +110,6 @@ fn draw_grid(evt: &mut DrawEvent) {
 
 fn layout_grid(pass: &mut LayoutEvent) {
     if let Some(view) = pass.scene.get_view_mut(pass.target) {
-        let cs = pass.theme.font.character_size;
         if view.h_flex == Resize {
             view.bounds.size.w = pass.space.w;
         }
@@ -141,16 +136,20 @@ fn layout_grid(pass: &mut LayoutEvent) {
                     Bounds::new(0, 0, 0, 0)
                 };
                 if let Some(view) = pass.scene.get_view_mut(&kid) {
-                    center_within(cell_bounds, &mut view.bounds);
+                    view.bounds.position.x = match &view.h_align {
+                        Align::Start => cell_bounds.x(),
+                        Align::Center => cell_bounds.x() + (cell_bounds.w() - view.bounds.w())/2,
+                        Align::End => cell_bounds.x() + cell_bounds.w() - view.bounds.w(),
+                    };
+                    view.bounds.position.y = match &view.v_align {
+                        Align::Start => cell_bounds.y(),
+                        Align::Center => cell_bounds.y() + (cell_bounds.h() - view.bounds.h())/2,
+                        Align::End => cell_bounds.y() + cell_bounds.h() - view.bounds.h(),
+                    };
                 }
             }
         }
     }
-}
-
-fn center_within(cell: Bounds, view: &mut Bounds) {
-    view.position.x = (cell.w() - view.w()) / 2 + cell.x();
-    view.position.y = (cell.h() - view.h()) / 2 + cell.y();
 }
 
 mod tests {
