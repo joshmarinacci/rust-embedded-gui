@@ -3,7 +3,6 @@ use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{Align, View, ViewId};
 use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
-use alloc::string::String;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use hashbrown::HashMap;
 
@@ -228,8 +227,6 @@ mod tests {
                 row: 0,
                 col_span: 2,
                 row_span: 1,
-                h_align: Align::Center,
-                v_align: Align::Center,
             },
         );
 

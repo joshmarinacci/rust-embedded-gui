@@ -56,16 +56,16 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     }
 
     // position all the children
-    let mut y = padding.top as i32;
+    let mut y = padding.top;
     let all_kids = pass.scene.get_children_ids(&pass.target);
     for kid in all_kids {
         let avail_w = pass.space.w - padding.left - padding.right;
         if let Some(kid) = pass.scene.get_view_mut(&kid) {
             kid.bounds.position.x = match &kid.h_align {
-                Start => padding.left + (avail_w - kid.bounds.size.w),
-                Center => padding.left + (avail_w - kid.bounds.size.w) / 2,
-                End => padding.left + (avail_w - kid.bounds.size.w),
-            };
+                Start => (avail_w - kid.bounds.size.w)*0,
+                Center => (avail_w - kid.bounds.size.w) / 2,
+                End => (avail_w - kid.bounds.size.w),
+            } + padding.left;
             kid.bounds.position.y = y;
             y += kid.bounds.size.h;
         }
@@ -217,6 +217,7 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
     use crate::LayoutEvent;
     use crate::geom::{Bounds, Insets, Point, Size};
     use crate::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
@@ -274,8 +275,8 @@ mod tests {
             },
             h_flex: Flex::Resize,
             v_flex: Flex::Resize,
-            h_align: Align::Center,
-            v_align: Align::Center,
+            h_align: Start,
+            v_align: Start,
             layout: Some(layout_vbox),
             ..Default::default()
         };
@@ -332,8 +333,8 @@ mod tests {
         scene.add_view_to_parent(parent_view, &scene.root_id());
 
         let theme = MockDrawingContext::make_mock_theme();
-
         layout_scene(&mut scene, &theme);
+        scene.dump();
         if let Some(view) = scene.get_view_mut(&parent_id) {
             assert_eq!(view.name, parent_id);
             // confirm position wasn't modified at all
