@@ -66,7 +66,7 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     for kid in all_kids {
         if let Some(kid) = pass.scene.get_view_mut(&kid) {
             kid.bounds.position.x = match &kid.h_align {
-                Start => (avail_w - kid.bounds.size.w)*0,
+                Start => (avail_w - kid.bounds.size.w) * 0,
                 Center => (avail_w - kid.bounds.size.w) / 2,
                 End => (avail_w - kid.bounds.size.w),
             } + padding.left;
@@ -85,8 +85,7 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
         if view.v_flex == Resize {
             view.bounds.size.h = pass.space.h
         }
-        if view.v_flex == Intrinsic {
-        }
+        if view.v_flex == Intrinsic {}
     }
 }
 
@@ -161,7 +160,7 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
             kid.bounds.position.x = x;
             x += kid.bounds.size.w;
             kid.bounds.position.y = match &kid.v_align {
-                Start => (avail_h - kid.bounds.size.h)*0,
+                Start => (avail_h - kid.bounds.size.h) * 0,
                 Center => (avail_h - kid.bounds.size.h) / 2,
                 End => (avail_h - kid.bounds.size.h),
             } + padding.top;
@@ -223,7 +222,6 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 
 #[cfg(test)]
 mod tests {
-    use test_log::test;
     use crate::LayoutEvent;
     use crate::geom::{Bounds, Insets, Point, Size};
     use crate::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
@@ -232,6 +230,7 @@ mod tests {
     use crate::toggle_group::layout_toggle_group;
     use crate::view::Align::{Center, End, Start};
     use crate::view::{Align, Flex, View, ViewId};
+    use test_log::test;
     fn layout_button(layout: &mut LayoutEvent) {
         if let Some(view) = layout.scene.get_view_mut(&layout.target) {
             view.bounds.size = Size::new((view.title.len() * 10) as i32, 10) + view.padding;

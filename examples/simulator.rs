@@ -96,7 +96,8 @@ fn make_scene() -> Scene {
         grid_layout.place_at_row_column(&button2.name, 1, 1);
         scene.add_view_to_parent(button2, &grid.name);
 
-        let mut button3 = make_toggle_group(&ViewId::new("toggle2"), vec!["Apple", "Ball", "Car"], 1);
+        let mut button3 =
+            make_toggle_group(&ViewId::new("toggle2"), vec!["Apple", "Ball", "Car"], 1);
         button3.h_flex = Intrinsic;
         button3.h_align = Align::Center;
         grid_layout.constraints.insert(
@@ -207,9 +208,15 @@ fn make_scene() -> Scene {
             make_label("themes-label", "Themes").position_at(30, 90),
             &panel.name,
         );
-        scene.add_view_to_parent(make_button(&ViewId::new("light-theme"), "Light"), &panel.name);
+        scene.add_view_to_parent(
+            make_button(&ViewId::new("light-theme"), "Light"),
+            &panel.name,
+        );
         scene.add_view_to_parent(make_button(&ViewId::new("dark-theme"), "Dark"), &panel.name);
-        scene.add_view_to_parent(make_button(&ViewId::new("colorful-theme"), "Colorful"), &panel.name);
+        scene.add_view_to_parent(
+            make_button(&ViewId::new("colorful-theme"), "Colorful"),
+            &panel.name,
+        );
         panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
@@ -226,10 +233,7 @@ fn make_scene() -> Scene {
             draw: Some(draw_std_panel),
             ..Default::default()
         };
-        scene.add_view_to_parent(
-            make_button(SMALL_FONT_BUTTON, "Small"),
-            &font_buttons.name,
-        );
+        scene.add_view_to_parent(make_button(SMALL_FONT_BUTTON, "Small"), &font_buttons.name);
         scene.add_view_to_parent(
             make_button(MEDIUM_FONT_BUTTON, "Medium"),
             &font_buttons.name,
@@ -251,7 +255,7 @@ fn make_vbox_test() -> Scene {
         name: parent_id.clone(),
         title: "parent".into(),
         padding: Insets::new_same(10),
-        bounds: Bounds::new(0,0,100,100),
+        bounds: Bounds::new(0, 0, 100, 100),
         h_flex: Resize,
         v_flex: Resize,
         h_align: Start,
@@ -277,19 +281,19 @@ fn make_vbox_test() -> Scene {
         let mut child = make_button(&child3_id, "ch3");
         child.h_align = Align::End;
         child.v_align = Align::End;
-        scene.add_view_to_parent(child, &parent_id );
+        scene.add_view_to_parent(child, &parent_id);
     }
 
     let child_box = View {
-        name:ViewId::new("foo"),
+        name: ViewId::new("foo"),
         padding: Insets::new_same(5),
         layout: Some(layout_vbox),
         draw: Some(draw_std_panel),
-        bounds: Bounds::new(0,0,100,100),
+        bounds: Bounds::new(0, 0, 100, 100),
         h_flex: Intrinsic,
         v_flex: Resize,
         h_align: Center,
-        .. Default::default()
+        ..Default::default()
     };
     {
         let child1_id: ViewId = "child1a".into();

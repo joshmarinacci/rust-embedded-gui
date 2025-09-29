@@ -137,12 +137,12 @@ fn layout_grid(pass: &mut LayoutEvent) {
                 if let Some(view) = pass.scene.get_view_mut(&kid) {
                     view.bounds.position.x = match &view.h_align {
                         Align::Start => cell_bounds.x(),
-                        Align::Center => cell_bounds.x() + (cell_bounds.w() - view.bounds.w())/2,
+                        Align::Center => cell_bounds.x() + (cell_bounds.w() - view.bounds.w()) / 2,
                         Align::End => cell_bounds.x() + cell_bounds.w() - view.bounds.w(),
                     };
                     view.bounds.position.y = match &view.v_align {
                         Align::Start => cell_bounds.y(),
-                        Align::Center => cell_bounds.y() + (cell_bounds.h() - view.bounds.h())/2,
+                        Align::Center => cell_bounds.y() + (cell_bounds.h() - view.bounds.h()) / 2,
                         Align::End => cell_bounds.y() + cell_bounds.h() - view.bounds.h(),
                     };
                 }
@@ -158,16 +158,16 @@ impl Into<ViewId> for &'static str {
 }
 
 mod tests {
+    use crate::button::make_button;
     use crate::geom::Bounds;
     use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
     use crate::label::make_label;
     use crate::scene::{Scene, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
-    use crate::view::{Align, ViewId};
-    use alloc::boxed::Box;
-    use crate::button::make_button;
     use crate::view::Align::Start;
     use crate::view::Flex::Resize;
+    use crate::view::{Align, ViewId};
+    use alloc::boxed::Box;
 
     #[test]
     fn test_grid_layout() {

@@ -119,18 +119,18 @@ impl<'a> LayoutEvent<'a> {
 
 #[cfg(test)]
 mod tests {
-    use test_log::test;
-    use alloc::boxed::Box;
-    use alloc::vec;
     use super::*;
     use crate::button::make_button;
     use crate::gfx::TextStyle;
     use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
     use crate::test::MockDrawingContext;
     use crate::view::Align;
+    use alloc::boxed::Box;
+    use alloc::vec;
     use alloc::vec::Vec;
     use log::{LevelFilter, info};
     use std::sync::Once;
+    use test_log::test;
 
     extern crate std;
 
