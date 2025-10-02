@@ -84,6 +84,7 @@ impl Scene {
             self.dirty_rect = self.dirty_rect.union(view.bounds);
             self.dirty = true;
         }
+        self.mark_dirty_all();
     }
     pub fn mark_layout_dirty(&mut self) {
         self.layout_dirty = true;

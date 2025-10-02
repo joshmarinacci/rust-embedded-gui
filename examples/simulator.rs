@@ -79,10 +79,11 @@ fn make_scene() -> Scene {
 
     {
         let mut grid = make_grid_panel(BUTTONS_PANEL);
+        grid.padding = Insets::new_same(10);
         grid.h_flex = Resize;
         grid.v_flex = Resize;
         let mut grid_layout = GridLayoutState::new_row_column(3, 30, 2, 100);
-        grid_layout.debug = true;
+        grid_layout.debug = false;
 
         let label1 = make_label("label1", "A Label");
         grid_layout.place_at_row_column(&label1.name, 0, 0);

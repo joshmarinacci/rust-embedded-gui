@@ -1,6 +1,6 @@
 # Untitled Embedded Rust GUI
 
-![screenshot](resources/screenshot-001.png)
+![screenshot](resources/screenshot-002.png)
 
 ## What is This?
 
@@ -30,8 +30,6 @@ Build the library with `cargo build`.
 Run the simulator example with `cargo run --example simulator --features std`. Note that
 the simulator needs SDL2. [Install instructions](https://docs.rs/embedded-graphics-simulator/latest/embedded_graphics_simulator/).
 
-
-
 Run the unit tests with `cargo test --features std`.
 
 
@@ -58,8 +56,8 @@ The theme fields should be used for:
 - [x] support layout using font size. needs padding in the widgets.
 - [x] add hbox and vbox layouts
 - [x] make children drawn and picked relative to the parent.
-- [ ] general
-  - [ ] setup CI on github actions.
+- [x] general
+  - [x] setup CI on github actions.
 - [ ] more components
   - [x] add menu view
   - [x] add list view
@@ -85,18 +83,18 @@ The theme fields should be used for:
   - [x] consolidate Display impls
 - [ ] layout & rendering
   - [ ] calculating dirty rect needs to be converted back to global
-  - [ ] view padding and margins?
+  - [x] common view padding
   - [ ] view border control? just on and off? custom colors?
   - [x] form layout -> grid layout
     - [x] debug lines
-    - [ ] alignment within grid cells
+    - [x] alignment within grid cells
     - [x] span grid cells
 - [ ] improved custom view support
   - [ ] view can define the children it uses
     - [ ] let tab panel define its own children using a toggle group
   - [ ] let tab panel switch its own tabs instead of using external handle action
 - [ ] theme
-  - [x] support selected fg and bg colors
+  - [x] _selected_ fg and bg colors
   - [ ] accent colors?
 
 
@@ -104,24 +102,6 @@ The theme fields should be used for:
 
 ### Grid Layout Architecture
 
-* A child view determines its own size
-* A parent view determines the position of the child.
-* The grid has rows and columns. 
-* Views are placed at specific cells referenced by a `row` and `col`.
-* Views can span multiple rows or columns using `row_span` and `col_span`.
-* Views are aligned within the cells they are positioned at using `h_align` and `v_align` fields.
-* To make a view stretch to fill a cell, use the `stretch` variant of the alignment.
+I'm working on a long blog post describing how the new layout system. It's a single
+pass system that handles most but not all possible cases.
 
-
-
-
-
-
-
-
-
-## tasks
-
-* In case of tabs the child panel gets it's size from the parent, but it needs to know it's
-own size during layout, so how can it find out this information? passed from the parent
-during the layout phase?
