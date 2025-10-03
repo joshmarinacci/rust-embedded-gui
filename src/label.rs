@@ -11,7 +11,7 @@ pub fn make_label(name: &'static str, title: &str) -> View {
         v_flex: Intrinsic,
         layout: Some(|e| {
             if let Some(view) = e.scene.get_view_mut(e.target) {
-                view.bounds.size = util::calc_size(e.theme.bold_font, &view.title);
+                view.bounds.size = util::calc_size(e.theme.font, &view.title);
             }
         }),
         draw: Some(|e| {

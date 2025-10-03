@@ -126,9 +126,10 @@ mod tests {
     use crate::test::MockDrawingContext;
     use crate::view::Align;
     use alloc::boxed::Box;
+    use alloc::string::ToString;
     use alloc::vec;
     use alloc::vec::Vec;
-    use log::{LevelFilter, info};
+    use log::{info, LevelFilter};
     use std::sync::Once;
     use test_log::test;
 
