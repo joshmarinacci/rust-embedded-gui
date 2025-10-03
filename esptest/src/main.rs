@@ -6,48 +6,49 @@
     holding buffers for the duration of a data transfer."
 )]
 
-use rust_embedded_gui::gfx::TextStyle;
-use rust_embedded_gui::scene::draw_scene;
-use rust_embedded_gui::Action;
-use rust_embedded_gui::gfx::DrawingContext;
-use rust_embedded_gui::view::{Align, Flex, View, ViewId};
-use rust_embedded_gui::text_input::make_text_input;
-use rust_embedded_gui::button::make_button;
-use rust_embedded_gui::label::make_label;
-use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint, Size as GSize};
-use rust_embedded_gui::scene::Scene;
-use rust_embedded_gui::EventType;
-use rust_embedded_gui::GuiEvent;
-use rust_embedded_gui::scene::pick_at;
-use rust_embedded_gui::Theme;
+extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::convert::Infallible;
 use core::ops::Add;
-use embedded_hal_bus::spi::{ExclusiveDevice};
+use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_hal::clock::CpuClock;
 use esp_hal::delay::Delay;
 use esp_hal::gpio::Level::{High, Low};
 use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig, Pull};
-use esp_hal::{main, Blocking};
 use esp_hal::spi::master::{Config as SpiConfig, Spi};
 use esp_hal::time::{Duration, Instant, Rate};
-use log::{info};
+use esp_hal::{main, Blocking};
+use log::info;
+use rust_embedded_gui::button::make_button;
+use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint, Size as GSize};
+use rust_embedded_gui::gfx::DrawingContext;
+use rust_embedded_gui::gfx::TextStyle;
+use rust_embedded_gui::label::make_label;
+use rust_embedded_gui::scene::draw_scene;
+use rust_embedded_gui::scene::pick_at;
+use rust_embedded_gui::scene::Scene;
+use rust_embedded_gui::text_input::make_text_input;
+use rust_embedded_gui::view::{Align, Flex, View, ViewId};
+use rust_embedded_gui::Action;
+use rust_embedded_gui::EventType;
+use rust_embedded_gui::GuiEvent;
+use rust_embedded_gui::Theme;
 
+use embedded_graphics::geometry::Point as EPoint;
+use embedded_graphics::mock_display::MockDisplay;
+use embedded_graphics::mono_font::ascii::{FONT_7X13_BOLD, FONT_9X15};
+use embedded_graphics::mono_font::{MonoFont, MonoTextStyleBuilder};
+use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
+use embedded_graphics::text::{Alignment, Baseline, TextStyleBuilder};
 use embedded_graphics::{
     mono_font::{ascii::FONT_6X10, MonoTextStyle},
     pixelcolor::Rgb565,
     prelude::*,
     text::Text,
 };
-use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
-use embedded_graphics::geometry::{Point as EPoint};
-use embedded_graphics::mock_display::MockDisplay;
-use embedded_graphics::mono_font::ascii::{FONT_7X13_BOLD, FONT_9X15};
-use embedded_graphics::mono_font::{MonoFont, MonoTextStyleBuilder};
-use embedded_graphics::text::{Alignment, Baseline, TextStyleBuilder};
 use esp_hal::dma::DmaAlignmentError::Size;
 use esp_hal::i2c::master::{BusTimeout, Config as I2CConfig, I2c};
 use mipidsi::interface::SpiInterface;
@@ -68,8 +69,6 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
-
-extern crate alloc;
 
 #[main]
 fn main() -> ! {
@@ -164,10 +163,10 @@ fn main() -> ! {
         if let Ok(point) = touch.get_touch(i2c_ref) {
             if let Some(point) = point {
                 // flip because the screen is mounted sideways on the t-deck
-                let pt = GPoint::new(320 - point.y as i32, 240-point.x as i32);
+                let pt = GPoint::new(320 - point.y as i32, 240 - point.x as i32);
                 let targets = pick_at(&mut scene, &pt);
                 info!("clicked on targets {:?}", targets);
-                if let Some((target,pt)) =  targets.last() {
+                if let Some((target, pt)) = targets.last() {
                     let mut evt = GuiEvent {
                         scene: &mut scene,
                         target,
@@ -193,39 +192,38 @@ fn main() -> ! {
 
 
 fn make_gui_scene() -> Scene {
-    let mut scene = Scene::new_with_bounds(Bounds::new(0,0,320,240));
-    let _rootname = scene.root_id.clone();
+    let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
     let panel = View {
         name: ViewId::new("panel"),
-        bounds: Bounds::new(20,20,200,200),
-        draw:Some(draw_std_panel),
+        bounds: Bounds::new(20, 20, 200, 200),
+        draw: Some(draw_std_panel),
         padding: Insets::new_same(5),
         h_flex: Flex::Resize,
         v_flex: Flex::Resize,
         layout: Some(layout_hbox),
-        .. Default::default()
+        ..Default::default()
     };
 
 
     scene.add_view_to_parent(make_label("label1", "A Label").position_at(10, 30),
                              &panel.name);
 
-    scene.add_view_to_root(make_button("button1","A button")
-        .position_at(10,60));
-    scene.add_view_to_root(make_button("button2","A button")
-        .position_at(10,120));
+    scene.add_view_to_root(make_button(&"button1".into(), "A button")
+        .position_at(10, 60));
+    scene.add_view_to_root(make_button(&"button2".into(), "A button")
+        .position_at(10, 120));
 
-    scene.add_view_to_root(make_button("button3","A button")
-        .position_at(10,200));
+    scene.add_view_to_root(make_button(&"button3".into(), "A button")
+        .position_at(10, 200));
     scene.mark_dirty_all();
 
     scene.add_view_to_parent(
-        make_text_input("textinput","type text here")
-            .position_at(10,90),&panel.name);
+        make_text_input("textinput", "type text here")
+            .position_at(10, 90), &panel.name);
 
     scene.add_view_to_parent(make_menuview("menuview", vec!["first".into(), "second".into(), "third".into()])
-                                 .position_at(100,30), &panel.name);
+                                 .position_at(100, 30), &panel.name);
     scene.add_view_to_root(panel);
 
     scene
@@ -233,36 +231,36 @@ fn make_gui_scene() -> Scene {
 
 
 struct MenuState {
-    data:Vec<String>,
-    selected:usize,
+    data: Vec<String>,
+    selected: usize,
 }
-const vh:i32 = 30;
-fn make_menuview(name:&'static str, data:Vec<String>) -> View {
+const vh: i32 = 30;
+fn make_menuview(name: &'static str, data: Vec<String>) -> View {
     View {
         name: ViewId::new(name),
         title: name.into(),
-        bounds: Bounds::new(0,0,100,data.len() as i32 * vh),
-        visible:true,
+        bounds: Bounds::new(0, 0, 100, data.len() as i32 * vh),
+        visible: true,
         draw: Some(|e| {
             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
             if let Some(state) = &e.view.state {
                 if let Some(state) = state.downcast_ref::<MenuState>() {
                     info!("menu state is {:?} {}",state.data, state.selected);
-                    for (i,item) in (&state.data).iter().enumerate() {
+                    for (i, item) in (&state.data).iter().enumerate() {
                         let b = Bounds {
                             position: GPoint {
                                 x: e.view.bounds.position.x + 1,
                                 y: e.view.bounds.position.y + (i as i32) * vh + 1,
                             },
                             size: GSize {
-                                w: e.view.bounds.size.w-2,
+                                w: e.view.bounds.size.w - 2,
                                 h: vh,
                             },
                         };
                         if state.selected == i {
                             e.ctx.fill_rect(&b, &e.theme.fg);
                             e.ctx.fill_text(&b, item.as_str(), &TextStyle::new(&e.theme.font, &e.theme.bg).with_halign(Align::Center));
-                        }else {
+                        } else {
                             e.ctx.fill_rect(&b, &e.theme.bg);
                             e.ctx.fill_text(&b, item.as_str(), &TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(Align::Center));
                         }
@@ -271,7 +269,7 @@ fn make_menuview(name:&'static str, data:Vec<String>) -> View {
             }
             e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
         }),
-        input: Some(|event|{
+        input: Some(|event| {
             // info!("menu clicked at");
             match &event.event_type {
                 EventType::Tap(pt) => {
@@ -282,14 +280,14 @@ fn make_menuview(name:&'static str, data:Vec<String>) -> View {
                         let name = view.name.clone();
                         if view.bounds.contains(pt) {
                             // info!("I was clicked on. index is {}", pt.y/20);
-                            let selected = (pt.y - view.bounds.position.y)/vh;
+                            let selected = (pt.y - view.bounds.position.y) / vh;
                             if let Some(state) = &mut view.state {
                                 if let Some(state) = state.downcast_mut::<MenuState>() {
                                     if selected >= 0 && selected < state.data.len() as i32 {
                                         state.selected = selected as usize;
                                         info!("menu state is {:?}",state.selected);
                                         event.scene.set_focused(&name);
-                                        return Some(Action::Command("selected".into()))
+                                        return Some(Action::Command("selected".into()));
                                     }
                                 }
                             }
@@ -302,17 +300,16 @@ fn make_menuview(name:&'static str, data:Vec<String>) -> View {
             }
             None
         }),
-        layout: Some(|event|{
+        layout: Some(|event| {
             if let Some(parent) = event.scene.get_view_mut(event.target) {
                 if let Some(state) = &parent.state {
                     if let Some(state) = state.downcast_ref::<MenuState>() {
-                        parent.bounds.size.h= vh * (state.data.len() as i32);
+                        parent.bounds.size.h = vh * (state.data.len() as i32);
                     }
                 }
             };
         }),
-        state: Some(Box::new(MenuState{data,selected:0})),
+        state: Some(Box::new(MenuState { data, selected: 0 })),
         ..Default::default()
     }
-
 }

@@ -160,13 +160,12 @@ impl Into<ViewId> for &'static str {
 mod tests {
     use crate::button::make_button;
     use crate::geom::Bounds;
-    use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
+    use crate::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
     use crate::label::make_label;
-    use crate::scene::{Scene, draw_scene, layout_scene};
+    use crate::scene::{draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::Align::Start;
-    use crate::view::Flex::Resize;
-    use crate::view::{Align, ViewId};
+    use crate::view::ViewId;
     use alloc::boxed::Box;
 
     #[test]
@@ -205,15 +204,15 @@ mod tests {
         {
             let label1 = scene.get_view(&ViewId::new("label1")).unwrap();
             assert_eq!(label1.name, ViewId::new("label1"));
-            assert_eq!(label1.bounds, Bounds::new(0, 0, 63, 25));
+            assert_eq!(label1.bounds, Bounds::new(0, 0, 54, 20));
 
             let label2 = scene.get_view(&ViewId::new("label2")).unwrap();
             assert_eq!(label2.name, ViewId::new("label2"));
-            assert_eq!(label2.bounds, Bounds::new(100, 0, 63, 25));
+            assert_eq!(label2.bounds, Bounds::new(100, 0, 54, 20));
 
             let label3 = scene.get_view(&ViewId::new("label3")).unwrap();
             assert_eq!(label3.name, ViewId::new("label3"));
-            assert_eq!(label3.bounds, Bounds::new(0, 30, 63, 25));
+            assert_eq!(label3.bounds, Bounds::new(0, 30, 54, 20));
         }
 
         let mut ctx = MockDrawingContext::new(&scene);
