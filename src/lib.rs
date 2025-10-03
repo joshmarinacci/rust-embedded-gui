@@ -29,6 +29,7 @@ pub mod toggle_button;
 pub mod toggle_group;
 pub mod util;
 pub mod view;
+pub mod tabbed_panel;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,

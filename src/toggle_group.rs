@@ -1,5 +1,5 @@
 use crate::geom::{Bounds, Point};
-use crate::gfx::{DrawingContext, draw_centered_text};
+use crate::gfx::{draw_centered_text, DrawingContext};
 use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
@@ -40,7 +40,7 @@ impl SelectOneOfState {
     }
 }
 
-fn input_toggle_group(e: &mut GuiEvent) -> Option<Action> {
+pub fn input_toggle_group(e: &mut GuiEvent) -> Option<Action> {
     match &e.event_type {
         EventType::Tap(pt) => {
             e.scene.mark_dirty_view(e.target);
@@ -137,9 +137,9 @@ pub fn layout_toggle_group(pass: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
+    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
     use crate::view::ViewId;
     use alloc::vec;
 

@@ -35,6 +35,7 @@ use rust_embedded_gui::label::make_label;
 use rust_embedded_gui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
 use rust_embedded_gui::list_view::make_list_view;
 use rust_embedded_gui::panel::draw_std_panel;
+use rust_embedded_gui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::Align::{Center, Start};
 use rust_embedded_gui::view::Flex::{Intrinsic, Resize};
@@ -56,26 +57,15 @@ const POPUP_MENU: &'static ViewId = &ViewId::new("popup-menu");
 fn make_scene() -> Scene {
     let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
 
-    let mut tabbed_panel: View = View {
-        name: TABBED_PANEL.clone(),
-        bounds: Bounds::new(10, 10, 320 - 20, 180),
-        h_flex: Flex::Intrinsic,
-        v_flex: Flex::Intrinsic,
-        draw: Some(|e| {
-            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-        }),
-        layout: Some(layout_tabbed_panel),
-        ..Default::default()
-    };
-
-    let tabs_id = ViewId::new("tabs");
-    let tabs = make_toggle_group(
-        &tabs_id,
-        vec!["buttons", "layouts", "lists", "inputs", "themes"],
-        0,
-    );
-    scene.add_view_to_parent(tabs, &tabbed_panel.name);
+    let tab_names = vec!["buttons", "layouts", "lists", "inputs", "themes"];
+    let mut tabbed_panel: View = make_tabbed_panel(&TABBED_PANEL, tab_names, 0, &mut scene);
+    if let Some(state) = tabbed_panel.get_state::<LayoutPanelState>() {
+        state.register_panel("buttons", BUTTONS_PANEL);
+        state.register_panel("layouts", LAYOUT_PANEL);
+        state.register_panel("lists", LISTS_PANEL);
+        state.register_panel("inputs", INPUTS_PANEL);
+        state.register_panel("themes", THEMES_PANEL);
+    }
 
     {
         let mut grid = make_grid_panel(BUTTONS_PANEL);
@@ -221,7 +211,6 @@ fn make_scene() -> Scene {
         panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
-
     scene.add_view_to_root(tabbed_panel);
 
     {
@@ -512,28 +501,5 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
     }
     if name == *POPUP_MENU {
         scene.remove_view(POPUP_MENU);
-    }
-
-    if name.as_str() == "tabs" {
-        match action {
-            Action::Command(cmd) => {
-                for kid in scene.get_children_ids(TABBED_PANEL) {
-                    if kid.as_str() != "tabs" {
-                        scene.hide_view(&kid);
-                    }
-                }
-                match cmd.as_str() {
-                    "buttons" => scene.show_view(BUTTONS_PANEL),
-                    "layouts" => scene.show_view(LAYOUT_PANEL),
-                    "lists" => scene.show_view(LISTS_PANEL),
-                    "inputs" => scene.show_view(INPUTS_PANEL),
-                    "themes" => scene.show_view(THEMES_PANEL),
-                    &_ => {
-                        println!("tab not handled");
-                    }
-                }
-            }
-            Action::Generic => {}
-        }
     }
 }
