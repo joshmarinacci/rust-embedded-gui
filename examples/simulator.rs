@@ -1,36 +1,36 @@
-use embedded_graphics::Drawable;
+#[cfg(feature = "std")]
 use embedded_graphics::geometry::{Point as EPoint, Size};
-use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::mono_font::ascii::{
     FONT_5X7, FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
+use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
 use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
+use embedded_graphics::Drawable;
 use rust_embedded_gui::button::make_button;
 use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint};
 use rust_embedded_gui::scene::{
-    EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene,
+    click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene,
 };
 use rust_embedded_gui::toggle_button::make_toggle_button;
-use rust_embedded_gui::toggle_group::{SelectOneOfState, layout_toggle_group, make_toggle_group};
+use rust_embedded_gui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
 use rust_embedded_gui::{Action, EventType, KeyboardAction, Theme};
 use std::convert::Into;
 
-#[cfg(feature = "std")]
 use embedded_graphics::prelude::*;
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
-use env_logger::Target;
 use env_logger::fmt::style::Color::Rgb;
-use log::{LevelFilter, info};
+use env_logger::Target;
+use log::{info, LevelFilter};
 use rust_embedded_gui::device::EmbeddedDrawingContext;
-use rust_embedded_gui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
+use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use rust_embedded_gui::label::make_label;
 use rust_embedded_gui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
 use rust_embedded_gui::list_view::make_list_view;
