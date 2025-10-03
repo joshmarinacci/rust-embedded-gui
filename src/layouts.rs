@@ -491,10 +491,22 @@ mod tests {
             scene.get_view_bounds(&tabbed_panel),
             Some(Bounds::new(0, 0, 200, 200))
         );
-        assert_eq!(scene.get_view_bounds(&tabs), Some(Bounds::new(0, 0, 200, 20)));
-        assert_eq!(scene.get_view_bounds(&tab1), Some(Bounds::new(0, 20, 200, 180)));
-        assert_eq!(scene.get_view_bounds(&tab2), Some(Bounds::new(0, 20, 200, 180)));
-        assert_eq!(scene.get_view_bounds(&tab3), Some(Bounds::new(0, 20, 200, 180)));
+        assert_eq!(
+            scene.get_view_bounds(&tabs),
+            Some(Bounds::new(0, 0, 200, 20))
+        );
+        assert_eq!(
+            scene.get_view_bounds(&tab1),
+            Some(Bounds::new(0, 20, 200, 180))
+        );
+        assert_eq!(
+            scene.get_view_bounds(&tab2),
+            Some(Bounds::new(0, 20, 200, 180))
+        );
+        assert_eq!(
+            scene.get_view_bounds(&tab3),
+            Some(Bounds::new(0, 20, 200, 180))
+        );
 
         assert_eq!(
             scene.get_view_bounds(&"tab1_button1".into()),

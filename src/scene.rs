@@ -23,7 +23,10 @@ pub struct Scene {
 impl Scene {
     pub fn dump(&self) {
         info!("scene");
-        info!(" dirty {} {}, focused {:?}",self.dirty, self.dirty_rect,self.focused);
+        info!(
+            " dirty {} {}, focused {:?}",
+            self.dirty, self.dirty_rect, self.focused
+        );
         self.dump_view(&self.root_id.clone(), "");
     }
     fn dump_view(&self, id: &ViewId, indent: &str) {
@@ -137,7 +140,7 @@ impl Scene {
     }
     pub(crate) fn get_view_bounds(&self, name: &ViewId) -> Option<Bounds> {
         if let Some(view) = self.get_view(name) {
-            return Some(view.bounds.clone())
+            return Some(view.bounds.clone());
         }
         None
     }
@@ -209,7 +212,7 @@ impl Scene {
         if !self.children.contains_key(parent) {
             self.children.insert(parent.clone(), vec![]);
         }
-        self.parents.insert(view.name.clone(),parent.clone());
+        self.parents.insert(view.name.clone(), parent.clone());
         if let Some(children) = self.children.get_mut(parent) {
             children.push(view.name.clone());
         }
@@ -378,7 +381,6 @@ pub fn layout_scene(scene: &mut Scene, theme: &Theme) {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::geom::Bounds;
@@ -411,9 +413,9 @@ mod tests {
         let child_view = crate::tests::make_simple_view(&child_id);
         assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
         assert_eq!(scene.viewcount(), 2);
-        scene.add_view_to_parent(child_view,&parent_id);
+        scene.add_view_to_parent(child_view, &parent_id);
         assert_eq!(scene.get_children_ids(&parent_id).len(), 1);
-        assert_eq!(scene.get_parent_for_view(&child_id).unwrap(),&parent_id);
+        assert_eq!(scene.get_parent_for_view(&child_id).unwrap(), &parent_id);
         scene.remove_view_from_parent(&parent_id, &child_id);
         assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
         assert!(scene.get_parent_for_view(&child_id).is_none());
@@ -428,8 +430,5 @@ mod tests {
         scene.remove_parent_and_children(&parent_id);
         assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
         assert_eq!(scene.viewcount(), 1);
-
-
     }
-
 }

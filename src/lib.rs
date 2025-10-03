@@ -294,7 +294,7 @@ mod tests {
         let mut button = make_test_button(&ViewId::new("child"));
         button.bounds = Bounds::new(10, 10, 10, 10);
 
-        scene.add_view_to_parent(button,&vbox.name);
+        scene.add_view_to_parent(button, &vbox.name);
         scene.add_view_to_root(vbox);
         assert_eq!(pick_at(&mut scene, &Point { x: 5, y: 5 }).len(), 1);
         assert_eq!(pick_at(&mut scene, &Point { x: 15, y: 15 }).len(), 2);
@@ -570,19 +570,19 @@ mod tests {
         let mut scene = Scene::new();
         let panel1 = View {
             name: "panel1".into(),
-            bounds: Bounds::new(10,10,100,100),
-            .. Default::default()
+            bounds: Bounds::new(10, 10, 100, 100),
+            ..Default::default()
         };
         scene.add_view_to_root(panel1);
         let panel2 = View {
             name: "panel2".into(),
-            bounds: Bounds::new(10,10,100,100),
-            .. Default::default()
+            bounds: Bounds::new(10, 10, 100, 100),
+            ..Default::default()
         };
-        scene.add_view_to_parent(panel2,&("panel1".into()));
+        scene.add_view_to_parent(panel2, &("panel1".into()));
         let button_id = ViewId::new("button");
         let button = make_button(&button_id, "Button").position_at(20, 20);
-        scene.add_view_to_parent(button,&("panel2".into()));
+        scene.add_view_to_parent(button, &("panel2".into()));
 
         // draw
         repaint(&mut scene);
@@ -592,14 +592,13 @@ mod tests {
         // nothing should be focused yet
         assert!(scene.focused.is_none());
 
-
         click_at(&mut scene, &vec![], Point::new(45, 45));
         scene.dump();
         // now the button should be focused
         assert!(scene.focused.is_some());
-        assert!(scene.focused.is_some_and(|id|id == button_id));
+        assert!(scene.focused.is_some_and(|id| id == button_id));
         assert_eq!(scene.dirty, true);
-        assert_eq!(scene.dirty_rect,Bounds::new(40,40,100,100));
+        assert_eq!(scene.dirty_rect, Bounds::new(40, 40, 100, 100));
     }
 
     fn get_view_title(scene: &Scene, name: ViewId) -> String {
