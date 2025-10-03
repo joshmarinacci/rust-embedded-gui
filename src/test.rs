@@ -77,7 +77,7 @@ impl DrawingContext for MockDrawingContext {
         Text::new(text, pt, style).draw(&mut self.display).unwrap();
     }
 
-    fn text(&mut self, text: &str, position: &Point, style: &TextStyle) {}
+    fn text(&mut self, text: &str, _position: &Point, _style: &TextStyle) {}
 
     fn translate(&mut self, offset: &Point) {
         self.offset = self.offset + offset.clone();

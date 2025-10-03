@@ -134,7 +134,7 @@ mod tests {
 
     extern crate std;
 
-    fn make_simple_view(name: &ViewId) -> View {
+    pub fn make_simple_view(name: &ViewId) -> View {
         View {
             name: name.clone(),
             title: name.to_string(),
@@ -256,13 +256,6 @@ mod tests {
             ..Default::default()
         }
     }
-    fn get_bounds(scene: &Scene, name: &ViewId) -> Option<Bounds> {
-        if let Some(view) = scene.keys.get(name) {
-            Some(view.bounds)
-        } else {
-            None
-        }
-    }
     fn was_button_clicked(scene: &mut Scene, name: &ViewId) -> bool {
         scene
             .get_view(name)
@@ -293,63 +286,6 @@ mod tests {
         scene.dirty_rect = Bounds::new_empty();
     }
 
-    #[test]
-    fn test_geometry() {
-        let bounds = Bounds::new(0, 0, 100, 100);
-        assert_eq!(bounds.contains(&Point::new(10, 10)), true);
-        assert_eq!(bounds.contains(&Point::new(-1, -1)), false);
-
-        let b2 = Bounds::new(140, 180, 80, 30);
-        let b3 = Bounds::new(140, 180, 80, 30);
-        // INFO - union Bounds { x: 140, y: 180, w: 80, h: 30 } Bounds { x: 140, y: 180, w: 80, h: 30 }
-        assert_eq!(b2.union(b3), b2.clone());
-    }
-    #[test]
-    fn basic_add_remove() {
-        let mut scene: Scene = Scene::new_with_bounds(Bounds::new(0, 0, 100, 30));
-        assert_eq!(scene.viewcount(), 1);
-        let view = make_simple_view(&"foo".into());
-        assert_eq!(scene.viewcount(), 1);
-        scene.add_view(view);
-        assert_eq!(scene.viewcount(), 2);
-        assert!(scene.get_view(&"foo".into()).is_some());
-        let res = scene.remove_view(&"foo".into());
-        assert_eq!(res.is_some(), true);
-        assert_eq!(scene.viewcount(), 1);
-        let res2 = scene.remove_view(&"bar".into());
-        assert_eq!(res2.is_some(), false);
-    }
-    #[test]
-    fn parent_child() {
-        let mut scene: Scene = Scene::new();
-        let parent_id: ViewId = "parent".into();
-        let child_id: ViewId = "child".into();
-        let parent_view = make_simple_view(&parent_id);
-        scene.add_view(parent_view);
-
-        let child_view = make_simple_view(&child_id);
-        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
-        assert_eq!(scene.viewcount(), 2);
-        scene.add_view_to_parent(child_view,&parent_id);
-        assert_eq!(scene.get_children_ids(&parent_id).len(), 1);
-        assert_eq!(scene.get_parent_for_view(&child_id).unwrap(),&parent_id);
-        scene.remove_view_from_parent(&parent_id, &child_id);
-        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
-        assert!(scene.get_parent_for_view(&child_id).is_none());
-
-        scene.move_view_to_parent(&child_id, &parent_id);
-        assert_eq!(scene.get_children_ids(&parent_id).len(), 1);
-        let child2 = make_simple_view(&"child2".into());
-        scene.add_view_to_parent(child2, &parent_id);
-        assert_eq!(scene.get_children_ids(&parent_id).len(), 2);
-        assert_eq!(scene.viewcount(), 4);
-
-        scene.remove_parent_and_children(&parent_id);
-        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
-        assert_eq!(scene.viewcount(), 1);
-
-
-    }
     #[test]
     fn test_pick_at() {
         let mut scene: Scene = Scene::new();
@@ -384,15 +320,15 @@ mod tests {
             space: space,
         });
         assert_eq!(
-            get_bounds(&scene, &"parent".into()),
+            scene.get_view_bounds(&"parent".into()),
             Some(Bounds::new(10, 10, 100, 100))
         );
         assert_eq!(
-            get_bounds(&scene, &"button1".into()),
+            scene.get_view_bounds(&"button1".into()),
             Some(Bounds::new(0, 0, 100, 20)),
         );
         assert_eq!(
-            get_bounds(&scene, &"button2".into()),
+            scene.get_view_bounds(&"button2".into()),
             Some(Bounds::new(0, 20, 100, 20))
         );
     }
@@ -628,6 +564,42 @@ mod tests {
         assert_eq!(scene.dirty, false);
         assert_eq!(scene.dirty_rect.is_empty(), true);
         // check that button was redrawn
+    }
+    #[test]
+    fn test_cliprect_nested() {
+        let mut scene = Scene::new();
+        let panel1 = View {
+            name: "panel1".into(),
+            bounds: Bounds::new(10,10,100,100),
+            .. Default::default()
+        };
+        scene.add_view_to_root(panel1);
+        let panel2 = View {
+            name: "panel2".into(),
+            bounds: Bounds::new(10,10,100,100),
+            .. Default::default()
+        };
+        scene.add_view_to_parent(panel2,&("panel1".into()));
+        let button_id = ViewId::new("button");
+        let button = make_button(&button_id, "Button").position_at(20, 20);
+        scene.add_view_to_parent(button,&("panel2".into()));
+
+        // draw
+        repaint(&mut scene);
+        // check that dirty area is empty
+        assert_eq!(scene.dirty, false);
+        assert_eq!(scene.dirty_rect.is_empty(), true);
+        // nothing should be focused yet
+        assert!(scene.focused.is_none());
+
+
+        click_at(&mut scene, &vec![], Point::new(45, 45));
+        scene.dump();
+        // now the button should be focused
+        assert!(scene.focused.is_some());
+        assert!(scene.focused.is_some_and(|id|id == button_id));
+        assert_eq!(scene.dirty, true);
+        assert_eq!(scene.dirty_rect,Bounds::new(40,40,100,100));
     }
 
     fn get_view_title(scene: &Scene, name: ViewId) -> String {

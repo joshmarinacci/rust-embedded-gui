@@ -485,28 +485,28 @@ mod tests {
         scene.dump();
         assert_eq!(
             scene.get_view_bounds(&scene.root_id()),
-            Bounds::new(0, 0, 200, 200)
+            Some(Bounds::new(0, 0, 200, 200))
         );
         assert_eq!(
             scene.get_view_bounds(&tabbed_panel),
-            Bounds::new(0, 0, 200, 200)
+            Some(Bounds::new(0, 0, 200, 200))
         );
-        assert_eq!(scene.get_view_bounds(&tabs), Bounds::new(0, 0, 200, 20));
-        assert_eq!(scene.get_view_bounds(&tab1), Bounds::new(0, 20, 200, 180));
-        assert_eq!(scene.get_view_bounds(&tab2), Bounds::new(0, 20, 200, 180));
-        assert_eq!(scene.get_view_bounds(&tab3), Bounds::new(0, 20, 200, 180));
+        assert_eq!(scene.get_view_bounds(&tabs), Some(Bounds::new(0, 0, 200, 20)));
+        assert_eq!(scene.get_view_bounds(&tab1), Some(Bounds::new(0, 20, 200, 180)));
+        assert_eq!(scene.get_view_bounds(&tab2), Some(Bounds::new(0, 20, 200, 180)));
+        assert_eq!(scene.get_view_bounds(&tab3), Some(Bounds::new(0, 20, 200, 180)));
 
         assert_eq!(
             scene.get_view_bounds(&"tab1_button1".into()),
-            Bounds::new(0, 0, 30, 10)
+            Some(Bounds::new(0, 0, 30, 10))
         );
         assert_eq!(
             scene.get_view_bounds(&"tab2_button1".into()),
-            Bounds::new(0, 0, 200, 170)
+            Some(Bounds::new(0, 0, 200, 170))
         );
         assert_eq!(
             scene.get_view_bounds(&"tab2_button2".into()),
-            Bounds::new(170, 170, 30, 10)
+            Some(Bounds::new(170, 170, 30, 10))
         );
     }
 

@@ -22,6 +22,8 @@ pub struct Scene {
 
 impl Scene {
     pub fn dump(&self) {
+        info!("scene");
+        info!(" dirty {} {}, focused {:?}",self.dirty, self.dirty_rect,self.focused);
         self.dump_view(&self.root_id.clone(), "");
     }
     fn dump_view(&self, id: &ViewId, indent: &str) {
@@ -82,10 +84,10 @@ impl Scene {
     }
     pub fn mark_dirty_view(&mut self, name: &ViewId) {
         if let Some(view) = self.get_view(name) {
-            self.dirty_rect = self.dirty_rect.union(view.bounds);
+            let global_bounds = self.get_view_global_bounds(view);
+            self.dirty_rect = self.dirty_rect.union(global_bounds);
             self.dirty = true;
         }
-        self.mark_dirty_all();
     }
     pub fn mark_layout_dirty(&mut self) {
         self.layout_dirty = true;
@@ -133,12 +135,11 @@ impl Scene {
         }
         None
     }
-    pub(crate) fn get_view_bounds(&self, p0: &ViewId) -> Bounds {
-        if let Some(view) = self.get_view(p0) {
-            view.bounds.clone()
-        } else {
-            Bounds::new(-99, -99, -99, -99)
+    pub(crate) fn get_view_bounds(&self, name: &ViewId) -> Option<Bounds> {
+        if let Some(view) = self.get_view(name) {
+            return Some(view.bounds.clone())
         }
+        None
     }
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
@@ -229,6 +230,18 @@ impl Scene {
             self.remove_view_from_parent(name, &kid);
         }
         self.remove_view(name);
+    }
+
+    fn get_view_global_bounds(&self, view: &View) -> Bounds {
+        let mut current = &view.name;
+        let mut offset = Point::zero();
+        while let Some(parent) = self.parents.get(current) {
+            if let Some(bounds) = self.get_view_bounds(parent) {
+                offset = offset + bounds.position;
+            }
+            current = parent;
+        }
+        view.bounds + offset
     }
 }
 
@@ -365,23 +378,58 @@ pub fn layout_scene(scene: &mut Scene, theme: &Theme) {
     }
 }
 
-// fn layout_view(scene: &mut Scene, name: &ViewId, theme: &Theme) {
-//     let space = scene.bounds.size.clone();
-//     let mut evt: LayoutEvent = LayoutEvent {
-//         scene,
-//         target: name,
-//         theme: theme,
-//         space: space,
-//     };
-//     // layout children before the view itself
-//     if let Some(view) = evt.scene.get_view(name) {
-//         for kid in evt.scene.get_children_ids(&view.name) {
-//             layout_view(evt.scene, &kid, theme);
-//         }
-//     }
-//     if let Some(view) = evt.scene.get_view(name) {
-//         if let Some(layout) = &view.layout {
-//             layout(&mut evt);
-//         }
-//     }
-// }
+
+#[cfg(test)]
+mod tests {
+    use crate::geom::Bounds;
+    use crate::scene::Scene;
+    use crate::view::ViewId;
+
+    #[test]
+    fn basic_add_remove() {
+        let mut scene: Scene = Scene::new_with_bounds(Bounds::new(0, 0, 100, 30));
+        assert_eq!(scene.viewcount(), 1);
+        let view = crate::tests::make_simple_view(&"foo".into());
+        assert_eq!(scene.viewcount(), 1);
+        scene.add_view(view);
+        assert_eq!(scene.viewcount(), 2);
+        assert!(scene.get_view(&"foo".into()).is_some());
+        let res = scene.remove_view(&"foo".into());
+        assert_eq!(res.is_some(), true);
+        assert_eq!(scene.viewcount(), 1);
+        let res2 = scene.remove_view(&"bar".into());
+        assert_eq!(res2.is_some(), false);
+    }
+    #[test]
+    fn parent_child() {
+        let mut scene: Scene = Scene::new();
+        let parent_id: ViewId = "parent".into();
+        let child_id: ViewId = "child".into();
+        let parent_view = crate::tests::make_simple_view(&parent_id);
+        scene.add_view(parent_view);
+
+        let child_view = crate::tests::make_simple_view(&child_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
+        assert_eq!(scene.viewcount(), 2);
+        scene.add_view_to_parent(child_view,&parent_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 1);
+        assert_eq!(scene.get_parent_for_view(&child_id).unwrap(),&parent_id);
+        scene.remove_view_from_parent(&parent_id, &child_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
+        assert!(scene.get_parent_for_view(&child_id).is_none());
+
+        scene.move_view_to_parent(&child_id, &parent_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 1);
+        let child2 = crate::tests::make_simple_view(&"child2".into());
+        scene.add_view_to_parent(child2, &parent_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 2);
+        assert_eq!(scene.viewcount(), 4);
+
+        scene.remove_parent_and_children(&parent_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
+        assert_eq!(scene.viewcount(), 1);
+
+
+    }
+
+}
