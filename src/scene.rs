@@ -11,6 +11,7 @@ use log::{info, warn};
 pub struct Scene {
     pub(crate) keys: HashMap<ViewId, View>,
     children: HashMap<ViewId, Vec<ViewId>>,
+    parents: HashMap<ViewId, ViewId>,
     pub(crate) dirty: bool,
     pub bounds: Bounds,
     pub dirty_rect: Bounds,
@@ -90,21 +91,7 @@ impl Scene {
         self.layout_dirty = true;
         self.mark_dirty_all();
     }
-    pub fn remove_child(&mut self, parent: &ViewId, child: &ViewId) {
-        if let Some(children) = self.children.get_mut(parent) {
-            if let Some(n) = children.iter().position(|name| name == child) {
-                children.remove(n);
-            }
-        }
-    }
-    pub fn add_child(&mut self, parent: &ViewId, child: &ViewId) {
-        if !self.children.contains_key(parent) {
-            self.children.insert(parent.clone(), vec![]);
-        }
-        if let Some(children) = self.children.get_mut(parent) {
-            children.push(child.clone());
-        }
-    }
+
     pub fn get_children_ids(&self, name: &ViewId) -> Vec<ViewId> {
         if let Some(children) = self.children.get(name) {
             children.clone()
@@ -153,13 +140,27 @@ impl Scene {
             Bounds::new(-99, -99, -99, -99)
         }
     }
-
     pub(crate) fn viewcount(&self) -> usize {
         self.keys.len()
     }
     pub fn remove_view(&mut self, name: &ViewId) -> Option<View> {
         self.mark_dirty_view(name);
         self.keys.remove(name)
+    }
+    pub fn get_parent_for_view(&self, name: &ViewId) -> Option<&ViewId> {
+        self.parents.get(name)
+    }
+    pub fn remove_view_from_parent(&mut self, parent: &ViewId, child: &ViewId) {
+        if let Some(children) = self.children.get_mut(parent) {
+            if let Some(n) = children.iter().position(|name| name == child) {
+                children.remove(n);
+            }
+        }
+        if self.parents.contains_key(child) {
+            self.parents.remove(child);
+        } else {
+            warn!("parent {parent} does not contain child {child}");
+        }
     }
     pub fn new_with_bounds(bounds: Bounds) -> Scene {
         let root_id = ViewId::new("root");
@@ -185,6 +186,7 @@ impl Scene {
             focused: None,
             dirty_rect: bounds,
             children: HashMap::new(),
+            parents: HashMap::new(),
         }
     }
     pub fn new() -> Scene {
@@ -206,16 +208,25 @@ impl Scene {
         if !self.children.contains_key(parent) {
             self.children.insert(parent.clone(), vec![]);
         }
+        self.parents.insert(view.name.clone(),parent.clone());
         if let Some(children) = self.children.get_mut(parent) {
             children.push(view.name.clone());
         }
         self.add_view(view);
     }
+    pub fn move_view_to_parent(&mut self, child: &ViewId, parent: &ViewId) {
+        if !self.children.contains_key(parent) {
+            self.children.insert(parent.clone(), vec![]);
+        }
+        if let Some(children) = self.children.get_mut(parent) {
+            children.push(child.clone());
+        }
+    }
     pub fn remove_parent_and_children(&mut self, name: &ViewId) {
         let kids = self.get_children_ids(name);
         for kid in kids {
             self.remove_view(&kid);
-            self.remove_child(name, &kid);
+            self.remove_view_from_parent(name, &kid);
         }
         self.remove_view(name);
     }

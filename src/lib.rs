@@ -323,28 +323,32 @@ mod tests {
     fn parent_child() {
         let mut scene: Scene = Scene::new();
         let parent_id: ViewId = "parent".into();
-        let parent = &parent_id;
         let child_id: ViewId = "child".into();
-        let child = &child_id;
-        scene.add_view(make_simple_view(parent));
-        scene.add_view(make_simple_view(child));
-        assert_eq!(scene.get_children_ids(parent).len(), 0);
-        assert_eq!(scene.viewcount(), 3);
-        scene.add_child(parent, child);
-        assert_eq!(scene.get_children_ids(parent).len(), 1);
-        scene.remove_child(parent, child);
-        assert_eq!(scene.get_children_ids(parent).len(), 0);
+        let parent_view = make_simple_view(&parent_id);
+        scene.add_view(parent_view);
 
-        scene.add_child(parent, child);
-        assert_eq!(scene.get_children_ids(parent).len(), 1);
+        let child_view = make_simple_view(&child_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
+        assert_eq!(scene.viewcount(), 2);
+        scene.add_view_to_parent(child_view,&parent_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 1);
+        assert_eq!(scene.get_parent_for_view(&child_id).unwrap(),&parent_id);
+        scene.remove_view_from_parent(&parent_id, &child_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
+        assert!(scene.get_parent_for_view(&child_id).is_none());
+
+        scene.move_view_to_parent(&child_id, &parent_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 1);
         let child2 = make_simple_view(&"child2".into());
-        scene.add_view_to_parent(child2, parent);
-        assert_eq!(scene.get_children_ids(parent).len(), 2);
+        scene.add_view_to_parent(child2, &parent_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 2);
         assert_eq!(scene.viewcount(), 4);
 
-        scene.remove_parent_and_children(parent);
-        assert_eq!(scene.get_children_ids(parent).len(), 0);
+        scene.remove_parent_and_children(&parent_id);
+        assert_eq!(scene.get_children_ids(&parent_id).len(), 0);
         assert_eq!(scene.viewcount(), 1);
+
+
     }
     #[test]
     fn test_pick_at() {
@@ -354,10 +358,8 @@ mod tests {
         let mut button = make_test_button(&ViewId::new("child"));
         button.bounds = Bounds::new(10, 10, 10, 10);
 
-        scene.add_child(&scene.root_id.clone(), &vbox.name);
-        scene.add_child(&vbox.name, &button.name);
-        scene.add_view(vbox);
-        scene.add_view(button);
+        scene.add_view_to_parent(button,&vbox.name);
+        scene.add_view_to_root(vbox);
         assert_eq!(pick_at(&mut scene, &Point { x: 5, y: 5 }).len(), 1);
         assert_eq!(pick_at(&mut scene, &Point { x: 15, y: 15 }).len(), 2);
         assert_eq!(pick_at(&mut scene, &Point { x: 25, y: 25 }).len(), 3);
