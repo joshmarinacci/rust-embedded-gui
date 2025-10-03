@@ -1,12 +1,12 @@
 use crate::geom::Insets;
 use crate::gfx::draw_centered_text;
 use crate::view::{View, ViewId};
-use crate::{Action, DrawEvent, GuiEvent, LayoutEvent, util};
+use crate::{util, Action, DrawEvent, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
 
 pub fn make_toggle_button(name: &ViewId, title: &str) -> View {
     View {
-        name: name.clone(),
+        name: *name,
         title: title.into(),
         state: Some(Box::new(SelectedState::new())),
         draw: Some(draw_toggle_button),
@@ -67,9 +67,9 @@ fn layout_toggle_button(event: &mut LayoutEvent) {
 
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_button::{SelectedState, make_toggle_button};
+    use crate::toggle_button::{make_toggle_button, SelectedState};
     use crate::view::ViewId;
     use alloc::vec;
 

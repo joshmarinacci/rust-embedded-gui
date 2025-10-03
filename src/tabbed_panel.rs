@@ -20,7 +20,7 @@ impl LayoutPanelState {
     pub fn register_panel(&mut self, tab_name: &str, content_id: &ViewId) {
         info!("registering panel {tab_name} with content {content_id}");
         self.data.push(tab_name.into());
-        self.contents.insert(tab_name.into(), content_id.clone());
+        self.contents.insert(tab_name.into(), *content_id);
     }
 }
 
@@ -74,10 +74,10 @@ pub fn make_tabbed_panel(
         }
         return None;
     });
-    scene.add_view_to_parent(tabs, &name);
+    scene.add_view_to_parent(tabs, name);
 
     View {
-        name: name.clone(),
+        name: *name,
         bounds: Bounds::new(10, 10, 320 - 20, 180),
         h_flex: Flex::Intrinsic,
         v_flex: Flex::Intrinsic,

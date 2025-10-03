@@ -339,24 +339,22 @@ pub fn draw_scene(scene: &mut Scene, ctx: &mut dyn DrawingContext, theme: &Theme
 fn draw_view(scene: &mut Scene, ctx: &mut dyn DrawingContext, theme: &Theme, name: &ViewId) {
     let focused = &scene.focused.clone();
     let bounds = &scene.bounds.clone();
-    if let Some(view) = scene.get_view_mut(name) {
-        if view.visible {
-            if let Some(draw2) = view.draw {
-                let mut de: DrawEvent = DrawEvent {
-                    theme,
-                    view,
-                    ctx,
-                    focused,
-                    bounds,
-                };
-                draw2(&mut de);
-            }
+    if let Some(view) = scene.get_view_mut(name) && view.visible {
+        if let Some(draw) = view.draw {
+            let mut de: DrawEvent = DrawEvent {
+                theme,
+                view,
+                ctx,
+                focused,
+                bounds,
+            };
+            draw(&mut de);
         }
     }
     if let Some(view) = scene.get_view(name) {
         // only draw children if visible
         if view.visible {
-            let bounds = view.bounds.clone();
+            let bounds = view.bounds;
             ctx.translate(&bounds.position);
             for kid in scene.get_children_ids(&view.name) {
                 draw_view(scene, ctx, theme, &kid);
@@ -370,7 +368,7 @@ pub fn layout_scene(scene: &mut Scene, theme: &Theme) {
     if scene.layout_dirty {
         let mut pass = LayoutEvent {
             target: &scene.root_id(),
-            space: scene.bounds.size.clone(),
+            space: scene.bounds.size,
             scene,
             theme,
         };

@@ -12,7 +12,7 @@ use hashbrown::Equivalent;
 
 pub fn make_toggle_group(name: &ViewId, data: Vec<&str>, selected: usize) -> View {
     View {
-        name: name.clone(),
+        name: *name,
         title: name.as_str().into(),
         bounds: Bounds::new(0, 0, (data.len() * 60) as i32, 30),
         state: Some(SelectOneOfState::new_with(data, selected)),
@@ -109,7 +109,7 @@ fn draw_toggle_group(e: &mut DrawEvent) {
 }
 
 pub fn layout_toggle_group(pass: &mut LayoutEvent) {
-    if let Some(view) = pass.scene.get_view_mut(&pass.target) {
+    if let Some(view) = pass.scene.get_view_mut(pass.target) {
         let char_size = pass.theme.font.character_size;
         let mut height = char_size.height + (char_size.height / 2) * 2; // padding
         if view.h_flex == Resize {

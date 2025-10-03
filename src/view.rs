@@ -79,7 +79,7 @@ impl Default for View {
     fn default() -> Self {
         let id: ViewId = ViewId::new("noname");
         View {
-            name: id.clone(),
+            name: id,
             title: id.as_str().into(),
             bounds: Default::default(),
             padding: Default::default(),
