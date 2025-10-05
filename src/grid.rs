@@ -160,9 +160,9 @@ impl Into<ViewId> for &'static str {
 mod tests {
     use crate::button::make_button;
     use crate::geom::Bounds;
-    use crate::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
+    use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
     use crate::label::make_label;
-    use crate::scene::{draw_scene, layout_scene, Scene};
+    use crate::scene::{Scene, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
     use crate::view::Align::Start;
     use crate::view::ViewId;

@@ -23,13 +23,13 @@ pub mod layouts;
 pub mod list_view;
 pub mod panel;
 pub mod scene;
+pub mod tabbed_panel;
 pub mod test;
 pub mod text_input;
 pub mod toggle_button;
 pub mod toggle_group;
 pub mod util;
 pub mod view;
-pub mod tabbed_panel;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
@@ -130,7 +130,7 @@ mod tests {
     use alloc::string::ToString;
     use alloc::vec;
     use alloc::vec::Vec;
-    use log::{info, LevelFilter};
+    use log::{LevelFilter, info};
     use std::sync::Once;
     use test_log::test;
 

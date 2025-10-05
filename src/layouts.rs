@@ -1,10 +1,10 @@
+use crate::LayoutEvent;
 use crate::geom::{Insets, Size};
 use crate::view::Align::{Center, End, Start};
 use crate::view::Flex::Resize;
 use crate::view::{Flex, ViewId};
-use crate::LayoutEvent;
-use log::info;
 use Flex::Intrinsic;
+use log::info;
 
 pub fn layout_vbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
@@ -222,14 +222,14 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 
 #[cfg(test)]
 mod tests {
+    use crate::LayoutEvent;
     use crate::geom::{Bounds, Insets, Point, Size};
     use crate::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
-    use crate::scene::{layout_scene, Scene};
+    use crate::scene::{Scene, layout_scene};
     use crate::test::MockDrawingContext;
     use crate::toggle_group::layout_toggle_group;
     use crate::view::Align::{Center, End, Start};
     use crate::view::{Align, Flex, View, ViewId};
-    use crate::LayoutEvent;
     use test_log::test;
     fn layout_button(layout: &mut LayoutEvent) {
         if let Some(view) = layout.scene.get_view_mut(&layout.target) {

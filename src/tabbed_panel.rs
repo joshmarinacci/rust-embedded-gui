@@ -1,9 +1,9 @@
+use crate::Action;
 use crate::geom::Bounds;
 use crate::layouts::layout_tabbed_panel;
 use crate::scene::Scene;
 use crate::toggle_group::{input_toggle_group, make_toggle_group};
 use crate::view::{Flex, View, ViewId};
-use crate::Action;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
@@ -55,7 +55,9 @@ pub fn make_tabbed_panel(
             match action {
                 Action::Generic => {}
                 Action::Command(cmd) => {
-                    let panel_name = if let Some(state) = e.scene.get_view_state::<LayoutPanelState>(&container) {
+                    let panel_name = if let Some(state) =
+                        e.scene.get_view_state::<LayoutPanelState>(&container)
+                    {
                         if let Some(panel) = state.contents.get(&cmd) {
                             Some(panel.clone())
                         } else {

@@ -1,5 +1,5 @@
 use crate::geom::{Bounds, Point};
-use crate::gfx::{draw_centered_text, DrawingContext};
+use crate::gfx::{DrawingContext, draw_centered_text};
 use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
@@ -137,9 +137,9 @@ pub fn layout_toggle_group(pass: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
+    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
     use crate::view::ViewId;
     use alloc::vec;
 

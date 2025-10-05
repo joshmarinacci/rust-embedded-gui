@@ -339,7 +339,9 @@ pub fn draw_scene(scene: &mut Scene, ctx: &mut dyn DrawingContext, theme: &Theme
 fn draw_view(scene: &mut Scene, ctx: &mut dyn DrawingContext, theme: &Theme, name: &ViewId) {
     let focused = &scene.focused.clone();
     let bounds = &scene.bounds.clone();
-    if let Some(view) = scene.get_view_mut(name) && view.visible {
+    if let Some(view) = scene.get_view_mut(name)
+        && view.visible
+    {
         if let Some(draw) = view.draw {
             let mut de: DrawEvent = DrawEvent {
                 theme,
