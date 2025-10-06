@@ -1,24 +1,24 @@
-use embedded_graphics::Drawable;
 #[cfg(feature = "std")]
 use embedded_graphics::geometry::{Point as EPoint, Size};
-use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::mono_font::ascii::{
     FONT_5X7, FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
+use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
 use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
+use embedded_graphics::Drawable;
 use rust_embedded_gui::button::make_button;
 use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint};
 use rust_embedded_gui::scene::{
-    EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene,
+    click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene,
 };
 use rust_embedded_gui::toggle_button::make_toggle_button;
-use rust_embedded_gui::toggle_group::{SelectOneOfState, layout_toggle_group, make_toggle_group};
-use rust_embedded_gui::{Action, EventType, KeyboardAction, Theme};
+use rust_embedded_gui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
+use rust_embedded_gui::{util, Action, EventType, KeyboardAction, Theme};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
@@ -26,16 +26,16 @@ use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
-use env_logger::Target;
 use env_logger::fmt::style::Color::Rgb;
-use log::{LevelFilter, info};
+use env_logger::Target;
+use log::{info, LevelFilter};
 use rust_embedded_gui::device::EmbeddedDrawingContext;
-use rust_embedded_gui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
+use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use rust_embedded_gui::label::make_label;
 use rust_embedded_gui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
 use rust_embedded_gui::list_view::make_list_view;
 use rust_embedded_gui::panel::draw_std_panel;
-use rust_embedded_gui::tabbed_panel::{LayoutPanelState, make_tabbed_panel};
+use rust_embedded_gui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
 use rust_embedded_gui::text_input::make_text_input;
 use rust_embedded_gui::view::Align::{Center, Start};
 use rust_embedded_gui::view::Flex::{Intrinsic, Resize};
@@ -195,19 +195,9 @@ fn make_scene() -> Scene {
             ..Default::default()
         };
 
-        scene.add_view_to_parent(
-            make_label("themes-label", "Themes").position_at(30, 90),
-            &panel.name,
-        );
-        scene.add_view_to_parent(
-            make_button(&ViewId::new("light-theme"), "Light"),
-            &panel.name,
-        );
-        scene.add_view_to_parent(make_button(&ViewId::new("dark-theme"), "Dark"), &panel.name);
-        scene.add_view_to_parent(
-            make_button(&ViewId::new("colorful-theme"), "Colorful"),
-            &panel.name,
-        );
+        let themes_list_id = ViewId::new("themes-list");
+        let themes = make_list_view(&themes_list_id, vec!["Light", "Dark", "Colorful", "Ice Cream"], 0);
+        scene.add_view_to_parent(themes, &panel.name);
         panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
@@ -324,25 +314,24 @@ fn make_vbox_test() -> Scene {
 }
 
 fn make_column(name: &'static str) -> View {
-    let panel = View {
+    View {
         name: ViewId::new(name),
         draw: Some(draw_std_panel),
-        h_flex: Flex::Resize,
-        v_flex: Flex::Resize,
-        h_align: Align::Center,
-        v_align: Align::Start,
+        h_flex: Resize,
+        v_flex: Resize,
+        h_align: Center,
+        v_align: Start,
         layout: Some(layout_vbox),
         ..Default::default()
-    };
-    panel
+    }
 }
 
 fn make_row(name: &'static str) -> View {
     View {
         name: ViewId::new(name),
         draw: Some(draw_std_panel),
-        h_flex: Flex::Resize,
-        v_flex: Flex::Resize,
+        h_flex: Resize,
+        v_flex: Resize,
         layout: Some(layout_hbox),
         ..Default::default()
     }
@@ -367,6 +356,7 @@ fn main() -> Result<(), std::convert::Infallible> {
         font: FONT_7X13,
         bold_font: FONT_7X13_BOLD,
     };
+    copy_theme_colors(&mut theme, &LIGHT_THEME);
 
     let output_settings = OutputSettingsBuilder::new().scale(2).build();
     let mut window = Window::new("Simulator Test", &output_settings);
@@ -469,29 +459,20 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         theme.bold_font = FONT_7X13_BOLD;
         scene.mark_layout_dirty();
     }
-    if name.as_str() == "light-theme" {
-        theme.bg = Rgb565::WHITE;
-        theme.fg = Rgb565::BLACK;
-        theme.panel_bg = Rgb565::CSS_LIGHT_GRAY;
-        theme.selected_bg = Rgb565::CSS_CORNFLOWER_BLUE;
-        theme.selected_fg = Rgb565::WHITE;
-        scene.mark_dirty_all();
-    }
-    if name.as_str() == "dark-theme" {
-        theme.bg = Rgb565::from(Rgb888::new(50, 50, 50));
-        theme.fg = Rgb565::WHITE;
-        theme.panel_bg = Rgb565::BLACK;
-        theme.selected_bg = Rgb565::CSS_DARK_BLUE;
-        theme.selected_fg = Rgb565::WHITE;
-        scene.mark_dirty_all();
-    }
-    if name.as_str() == "colorful-theme" {
-        theme.bg = Rgb565::CSS_MISTY_ROSE;
-        theme.fg = Rgb565::CSS_DARK_BLUE;
-        theme.panel_bg = Rgb565::CSS_ANTIQUE_WHITE;
-        theme.selected_bg = Rgb565::CSS_DARK_MAGENTA;
-        theme.selected_fg = Rgb565::CSS_LIGHT_YELLOW;
-        scene.mark_dirty_all();
+    if name.as_str() == "themes-list" {
+        match &action {
+            Action::Generic => {}
+            Action::Command(cmd) => {
+                match cmd.as_str() {
+                    "Dark" => copy_theme_colors(theme, &DARK_THEME),
+                    "Light" => copy_theme_colors(theme, &LIGHT_THEME),
+                    "Colorful" => copy_theme_colors(theme, &COLORFUL_THEME),
+                    "Ice Cream" => copy_theme_colors(theme, &ICE_CREAM_THEME),
+                    _ => {}
+                }
+                scene.mark_dirty_all();
+            }
+        }
     }
     if name == *POPUP_BUTTON {
         let menu =
@@ -503,3 +484,49 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
         scene.remove_view(POPUP_MENU);
     }
 }
+
+const LIGHT_THEME: Theme = Theme {
+    bg: Rgb565::WHITE,
+    fg: Rgb565::BLACK,
+    panel_bg: Rgb565::CSS_LIGHT_GRAY,
+    selected_bg: Rgb565::CSS_CORNFLOWER_BLUE,
+    selected_fg: Rgb565::WHITE,
+    font: FONT_7X13,
+    bold_font: FONT_7X13_BOLD,
+};
+const DARK_THEME: Theme = Theme {
+    bg: Rgb565::CSS_DARK_GRAY,
+    fg: Rgb565::WHITE,
+    panel_bg: Rgb565::BLACK,
+    selected_bg: Rgb565::CSS_DARK_BLUE,
+    selected_fg: Rgb565::WHITE,
+    font: FONT_7X13,
+    bold_font: FONT_7X13_BOLD,
+};
+const COLORFUL_THEME: Theme = Theme {
+    bg: Rgb565::CSS_MISTY_ROSE,
+    fg: Rgb565::CSS_DARK_BLUE,
+    panel_bg: Rgb565::CSS_ANTIQUE_WHITE,
+    selected_bg: Rgb565::CSS_DARK_MAGENTA,
+    selected_fg: Rgb565::CSS_LIGHT_YELLOW,
+    font: FONT_7X13,
+    bold_font: FONT_7X13_BOLD,
+};
+const ICE_CREAM_THEME: Theme = Theme {
+    bg: util::hex_str_to_rgb565("fff6d3"),
+    fg: util::hex_str_to_rgb565("#7c3f58"),
+    panel_bg: util::hex_str_to_rgb565("fff6d3"),
+    selected_bg: util::hex_str_to_rgb565("#eb6b6f"),
+    selected_fg: util::hex_str_to_rgb565("#fff6d3"),
+    font: FONT_7X13,
+    bold_font: FONT_7X13_BOLD,
+};
+
+fn copy_theme_colors(theme: &mut Theme, new: &Theme) {
+    theme.bg = new.bg;
+    theme.panel_bg = new.panel_bg;
+    theme.selected_bg = new.selected_bg;
+    theme.fg = new.fg;
+    theme.selected_fg = new.selected_fg;
+}
+
