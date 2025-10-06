@@ -37,6 +37,7 @@ use rust_embedded_gui::list_view::make_list_view;
 use rust_embedded_gui::panel::draw_std_panel;
 use rust_embedded_gui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
 use rust_embedded_gui::text_input::make_text_input;
+use rust_embedded_gui::util::hex_str_to_rgb565;
 use rust_embedded_gui::view::Align::{Center, Start};
 use rust_embedded_gui::view::Flex::{Intrinsic, Resize};
 use rust_embedded_gui::view::{Align, Flex, View, ViewId};
@@ -186,17 +187,9 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
-        let mut panel = View {
-            name: THEMES_PANEL.clone(),
-            layout: Some(layout_vbox),
-            draw: Some(draw_std_panel),
-            h_flex: Flex::Resize,
-            v_flex: Flex::Resize,
-            ..Default::default()
-        };
-
+        let mut panel = make_column(THEMES_PANEL.as_str());
         let themes_list_id = ViewId::new("themes-list");
-        let themes = make_list_view(&themes_list_id, vec!["Light", "Dark", "Colorful", "Ice Cream"], 0);
+        let themes = make_list_view(&themes_list_id, vec!["Light", "Dark", "Ice Cream", "Minty Fresh"], 0);
         scene.add_view_to_parent(themes, &panel.name);
         panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
@@ -466,8 +459,8 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
                 match cmd.as_str() {
                     "Dark" => copy_theme_colors(theme, &DARK_THEME),
                     "Light" => copy_theme_colors(theme, &LIGHT_THEME),
-                    "Colorful" => copy_theme_colors(theme, &COLORFUL_THEME),
                     "Ice Cream" => copy_theme_colors(theme, &ICE_CREAM_THEME),
+                    "Minty Fresh" => copy_theme_colors(theme, &MINTY_FRESH),
                     _ => {}
                 }
                 scene.mark_dirty_all();
@@ -489,35 +482,36 @@ const LIGHT_THEME: Theme = Theme {
     bg: Rgb565::WHITE,
     fg: Rgb565::BLACK,
     panel_bg: Rgb565::CSS_LIGHT_GRAY,
-    selected_bg: Rgb565::CSS_CORNFLOWER_BLUE,
+    selected_bg: hex_str_to_rgb565("#4488ff"),
     selected_fg: Rgb565::WHITE,
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
 };
 const DARK_THEME: Theme = Theme {
-    bg: Rgb565::CSS_DARK_GRAY,
-    fg: Rgb565::WHITE,
+    bg: hex_str_to_rgb565("#222222"),
+    fg: hex_str_to_rgb565("#999999"),
     panel_bg: Rgb565::BLACK,
-    selected_bg: Rgb565::CSS_DARK_BLUE,
-    selected_fg: Rgb565::WHITE,
-    font: FONT_7X13,
-    bold_font: FONT_7X13_BOLD,
-};
-const COLORFUL_THEME: Theme = Theme {
-    bg: Rgb565::CSS_MISTY_ROSE,
-    fg: Rgb565::CSS_DARK_BLUE,
-    panel_bg: Rgb565::CSS_ANTIQUE_WHITE,
-    selected_bg: Rgb565::CSS_DARK_MAGENTA,
-    selected_fg: Rgb565::CSS_LIGHT_YELLOW,
+    selected_bg: hex_str_to_rgb565("#000088"),
+    selected_fg: hex_str_to_rgb565("#3366ff"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
 };
 const ICE_CREAM_THEME: Theme = Theme {
-    bg: util::hex_str_to_rgb565("fff6d3"),
-    fg: util::hex_str_to_rgb565("#7c3f58"),
-    panel_bg: util::hex_str_to_rgb565("fff6d3"),
-    selected_bg: util::hex_str_to_rgb565("#eb6b6f"),
-    selected_fg: util::hex_str_to_rgb565("#fff6d3"),
+    bg: hex_str_to_rgb565("fff6d3"),
+    fg: hex_str_to_rgb565("#7c3f58"),
+    panel_bg: hex_str_to_rgb565("fff6d3"),
+    selected_bg: hex_str_to_rgb565("#eb6b6f"),
+    selected_fg: hex_str_to_rgb565("#fff6d3"),
+    font: FONT_7X13,
+    bold_font: FONT_7X13_BOLD,
+};
+//https://lospec.com/palette-list/minty-fresh
+const MINTY_FRESH: Theme = Theme {
+    bg: hex_str_to_rgb565("#856d52"),
+    fg: hex_str_to_rgb565("#fbffe0"),
+    panel_bg: hex_str_to_rgb565("#40332f"),
+    selected_bg: hex_str_to_rgb565("#95c798"),
+    selected_fg: hex_str_to_rgb565("#40332f"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
 };
