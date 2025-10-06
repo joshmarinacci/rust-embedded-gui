@@ -189,7 +189,7 @@ fn make_scene() -> Scene {
     {
         let mut panel = make_column(THEMES_PANEL.as_str());
         let themes_list_id = ViewId::new("themes-list");
-        let themes = make_list_view(&themes_list_id, vec!["Light", "Dark", "Ice Cream", "Minty Fresh"], 0);
+        let themes = make_list_view(&themes_list_id, vec!["Light", "Dark", "Ice Cream", "Minty Fresh", "Amber"], 0);
         scene.add_view_to_parent(themes, &panel.name);
         panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
@@ -461,6 +461,7 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
                     "Light" => copy_theme_colors(theme, &LIGHT_THEME),
                     "Ice Cream" => copy_theme_colors(theme, &ICE_CREAM_THEME),
                     "Minty Fresh" => copy_theme_colors(theme, &MINTY_FRESH),
+                    "Amber" => copy_theme_colors(theme, &AMBER),
                     _ => {}
                 }
                 scene.mark_dirty_all();
@@ -496,6 +497,8 @@ const DARK_THEME: Theme = Theme {
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
 };
+
+//https://lospec.com/palette-list/ice-cream-gb
 const ICE_CREAM_THEME: Theme = Theme {
     bg: hex_str_to_rgb565("fff6d3"),
     fg: hex_str_to_rgb565("#7c3f58"),
@@ -512,6 +515,16 @@ const MINTY_FRESH: Theme = Theme {
     panel_bg: hex_str_to_rgb565("#40332f"),
     selected_bg: hex_str_to_rgb565("#95c798"),
     selected_fg: hex_str_to_rgb565("#40332f"),
+    font: FONT_7X13,
+    bold_font: FONT_7X13_BOLD,
+};
+//https://lospec.com/palette-list/amber-crtgb
+const AMBER: Theme = Theme {
+    bg: hex_str_to_rgb565("#0d0405"),
+    fg: hex_str_to_rgb565("#d35600"),
+    panel_bg: hex_str_to_rgb565("#0d0405"),
+    selected_bg: hex_str_to_rgb565("#fed018"),
+    selected_fg: hex_str_to_rgb565("#5e1210"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
 };
