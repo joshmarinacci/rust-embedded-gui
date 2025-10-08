@@ -5,33 +5,94 @@
 ## What is This?
 
 This is a new GUI library for no_std embedded Rust. I currently have it running on
-the ESP32-S3 based Lilygo T-Deck, but it should run on anything that uses embedded_graphics.
-The library manages a scene of views and has built in components for:
+the ESP32-S3 based Lilygo T-Deck, but it should run on anything that
+uses the [embedded_graphics traits](https://docs.rs/embedded-graphics/latest/embedded_graphics/).
+It focuses on bandwidth limited devices, such as SPI displays,
 
-* button
-* label
-* text input (text box)
-* panel
-* toggle button
-* toggle group
+## Features
 
-`View`s are rendered using a `Theme` which can be customized for different
-colors and font sizes.  Views carry their own internal state using an
-optional `state` struct. Application state should remain outside the scene/view structure
-and be handled by processing actions emitted from the scene when events happen.
+* Incremental redrawing using layout and dirty rect tracking.
+* Built in components for buttons, labels, text input, toggles, and panels.
+* Theming with colors and fonts
+* Scene to manage a tree of View structs
+* Fast single pass layout algorithm
 
-To make it flexible, the lib **does not** impose its own event loop. Instead, the application
-should send events to the scene and then redraw in its own loop. **Better documentation coming**. 
+## Anti-Features
+
+* **event loop** To make it flexible, the lib **does not** impose its own event loop. Instead, the application
+  should send events to the scene and then redraw in its own loop. **Better documentation coming**.
+
+* **animation** The library has no support for animation or transparency because those will perform horribly on
+  bandwidth
+  limited SPI displays.
 
 ## Usage
 
 Build the library with `cargo build`.
 
 Run the simulator example with `cargo run --example simulator --features std`. Note that
-the simulator needs SDL2. [Install instructions](https://docs.rs/embedded-graphics-simulator/latest/embedded_graphics_simulator/).
+the simulator needs
+SDL2. [Install instructions](https://docs.rs/embedded-graphics-simulator/latest/embedded_graphics_simulator/).
 
 Run the unit tests with `cargo test --features std`.
 
+## Views
+
+`View`s are rendered using a `Theme` which can be customized for different
+colors and font sizes. Views carry their own internal state using an
+optional `state` struct. Application state should remain outside the scene/view structure
+and be handled by processing actions emitted from the scene when events happen.
+
+Instead of implementing a trait the View is a struct with optional fields for functions to handle
+input, state, layout, and drawing. This is the code that creates a button (as implemented in the
+library provided `make_button`):
+
+```rust
+pub fn make_button(name: &ViewId, title: &str) -> View {
+    View {
+        name: name.clone(),
+        title: title.to_string(),
+        // the button will determine its own width
+        h_flex: Intrinsic,
+        // the button will determine its own height
+        v_flex: Intrinsic,
+        // on tap, requested to be focused
+        input: Some(|e| {
+            if let EventType::Tap(_pt) = &e.event_type {
+                e.scene.set_focused(e.target);
+                return Some(Action::Generic);
+            }
+            None
+        }),
+        // size self based on the font and the title text
+        layout: Some(|e| {
+            if let Some(view) = e.scene.get_view_mut(&e.target) {
+                view.bounds.size = util::calc_size(e.theme.bold_font, &view.title);
+            }
+        }),
+        // delegate drawing to a draw_button function
+        draw: Some(draw_button),
+        ..Default::default()
+    }
+}
+
+fn draw_button(e: &mut DrawEvent) {
+    e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+    if let Some(focused) = e.focused {
+        if focused == &e.view.name {
+            e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
+        }
+    }
+    draw_centered_text(
+        e.ctx,
+        &e.view.title,
+        &e.view.bounds,
+        &e.theme.bold_font,
+        &e.theme.fg,
+    );
+}
+```
 
 ## Themes
 
@@ -41,14 +102,16 @@ The theme fields should be used for:
 
 * **bg**: the background of components like buttons and text inputs.
 * **fg**: the foreground of components, which usually means the text color.
-* **panel_bg**: the background of panels and other containers. Depending on the theme this may or may not be the same as *bg*.
+* **panel_bg**: the background of panels and other containers. Depending on the theme this may or may not be the same as
+  *bg*.
 * **font**: the default font used for all text.
 * **bold_font**: the bold variant of the current font. Used for button titles.
 * **selected_bg**: a background color used to indicate something is selected.
 * **selected_fg**: a text color used to indicate something is selected. Usually used with `selected_bg`.
 
-
 ## Roadmap
+
+### 0.1
 
 - [x] Remove generics for color and font. Just use embedded graphics directly.
 - [x] use simulator for interactive tests
@@ -57,51 +120,42 @@ The theme fields should be used for:
 - [x] add hbox and vbox layouts
 - [x] make children drawn and picked relative to the parent.
 - [x] general
-  - [x] setup CI on github actions.
-- [ ] more components
-  - [x] add menu view
-  - [x] add list view
-  - [ ] add tab panel
-  - [ ] popup menu / dropdown box 
+    - [x] setup CI on github actions.
+- [x] more components
+    - [x] add menu view
+    - [x] add list view
+- [x] drawing
+    - [x] redo fill_text api.
+        - [x] just text. support bg color?
+        - [x] proper alignment. provide center point and draw centered
+    - [x] draw line
+    - [x] remove clear
+    - [x] consolidate Display impls
+- [x] layout & rendering
+    - [x] calculating dirty rect needs to be converted back to global
+    - [x] common view padding
+    - [x] form layout -> grid layout
+        - [x] debug lines
+        - [x] alignment within grid cells
+        - [x] span grid cells
+
+### 0.2
+
 - [ ] input improvements
-  - [ ] cleanup event types and action command signatures.
-  - [ ] document how to make your own event & draw loop
+    - [ ] cleanup event types and action command signatures.
+    - [ ] document how to make your own event & draw loop
 - [ ] text input
-  - [ ] move cursor within text
-  - [ ] forward and backward delete
-  - [ ] selection?
-- [ ] focus management 
-  - [ ] use scroll events to jump between focused elements and perform selection.
-  - [ ] spec out how focus management works. 
-    - [ ] focus groups
-- [ ] drawing
-  - [x] redo fill_text api.
-    - [x] just text. support bg color?
-    - [x] proper alignment. provide center point and draw centered
-  - [x] draw line
-  - [x] remove clear
-  - [x] consolidate Display impls
-- [ ] layout & rendering
-  - [ ] calculating dirty rect needs to be converted back to global
-  - [x] common view padding
-  - [ ] view border control? just on and off? custom colors?
-  - [x] form layout -> grid layout
-    - [x] debug lines
-    - [x] alignment within grid cells
-    - [x] span grid cells
+    - [ ] move cursor within text
+    - [ ] forward and backward delete
+    - [ ] selection?
+- [ ] focus management
+    - [ ] use scroll events to jump between focused elements and perform selection.
+    - [ ] spec out how focus management works.
+        - [ ] focus groups
 - [ ] improved custom view support
-  - [ ] view can define the children it uses
-    - [ ] let tab panel define its own children using a toggle group
-  - [ ] let tab panel switch its own tabs instead of using external handle action
-- [ ] theme
-  - [x] _selected_ fg and bg colors
-  - [ ] accent colors?
+    - [ ] view can define the children it uses
+        - [ ] let tab panel define its own children using a toggle group
+    - [ ] let tab panel switch its own tabs instead of using external handle action
+- [ ] theme accent colors?
 
-
-## Architecture
-
-### Grid Layout Architecture
-
-I'm working on a long blog post describing how the new layout system. It's a single
-pass system that handles most but not all possible cases.
 
