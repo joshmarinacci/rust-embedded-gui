@@ -1,7 +1,11 @@
 [package]
-name = "rust-embedded-gui"
+name = "iris"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "UI toolkit for no_std embedded Rust"
+readme = "readme.md"
+keywords = ["gui", "no_std", "embedded"]
 
 [dependencies]
 hashbrown = "0.16.0"
