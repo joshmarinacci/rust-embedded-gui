@@ -5,9 +5,10 @@
 ## What is This?
 
 This is a new GUI library for no_std embedded Rust. I currently have it running on
-the ESP32-S3 based Lilygo T-Deck, but it should run on anything that
+the ESP32-S3 based [Lilygo T-Deck](https://github.com/Xinyuan-LilyGO/T-Deck/tree/master), but it should run on anything
+that
 uses the [embedded_graphics traits](https://docs.rs/embedded-graphics/latest/embedded_graphics/).
-It focuses on bandwidth limited devices, such as SPI displays,
+It focuses on bandwidth limited devices, such as SPI displays.
 
 ## Features
 
@@ -19,10 +20,9 @@ It focuses on bandwidth limited devices, such as SPI displays,
 
 ## Anti-Features
 
-* **event loop** To make it flexible, the lib **does not** impose its own event loop. Instead, the application
+* **event loop:** To make it flexible, the lib **does not** impose its own event loop. Instead, the application
   should send events to the scene and then redraw in its own loop. **Better documentation coming**.
-
-* **animation** The library has no support for animation or transparency because those will perform horribly on
+* **animation:** The library has no support for animation or transparency because those will perform horribly on
   bandwidth
   limited SPI displays.
 
@@ -35,6 +35,9 @@ the simulator needs
 SDL2. [Install instructions](https://docs.rs/embedded-graphics-simulator/latest/embedded_graphics_simulator/).
 
 Run the unit tests with `cargo test --features std`.
+
+The library has not yet been released as a published crate because I still need
+a name and need to fix some bugs.
 
 ## Views
 
