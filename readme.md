@@ -46,7 +46,8 @@ colors and font sizes. Views carry their own internal state using an
 optional `state` struct. Application state should remain outside the scene/view structure
 and be handled by processing actions emitted from the scene when events happen.
 
-Instead of implementing a trait the View is a struct with optional fields for functions to handle
+Instead of implementing a trait you create components by
+allocating a `View` is with optional fields for functions to handle
 input, state, layout, and drawing. This is the code that creates a button (as implemented in the
 library provided `make_button`):
 
@@ -137,10 +138,12 @@ The theme fields should be used for:
 - [x] layout & rendering
     - [x] calculating dirty rect needs to be converted back to global
     - [x] common view padding
+    - [x] new layout algoritm
     - [x] form layout -> grid layout
         - [x] debug lines
         - [x] alignment within grid cells
         - [x] span grid cells
+- [ ] pick final name
 
 ### 0.2
 
