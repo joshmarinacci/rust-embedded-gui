@@ -16,7 +16,7 @@ esp-hal = { version = "1.0.0-rc.0", features = ["esp32s3", "unstable", "log-04"]
 embedded-graphics = "0.8.1"
 mipidsi = "0.9.0"
 esp-bootloader-esp-idf = "0.1.0"
-rust-embedded-gui = { path="../" }
+iris-ui = { path = "../" }
 static_cell = { version = "2.1.0", features = ["nightly"] }
 gt911 = "0.3.0"
 
@@ -27,10 +27,10 @@ gt911 = "0.3.0"
 opt-level = "s"
 
 [profile.release]
-codegen-units    = 1     # LLVM can perform better optimizations using a single thread
-debug            = 2
+codegen-units = 1     # LLVM can perform better optimizations using a single thread
+debug = 2
 debug-assertions = false
-incremental      = false
-lto              = 'fat'
-opt-level        = 's'
-overflow-checks  = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false

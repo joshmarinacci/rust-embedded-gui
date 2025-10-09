@@ -11,14 +11,14 @@ use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
 use embedded_graphics::Drawable;
-use rust_embedded_gui::button::make_button;
-use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint};
-use rust_embedded_gui::scene::{
+use iris_ui::button::make_button;
+use iris_ui::geom::{Bounds, Insets, Point as GPoint};
+use iris_ui::scene::{
     click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene,
 };
-use rust_embedded_gui::toggle_button::make_toggle_button;
-use rust_embedded_gui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
-use rust_embedded_gui::{util, Action, EventType, KeyboardAction, Theme};
+use iris_ui::toggle_button::make_toggle_button;
+use iris_ui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
+use iris_ui::{util, Action, EventType, KeyboardAction, Theme};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
@@ -28,19 +28,19 @@ use embedded_graphics_simulator::{
 };
 use env_logger::fmt::style::Color::Rgb;
 use env_logger::Target;
+use iris_ui::device::EmbeddedDrawingContext;
+use iris_ui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
+use iris_ui::label::make_label;
+use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
+use iris_ui::list_view::make_list_view;
+use iris_ui::panel::draw_std_panel;
+use iris_ui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
+use iris_ui::text_input::make_text_input;
+use iris_ui::util::hex_str_to_rgb565;
+use iris_ui::view::Align::{Center, Start};
+use iris_ui::view::Flex::{Intrinsic, Resize};
+use iris_ui::view::{Align, Flex, View, ViewId};
 use log::{info, LevelFilter};
-use rust_embedded_gui::device::EmbeddedDrawingContext;
-use rust_embedded_gui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
-use rust_embedded_gui::label::make_label;
-use rust_embedded_gui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
-use rust_embedded_gui::list_view::make_list_view;
-use rust_embedded_gui::panel::draw_std_panel;
-use rust_embedded_gui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
-use rust_embedded_gui::text_input::make_text_input;
-use rust_embedded_gui::util::hex_str_to_rgb565;
-use rust_embedded_gui::view::Align::{Center, Start};
-use rust_embedded_gui::view::Flex::{Intrinsic, Resize};
-use rust_embedded_gui::view::{Align, Flex, View, ViewId};
 
 const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
 const MEDIUM_FONT_BUTTON: &'static ViewId = &ViewId::new("medium_font");

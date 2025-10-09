@@ -21,21 +21,21 @@ use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig, Pull};
 use esp_hal::spi::master::{Config as SpiConfig, Spi};
 use esp_hal::time::{Duration, Instant, Rate};
 use esp_hal::{main, Blocking};
+use iris_ui::button::make_button;
+use iris_ui::geom::{Bounds, Insets, Point as GPoint, Size as GSize};
+use iris_ui::gfx::DrawingContext;
+use iris_ui::gfx::TextStyle;
+use iris_ui::label::make_label;
+use iris_ui::scene::draw_scene;
+use iris_ui::scene::pick_at;
+use iris_ui::scene::Scene;
+use iris_ui::text_input::make_text_input;
+use iris_ui::view::{Align, Flex, View, ViewId};
+use iris_ui::Action;
+use iris_ui::EventType;
+use iris_ui::GuiEvent;
+use iris_ui::Theme;
 use log::info;
-use rust_embedded_gui::button::make_button;
-use rust_embedded_gui::geom::{Bounds, Insets, Point as GPoint, Size as GSize};
-use rust_embedded_gui::gfx::DrawingContext;
-use rust_embedded_gui::gfx::TextStyle;
-use rust_embedded_gui::label::make_label;
-use rust_embedded_gui::scene::draw_scene;
-use rust_embedded_gui::scene::pick_at;
-use rust_embedded_gui::scene::Scene;
-use rust_embedded_gui::text_input::make_text_input;
-use rust_embedded_gui::view::{Align, Flex, View, ViewId};
-use rust_embedded_gui::Action;
-use rust_embedded_gui::EventType;
-use rust_embedded_gui::GuiEvent;
-use rust_embedded_gui::Theme;
 
 use embedded_graphics::geometry::Point as EPoint;
 use embedded_graphics::mock_display::MockDisplay;
@@ -57,9 +57,9 @@ use mipidsi::{models::ST7789, Builder, Display, NoResetPin};
 use static_cell::StaticCell;
 
 use gt911::Gt911Blocking;
-use rust_embedded_gui::device::EmbeddedDrawingContext;
-use rust_embedded_gui::layouts::layout_hbox;
-use rust_embedded_gui::panel::draw_std_panel;
+use iris_ui::device::EmbeddedDrawingContext;
+use iris_ui::layouts::layout_hbox;
+use iris_ui::panel::draw_std_panel;
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
