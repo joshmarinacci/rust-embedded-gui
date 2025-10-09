@@ -8,11 +8,9 @@
 
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
-use core::convert::Infallible;
-use core::ops::Add;
 use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_hal::clock::CpuClock;
 use esp_hal::delay::Delay;
@@ -20,40 +18,32 @@ use esp_hal::gpio::Level::{High, Low};
 use esp_hal::gpio::{Input, InputConfig, Output, OutputConfig, Pull};
 use esp_hal::spi::master::{Config as SpiConfig, Spi};
 use esp_hal::time::{Duration, Instant, Rate};
-use esp_hal::{Blocking, main};
+use esp_hal::{main, Blocking};
+use iris_ui::button::make_button;
+use iris_ui::geom::{Bounds, Insets, Point as GPoint, Size as GSize};
+use iris_ui::gfx::TextStyle;
+use iris_ui::label::make_label;
+use iris_ui::scene::draw_scene;
+use iris_ui::scene::pick_at;
+use iris_ui::scene::Scene;
+use iris_ui::text_input::make_text_input;
+use iris_ui::view::{Align, Flex, View, ViewId};
 use iris_ui::Action;
 use iris_ui::EventType;
 use iris_ui::GuiEvent;
 use iris_ui::Theme;
-use iris_ui::button::make_button;
-use iris_ui::geom::{Bounds, Insets, Point as GPoint, Size as GSize};
-use iris_ui::gfx::DrawingContext;
-use iris_ui::gfx::TextStyle;
-use iris_ui::label::make_label;
-use iris_ui::scene::Scene;
-use iris_ui::scene::draw_scene;
-use iris_ui::scene::pick_at;
-use iris_ui::text_input::make_text_input;
-use iris_ui::view::{Align, Flex, View, ViewId};
 use log::info;
 
-use embedded_graphics::geometry::Point as EPoint;
-use embedded_graphics::mock_display::MockDisplay;
-use embedded_graphics::mono_font::ascii::{FONT_7X13_BOLD, FONT_9X15};
-use embedded_graphics::mono_font::{MonoFont, MonoTextStyleBuilder};
-use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
-use embedded_graphics::text::{Alignment, Baseline, TextStyleBuilder};
+use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
 use embedded_graphics::{
-    mono_font::{MonoTextStyle, ascii::FONT_6X10},
+    mono_font::ascii::FONT_6X10,
     pixelcolor::Rgb565,
     prelude::*,
-    text::Text,
 };
-use esp_hal::dma::DmaAlignmentError::Size;
 use esp_hal::i2c::master::{BusTimeout, Config as I2CConfig, I2c};
 use mipidsi::interface::SpiInterface;
 use mipidsi::options::{ColorInversion, ColorOrder, Orientation, Rotation};
-use mipidsi::{Builder, Display, NoResetPin, models::ST7789};
+use mipidsi::{models::ST7789, Builder};
 use static_cell::StaticCell;
 
 use gt911::Gt911Blocking;
@@ -88,8 +78,8 @@ fn main() -> ! {
     // ==== display setup ====
     // https://github.com/Xinyuan-LilyGO/T-Deck/blob/master/examples/HelloWorld/HelloWorld.ino
 
-    let mut TFT_CS = Output::new(peripherals.GPIO12, High, OutputConfig::default());
-    TFT_CS.set_high();
+    let mut tft_cs = Output::new(peripherals.GPIO12, High, OutputConfig::default());
+    tft_cs.set_high();
     let tft_dc = Output::new(peripherals.GPIO11, Low, OutputConfig::default());
     let mut tft_enable = Output::new(peripherals.GPIO42, High, OutputConfig::default());
     tft_enable.set_high();
@@ -98,20 +88,20 @@ fn main() -> ! {
         peripherals.SPI2,
         SpiConfig::default().with_frequency(Rate::from_mhz(40)),
     )
-    .unwrap()
-    .with_sck(peripherals.GPIO40)
-    .with_miso(Input::new(
-        peripherals.GPIO38,
-        InputConfig::default().with_pull(Pull::Up),
-    ))
-    .with_mosi(peripherals.GPIO41);
+        .unwrap()
+        .with_sck(peripherals.GPIO40)
+        .with_miso(Input::new(
+            peripherals.GPIO38,
+            InputConfig::default().with_pull(Pull::Up),
+        ))
+        .with_mosi(peripherals.GPIO41);
 
     static DISPLAY_BUF: StaticCell<[u8; 512]> = StaticCell::new();
     let buffer = DISPLAY_BUF.init([0u8; 512]);
 
     info!("setting up the display");
     let spi_delay = Delay::new();
-    let spi_device = ExclusiveDevice::new(spi, TFT_CS, spi_delay).unwrap();
+    let spi_device = ExclusiveDevice::new(spi, tft_cs, spi_delay).unwrap();
     let di = SpiInterface::new(spi_device, tft_dc, buffer);
     info!("building");
     let mut display = Builder::new(ST7789, di)
@@ -148,9 +138,9 @@ fn main() -> ! {
             .with_frequency(Rate::from_khz(100))
             .with_timeout(BusTimeout::Disabled),
     )
-    .unwrap()
-    .with_sda(peripherals.GPIO18)
-    .with_scl(peripherals.GPIO8);
+        .unwrap()
+        .with_sda(peripherals.GPIO18)
+        .with_scl(peripherals.GPIO8);
     info!("initialized I2C keyboard");
     let i2c_ref = I2C.init(i2c);
 
@@ -227,7 +217,7 @@ fn make_gui_scene() -> Scene {
             "menuview",
             vec!["first".into(), "second".into(), "third".into()],
         )
-        .position_at(100, 30),
+            .position_at(100, 30),
         &panel.name,
     );
     scene.add_view_to_root(panel);
@@ -239,12 +229,12 @@ struct MenuState {
     data: Vec<String>,
     selected: usize,
 }
-const vh: i32 = 30;
+const VH: i32 = 30;
 fn make_menuview(name: &'static str, data: Vec<String>) -> View {
     View {
         name: ViewId::new(name),
         title: name.into(),
-        bounds: Bounds::new(0, 0, 100, data.len() as i32 * vh),
+        bounds: Bounds::new(0, 0, 100, data.len() as i32 * VH),
         visible: true,
         draw: Some(|e| {
             e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
@@ -255,11 +245,11 @@ fn make_menuview(name: &'static str, data: Vec<String>) -> View {
                         let b = Bounds {
                             position: GPoint {
                                 x: e.view.bounds.position.x + 1,
-                                y: e.view.bounds.position.y + (i as i32) * vh + 1,
+                                y: e.view.bounds.position.y + (i as i32) * VH + 1,
                             },
                             size: GSize {
                                 w: e.view.bounds.size.w - 2,
-                                h: vh,
+                                h: VH,
                             },
                         };
                         if state.selected == i {
@@ -295,7 +285,7 @@ fn make_menuview(name: &'static str, data: Vec<String>) -> View {
                         let name = view.name.clone();
                         if view.bounds.contains(pt) {
                             // info!("I was clicked on. index is {}", pt.y/20);
-                            let selected = (pt.y - view.bounds.position.y) / vh;
+                            let selected = (pt.y - view.bounds.position.y) / VH;
                             if let Some(state) = &mut view.state {
                                 if let Some(state) = state.downcast_mut::<MenuState>() {
                                     if selected >= 0 && selected < state.data.len() as i32 {
@@ -319,7 +309,7 @@ fn make_menuview(name: &'static str, data: Vec<String>) -> View {
             if let Some(parent) = event.scene.get_view_mut(event.target) {
                 if let Some(state) = &parent.state {
                     if let Some(state) = state.downcast_ref::<MenuState>() {
-                        parent.bounds.size.h = vh * (state.data.len() as i32);
+                        parent.bounds.size.h = VH * (state.data.len() as i32);
                     }
                 }
             };

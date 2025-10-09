@@ -1,5 +1,5 @@
 use crate::geom::{Bounds, Point};
-use crate::gfx::{DrawingContext, draw_centered_text};
+use crate::gfx::draw_centered_text;
 use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{View, ViewId};
 use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
@@ -8,7 +8,6 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::any::Any;
 use core::option::Option::Some;
-use hashbrown::Equivalent;
 
 pub fn make_toggle_group(name: &ViewId, data: Vec<&str>, selected: usize) -> View {
     View {
@@ -111,7 +110,7 @@ fn draw_toggle_group(e: &mut DrawEvent) {
 pub fn layout_toggle_group(pass: &mut LayoutEvent) {
     if let Some(view) = pass.scene.get_view_mut(pass.target) {
         let char_size = pass.theme.font.character_size;
-        let mut height = char_size.height + (char_size.height / 2) * 2; // padding
+        let height = char_size.height + (char_size.height / 2) * 2; // padding
         if view.h_flex == Resize {
             view.bounds.size.w = pass.space.w;
         }
@@ -137,9 +136,9 @@ pub fn layout_toggle_group(pass: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
+    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
     use crate::view::ViewId;
     use alloc::vec;
 

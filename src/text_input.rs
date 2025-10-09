@@ -83,7 +83,7 @@ pub fn make_text_input(name: &'static str, title: &str) -> View {
         visible: true,
         state: None,
         input: Some(input_text_input),
-        layout: Some(|e| {
+        layout: Some(|_e| {
             // if let Some(view) = e.scene.get_view_mut(e.target) {
             //     view.bounds = util::calc_bounds(view.bounds, e.theme.bold_font, &view.title);
             // }

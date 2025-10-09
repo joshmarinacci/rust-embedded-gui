@@ -66,7 +66,7 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
                 }
             }
         }
-        EventType::Scroll(x, y) => {
+        EventType::Scroll(_x, y) => {
             e.scene.mark_dirty_view(e.target);
             if let Some(state) = e.scene.get_view_state::<ListState>(e.target) {
                 if *y > 0 {
@@ -144,8 +144,8 @@ fn layout_list(e: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::list_view::{ListState, make_list_view};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::list_view::{make_list_view, ListState};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::ViewId;
     use alloc::vec;

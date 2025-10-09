@@ -1,11 +1,11 @@
-use crate::Action;
 use crate::geom::Bounds;
 use crate::layouts::layout_tabbed_panel;
 use crate::scene::Scene;
 use crate::toggle_group::{input_toggle_group, make_toggle_group};
 use crate::view::{Flex, View, ViewId};
+use crate::Action;
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use hashbrown::HashMap;
