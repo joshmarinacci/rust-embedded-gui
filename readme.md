@@ -161,7 +161,7 @@ fn make_progressbar() {
 }
 ```
 
-When the state of progress needs to change, update the state inside of a get_view_state call().
+When the state of progress needs to change, update the state inside of a `get_view_state()` call.
 
 ```rust
 fn update_progressbar() {
