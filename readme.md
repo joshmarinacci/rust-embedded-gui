@@ -1,13 +1,12 @@
-# Untitled Embedded Rust GUI
+# Iris-UI
 
 ![screenshot](resources/screenshot-002.png)
 
 ## What is This?
 
-This is a new GUI library for no_std embedded Rust. I currently have it running on
+Iris a new UI library for no_std embedded Rust. I currently have it running on
 the ESP32-S3 based [Lilygo T-Deck](https://github.com/Xinyuan-LilyGO/T-Deck/tree/master), but it should run on anything
-that
-uses the [embedded_graphics traits](https://docs.rs/embedded-graphics/latest/embedded_graphics/).
+that uses the [embedded_graphics traits](https://docs.rs/embedded-graphics/latest/embedded_graphics/).
 It focuses on bandwidth limited devices, such as SPI displays.
 
 ## Features
@@ -97,6 +96,84 @@ fn draw_button(e: &mut DrawEvent) {
     );
 }
 ```
+
+## Custom Views
+
+All views are just instances of the `View` struct. To create a custom view build a View with custom `state`, `input`,
+`layout`, and `draw` fields. This example creates a simple progress bar.
+
+First create a struct to represent the internal state of the progress bar:
+
+```rust
+// struct for the state of the progress bar
+struct ProgressState {
+    value: f32,
+}
+```
+
+Now make a function to return a view with custom attributes.
+
+```rust
+fn make_progress_bar(name: &ViewId) -> View {
+    View {
+        name: name.clone(),
+
+        // set the state
+        state: Some(Box::new(ProgressState {
+            value: 0.0,
+        })),
+
+        // no input
+        input: None,
+
+        // fixed size layout
+        layout: Some(|e| {
+            if let Some(view) = e.scene.get_view_mut(e.target) {
+                view.bounds.size = Size::new(100, 20);
+            }
+        }),
+
+        // draw progress bar
+        draw: Some(|e| {
+            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+            let full = e.view.bounds.size;
+            // get the state to calculate the fill width
+            if let Some(state) = e.view.get_state::<ProgressState>() {
+                let w = (full.w as f32 * state.value) as i32;
+                let bd2 = Bounds::new_from(e.view.bounds.position, Size::new(w, full.h));
+                e.ctx.fill_rect(&bd2, &e.theme.selected_bg);
+            }
+            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+        }),
+
+        // use defaults for the rest of the attributes
+        ..Default::default()
+    }
+}
+```
+
+Now call the function to build the view and add it to your scene.
+
+```rust
+let progress_id = ViewId::new("progress_bar");
+scene.add_view_to_root(make_progress_bar( & progress_id));
+```
+
+When the state of progress needs to change, update the state inside of a get_view_state call().
+
+```rust
+// update the progress bar every 100 msec
+if let Some(state) = scene.get_view_state::<ProgressState>( & progress_id) {
+state.value += 0.01;
+if state.value > 1.0 {
+state.value = 0.0;
+}
+scene.mark_dirty_view( & progress_id);
+sleep(Duration::from_millis(100));
+}
+```
+
+See the full example code in [examples/custom_view.rs](examples/custom_view.rs).
 
 ## Themes
 
