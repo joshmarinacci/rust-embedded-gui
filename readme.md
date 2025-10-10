@@ -20,7 +20,7 @@ It focuses on bandwidth limited devices, such as SPI displays.
 ## Anti-Features
 
 * **event loop:** To make it flexible, the lib **does not** impose its own event loop. Instead, the application
-  should send events to the scene and then redraw in its own loop. **Better documentation coming**.
+  should send events to the scene and then redraw in its own loop. See [Event Loop](#event-loop) below;
 * **animation:** The library has no support for animation or transparency because those will perform horribly on
   bandwidth
   limited SPI displays.
@@ -200,6 +200,66 @@ The theme fields should be used for:
 * **bold_font**: the bold variant of the current font. Used for button titles.
 * **selected_bg**: a background color used to indicate something is selected.
 * **selected_fg**: a text color used to indicate something is selected. Usually used with `selected_bg`.
+
+## Event Loop
+
+Iris does not provide its own event loop. Instead use whatever loop is provided by the environment you are using.
+You will need to receive native input events (taps, button clicks, keyboard presses, etc.) and convert them
+into Iris events. In a typical embedded environment it would look something like this:
+
+```rust
+#[main]
+fn main() -> ! {
+    // set up your board and display
+    let mut display: Display<_> = make_display();
+
+    // init your scene
+    let mut scene = make_your_scene();
+
+    // create a theme
+    let theme = Theme {
+        bg: Rgb565::WHITE,
+        fg: Rgb565::BLACK,
+        selected_bg: Rgb565::WHITE,
+        selected_fg: Rgb565::BLACK,
+        panel_bg: Rgb565::CSS_LIGHT_GRAY,
+        font: FONT_6X10,
+        bold_font: FONT_7X13_BOLD,
+    };
+
+    // make the drawing context from the display
+    let mut ctx = EmbeddedDrawingContext::new(&mut display);
+
+    // init the touch screen
+    let touch = Gt911Blocking::default();
+    touch.init(i2c_ref).unwrap();
+
+    // event & render loop
+    loop {
+
+        // handle touch inputs
+        if let Ok(point) = touch.get_touch(i2c_ref) {
+            if let Some(point) = point {
+                // flip because the screen is mounted sideways on the t-deck
+                let pt = GPoint::new(320 - point.y as i32, 240 - point.x as i32);
+                if let Some(result) = click_at(&mut scene, &vec![], pt) {
+                    info!("view returned result {result:?}");
+                }
+            }
+        }
+
+        // set up the clip rect
+        let delay_start = Instant::now();
+        ctx.clip = scene.dirty_rect.clone();
+
+        // draw the scene
+        draw_scene(&mut scene, &mut ctx, &theme);
+
+        // wait for 100 msec
+        while delay_start.elapsed() < Duration::from_millis(100) {}
+    }
+}
+```
 
 ## Roadmap
 

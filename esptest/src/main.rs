@@ -23,9 +23,9 @@ use iris_ui::button::make_button;
 use iris_ui::geom::{Bounds, Insets, Point as GPoint, Size as GSize};
 use iris_ui::gfx::TextStyle;
 use iris_ui::label::make_label;
-use iris_ui::scene::draw_scene;
 use iris_ui::scene::pick_at;
 use iris_ui::scene::Scene;
+use iris_ui::scene::{click_at, draw_scene};
 use iris_ui::text_input::make_text_input;
 use iris_ui::view::{Align, Flex, View, ViewId};
 use iris_ui::Action;
@@ -148,29 +148,13 @@ fn main() -> ! {
     touch.init(i2c_ref).unwrap();
 
     loop {
-        // info!("checking input");
+        // handle touch inputs
         if let Ok(point) = touch.get_touch(i2c_ref) {
             if let Some(point) = point {
                 // flip because the screen is mounted sideways on the t-deck
                 let pt = GPoint::new(320 - point.y as i32, 240 - point.x as i32);
-                let targets = pick_at(&mut scene, &pt);
-                info!("clicked on targets {:?}", targets);
-                if let Some((target, pt)) = targets.last() {
-                    let mut evt = GuiEvent {
-                        scene: &mut scene,
-                        target,
-                        event_type: EventType::Tap(pt.clone()),
-                        action: None,
-                    };
-                    info!(
-                        "created event on target {:?} at {:?}",
-                        evt.target, evt.event_type
-                    );
-                    if let Some(view) = evt.scene.get_view(evt.target) {
-                        if let Some(input) = view.input {
-                            input(&mut evt);
-                        }
-                    }
+                if let Some(result) = click_at(&mut scene, &vec![], pt) {
+                    info!("view returned result {result:?}");
                 }
             }
         }
