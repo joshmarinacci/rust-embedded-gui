@@ -17,7 +17,7 @@ test-log = { version = "0.2.18", optional = true }
 
 [features]
 std = ["env_logger", "embedded-graphics-simulator", "test-log", "embedded-graphics-simulator/with-sdl"]
-headless = ["env_logger", "embedded-graphics-simulator", "test-log", "embedded-graphics-simulator/default"]
+headless = ["env_logger", "embedded-graphics-simulator", "test-log"]
 
 
 [[example]]
