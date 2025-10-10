@@ -31,7 +31,7 @@ use env_logger::Target;
 use iris_ui::device::EmbeddedDrawingContext;
 use iris_ui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use iris_ui::label::make_label;
-use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_tabbed_panel, layout_vbox};
+use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_vbox};
 use iris_ui::list_view::make_list_view;
 use iris_ui::panel::draw_std_panel;
 use iris_ui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};

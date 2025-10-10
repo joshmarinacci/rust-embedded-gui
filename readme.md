@@ -27,6 +27,13 @@ It focuses on bandwidth limited devices, such as SPI displays.
 
 ## Usage
 
+### Use as a crate
+
+Add the crate `iris-ui` to your `Cargo.toml` file then `use iris_ui::*` in your code. Check
+out the [example code](examples).
+
+### Building and running locally
+
 Build the library with `cargo build`.
 
 Run the simulator example with `cargo run --example simulator --features std`. Note that
@@ -231,10 +238,9 @@ The theme fields should be used for:
 - [ ] input improvements
     - [ ] cleanup event types and action command signatures.
     - [ ] document how to make your own event & draw loop
-- [ ] text input
-    - [ ] move cursor within text
-    - [ ] forward and backward delete
-    - [ ] selection?
+- [x] text input
+    - [x] move cursor within text
+    - [x] forward and backward delete
 - [ ] focus management
     - [ ] use scroll events to jump between focused elements and perform selection.
     - [ ] spec out how focus management works.
