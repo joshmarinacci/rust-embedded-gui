@@ -155,21 +155,25 @@ fn make_progress_bar(name: &ViewId) -> View {
 Now call the function to build the view and add it to your scene.
 
 ```rust
-let progress_id = ViewId::new("progress_bar");
-scene.add_view_to_root(make_progress_bar( & progress_id));
+fn make_progressbar() {
+    let progress_id = ViewId::new("progress_bar");
+    scene.add_view_to_root(make_progress_bar(&progress_id));
+}
 ```
 
 When the state of progress needs to change, update the state inside of a get_view_state call().
 
 ```rust
-// update the progress bar every 100 msec
-if let Some(state) = scene.get_view_state::<ProgressState>( & progress_id) {
-state.value += 0.01;
-if state.value > 1.0 {
-state.value = 0.0;
-}
-scene.mark_dirty_view( & progress_id);
-sleep(Duration::from_millis(100));
+fn update_progressbar() {
+    // update the progress bar every 100 msec
+    if let Some(state) = scene.get_view_state::<ProgressState>(&progress_id) {
+        state.value += 0.01;
+        if state.value > 1.0 {
+            state.value = 0.0;
+        }
+        scene.mark_dirty_view(&progress_id);
+        sleep(Duration::from_millis(100));
+    }
 }
 ```
 
