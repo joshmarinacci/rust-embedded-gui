@@ -131,7 +131,7 @@ mod tests {
     use alloc::string::ToString;
     use alloc::vec;
     use alloc::vec::Vec;
-    use log::{info, LevelFilter};
+    use log::{LevelFilter, info};
     use std::sync::Once;
     use test_log::test;
 

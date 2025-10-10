@@ -7,7 +7,6 @@ use alloc::string::String;
 use core::str::Chars;
 use log::info;
 
-
 pub struct TextInputState {
     cursor: usize,
     text: String,

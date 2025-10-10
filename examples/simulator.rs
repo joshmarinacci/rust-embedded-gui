@@ -1,24 +1,22 @@
+use embedded_graphics::Drawable;
 #[cfg(feature = "std")]
 use embedded_graphics::geometry::{Point as EPoint, Size};
+use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::mono_font::ascii::{
     FONT_5X7, FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
-use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
 use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
-use embedded_graphics::Drawable;
 use iris_ui::button::make_button;
 use iris_ui::geom::{Bounds, Insets, Point as GPoint};
-use iris_ui::scene::{
-    click_at, draw_scene, event_at_focused, layout_scene, EventResult, Scene,
-};
+use iris_ui::scene::{EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene};
 use iris_ui::toggle_button::make_toggle_button;
-use iris_ui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
-use iris_ui::{util, Action, EventType, KeyboardAction, Theme};
+use iris_ui::toggle_group::{SelectOneOfState, layout_toggle_group, make_toggle_group};
+use iris_ui::{Action, EventType, KeyboardAction, Theme, util};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
@@ -26,21 +24,21 @@ use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
-use env_logger::fmt::style::Color::Rgb;
 use env_logger::Target;
+use env_logger::fmt::style::Color::Rgb;
 use iris_ui::device::EmbeddedDrawingContext;
-use iris_ui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
+use iris_ui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
 use iris_ui::label::make_label;
 use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_vbox};
 use iris_ui::list_view::make_list_view;
 use iris_ui::panel::draw_std_panel;
-use iris_ui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
+use iris_ui::tabbed_panel::{LayoutPanelState, make_tabbed_panel};
 use iris_ui::text_input::make_text_input;
 use iris_ui::util::hex_str_to_rgb565;
 use iris_ui::view::Align::{Center, Start};
 use iris_ui::view::Flex::{Intrinsic, Resize};
 use iris_ui::view::{Align, Flex, View, ViewId};
-use log::{info, LevelFilter};
+use log::{LevelFilter, info};
 
 const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
 const MEDIUM_FONT_BUTTON: &'static ViewId = &ViewId::new("medium_font");
@@ -189,7 +187,11 @@ fn make_scene() -> Scene {
     {
         let mut panel = make_column(THEMES_PANEL.as_str());
         let themes_list_id = ViewId::new("themes-list");
-        let themes = make_list_view(&themes_list_id, vec!["Light", "Dark", "Ice Cream", "Minty Fresh", "Amber"], 0);
+        let themes = make_list_view(
+            &themes_list_id,
+            vec!["Light", "Dark", "Ice Cream", "Minty Fresh", "Amber"],
+            0,
+        );
         scene.add_view_to_parent(themes, &panel.name);
         panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
@@ -409,7 +411,6 @@ fn keydown_to_char(keycode: Keycode, keymod: Mod) -> EventType {
     let shifted = keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD);
     let controlled = keymod.contains(Mod::LCTRLMOD) || keymod.contains(Mod::RCTRLMOD);
 
-
     if let Some(ch) = char::from_u32(ch as u32) {
         if ch == 'd' && controlled {
             return EventType::KeyboardAction(KeyboardAction::Delete);
@@ -541,4 +542,3 @@ fn copy_theme_colors(theme: &mut Theme, new: &Theme) {
     theme.fg = new.fg;
     theme.selected_fg = new.selected_fg;
 }
-

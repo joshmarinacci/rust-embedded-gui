@@ -42,7 +42,9 @@ pub fn make_tabbed_panel(
         let res = input_toggle_group(e);
         if let Some(action) = res {
             info!("action is {:?}", action);
-            let Some(container) = e.scene.get_parent_for_view(e.target) else { return None; };
+            let Some(container) = e.scene.get_parent_for_view(e.target) else {
+                return None;
+            };
             let container = container.clone();
 
             // hide all the children
@@ -125,12 +127,11 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::geom::{Bounds, Size};
     use crate::layouts::{layout_hbox, layout_std_panel, layout_vbox};
-    use crate::scene::{layout_scene, Scene};
+    use crate::scene::{Scene, layout_scene};
     use crate::tabbed_panel::layout_tabbed_panel;
     use crate::test::MockDrawingContext;
     use crate::toggle_group::layout_toggle_group;

@@ -144,8 +144,8 @@ fn layout_list(e: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::list_view::{make_list_view, ListState};
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::list_view::{ListState, make_list_view};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
     use crate::view::ViewId;
     use alloc::vec;

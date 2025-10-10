@@ -2,19 +2,19 @@ use crate::geom::{Bounds, Point as GPoint};
 use crate::gfx::{DrawingContext, TextStyle};
 use crate::view::Align;
 use core::ops::Add;
+use embedded_graphics::Drawable;
 use embedded_graphics::draw_target::DrawTargetExt;
 use embedded_graphics::geometry::{Point as EPoint, Size as ESize};
-use embedded_graphics::mono_font::ascii::FONT_6X10;
 use embedded_graphics::mono_font::MonoTextStyleBuilder;
+use embedded_graphics::mono_font::ascii::FONT_6X10;
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::DrawTarget;
 use embedded_graphics::primitives::{Line, Primitive, PrimitiveStyle, Rectangle};
 use embedded_graphics::text::{Alignment, Baseline, Text, TextStyleBuilder};
-use embedded_graphics::Drawable;
 
 pub struct EmbeddedDrawingContext<'a, T>
 where
-    T: DrawTarget<Color=Rgb565>,
+    T: DrawTarget<Color = Rgb565>,
 {
     pub display: &'a mut T,
     pub clip: Bounds,
@@ -23,7 +23,7 @@ where
 
 impl<'a, T> EmbeddedDrawingContext<'a, T>
 where
-    T: DrawTarget<Color=Rgb565>,
+    T: DrawTarget<Color = Rgb565>,
 {
     pub fn new(display: &'a mut T) -> Self {
         EmbeddedDrawingContext {
@@ -43,7 +43,7 @@ fn bounds_to_rect(bounds: &Bounds) -> Rectangle {
 
 impl<'a, T> DrawingContext for EmbeddedDrawingContext<'a, T>
 where
-    T: DrawTarget<Color=Rgb565>,
+    T: DrawTarget<Color = Rgb565>,
 {
     fn fill_rect(&mut self, bounds: &Bounds, color: &Rgb565) {
         let mut display = self.display.clipped(&bounds_to_rect(&self.clip));

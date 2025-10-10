@@ -3,7 +3,9 @@ use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
 use embedded_graphics::pixelcolor::{Rgb565, WebColors};
 use embedded_graphics::prelude::RgbColor;
-use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window};
+use embedded_graphics_simulator::{
+    OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
+};
 use env_logger::Target;
 use iris_ui::device::EmbeddedDrawingContext;
 use iris_ui::geom::{Bounds, Size};
@@ -13,7 +15,6 @@ use iris_ui::Theme;
 use log::{info, LevelFilter};
 use std::thread::sleep;
 use std::time::Duration;
-
 
 // struct for the state of the progress bar
 struct ProgressState {
@@ -26,9 +27,7 @@ fn make_progress_bar(name: &ViewId) -> View {
         title: "progress".into(),
 
         // set the state
-        state: Some(Box::new(ProgressState {
-            value: 0.0,
-        })),
+        state: Some(Box::new(ProgressState { value: 0.0 })),
 
         // no input
         input: None,
@@ -67,7 +66,6 @@ fn main() -> Result<(), std::convert::Infallible> {
     // reusable ID for the progress bar
     let progress_id = ViewId::new("progress_bar");
 
-
     let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
     scene.add_view_to_root(make_progress_bar(&progress_id));
 
@@ -94,7 +92,11 @@ fn main() -> Result<(), std::convert::Infallible> {
         for event in window.events() {
             match event {
                 SimulatorEvent::Quit => break 'running,
-                SimulatorEvent::KeyUp { keycode, keymod, repeat } => {
+                SimulatorEvent::KeyUp {
+                    keycode,
+                    keymod: _keymod,
+                    repeat: _repeat,
+                } => {
                     info!("key is {keycode}");
                 }
                 _ => {}
