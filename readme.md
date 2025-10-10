@@ -291,13 +291,13 @@ fn main() -> ! {
         - [x] debug lines
         - [x] alignment within grid cells
         - [x] span grid cells
-- [ ] pick final name
+- [x] pick final name
 
 ### 0.2
 
 - [ ] input improvements
     - [ ] cleanup event types and action command signatures.
-    - [ ] document how to make your own event & draw loop
+    - [x] document how to make your own event & draw loop
 - [x] text input
     - [x] move cursor within text
     - [x] forward and backward delete
@@ -308,7 +308,7 @@ fn main() -> ! {
 - [ ] improved custom view support
     - [ ] view can define the children it uses
         - [ ] let tab panel define its own children using a toggle group
-    - [ ] let tab panel switch its own tabs instead of using external handle action
+    - [x] let tab panel switch its own tabs instead of using external handle action
 - [ ] theme accent colors?
 
 
