@@ -311,4 +311,7 @@ fn main() -> ! {
     - [x] let tab panel switch its own tabs instead of using external handle action
 - [ ] theme accent colors?
 
+### 0.3
 
+- [ ] e-paper support
+- [ ] multi-line wrapping text
