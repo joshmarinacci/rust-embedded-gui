@@ -1,22 +1,22 @@
-use embedded_graphics::Drawable;
 #[cfg(feature = "std")]
 use embedded_graphics::geometry::{Point as EPoint, Size};
-use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::mono_font::ascii::{
     FONT_5X7, FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
+use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
 use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
+use embedded_graphics::Drawable;
 use iris_ui::button::make_button;
 use iris_ui::geom::{Bounds, Insets, Point as GPoint};
-use iris_ui::scene::{EventResult, Scene, click_at, draw_scene, event_at_focused, layout_scene};
+use iris_ui::scene::{click_at, draw_scene, event_at_focused, layout_scene, Scene};
 use iris_ui::toggle_button::make_toggle_button;
-use iris_ui::toggle_group::{SelectOneOfState, layout_toggle_group, make_toggle_group};
-use iris_ui::{Action, EventType, KeyboardAction, Theme, util};
+use iris_ui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
+use iris_ui::{util, Theme};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
@@ -24,21 +24,22 @@ use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
-use env_logger::Target;
 use env_logger::fmt::style::Color::Rgb;
+use env_logger::Target;
 use iris_ui::device::EmbeddedDrawingContext;
-use iris_ui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
+use iris_ui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
+use iris_ui::input::{InputEvent, InputResult, OutputAction, TextAction};
 use iris_ui::label::make_label;
 use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_vbox};
 use iris_ui::list_view::make_list_view;
-use iris_ui::panel::draw_std_panel;
-use iris_ui::tabbed_panel::{LayoutPanelState, make_tabbed_panel};
+use iris_ui::panel::{draw_borderless_panel, draw_std_panel, PanelState};
+use iris_ui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
 use iris_ui::text_input::make_text_input;
 use iris_ui::util::hex_str_to_rgb565;
 use iris_ui::view::Align::{Center, Start};
 use iris_ui::view::Flex::{Intrinsic, Resize};
 use iris_ui::view::{Align, Flex, View, ViewId};
-use log::{LevelFilter, info};
+use log::{info, LevelFilter};
 
 const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
 const MEDIUM_FONT_BUTTON: &'static ViewId = &ViewId::new("medium_font");
@@ -67,8 +68,9 @@ fn make_scene() -> Scene {
     }
 
     {
-        let mut grid = make_grid_panel(BUTTONS_PANEL);
-        grid.padding = Insets::new_same(10);
+        let mut grid = make_grid_panel(BUTTONS_PANEL)
+            .with_draw_fn(Some(draw_borderless_panel))
+            .with_padding(Insets::new_same(10));
         grid.h_flex = Resize;
         grid.v_flex = Resize;
         let mut grid_layout = GridLayoutState::new_row_column(3, 30, 2, 100);
@@ -78,7 +80,7 @@ fn make_scene() -> Scene {
         grid_layout.place_at_row_column(&label1.name, 0, 0);
         scene.add_view_to_parent(label1, &grid.name);
 
-        let button1 = make_button(&ViewId::new("button1"), "Basic Button");
+        let button1 = make_button(&ViewId::new("button1"), "Action Button");
         grid_layout.place_at_row_column(&button1.name, 1, 0);
         scene.add_view_to_parent(button1, &grid.name);
 
@@ -107,10 +109,10 @@ fn make_scene() -> Scene {
     {
         let mut wrapper = View {
             name: LAYOUT_PANEL.clone(),
-            draw: Some(draw_std_panel),
+            draw: Some(draw_borderless_panel),
             padding: Insets::new_same(5),
-            h_flex: Flex::Resize,
-            v_flex: Flex::Resize,
+            h_flex: Resize,
+            v_flex: Resize,
             layout: Some(layout_hbox),
             ..Default::default()
         };
@@ -149,7 +151,7 @@ fn make_scene() -> Scene {
         let mut wrapper = View {
             name: LISTS_PANEL.clone(),
             layout: Some(layout_hbox),
-            draw: Some(draw_std_panel),
+            draw: Some(draw_borderless_panel),
             h_flex: Flex::Resize,
             v_flex: Flex::Resize,
             ..Default::default()
@@ -165,27 +167,31 @@ fn make_scene() -> Scene {
             1,
         );
         scene.add_view_to_parent(list, &wrapper.name);
-        wrapper.visible = false;
+        wrapper.hide();
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
         let mut panel = View {
             name: INPUTS_PANEL.clone(),
-            draw: Some(draw_std_panel),
-            h_flex: Flex::Resize,
-            v_flex: Flex::Resize,
+            draw: Some(draw_borderless_panel),
+            h_flex: Resize,
+            v_flex: Resize,
             layout: Some(layout_std_panel),
             ..Default::default()
         };
         scene.add_view_to_parent(
-            make_text_input("textinput", "input").position_at(10, 10),
+            make_text_input("text input", "input").position_at(10, 10),
             &panel.name,
         );
-        panel.visible = false;
+        panel.hide();
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
-        let mut panel = make_column(THEMES_PANEL.as_str());
+        let panel = make_column(THEMES_PANEL.as_str())
+            .with_draw_fn(Some(draw_borderless_panel))
+            .with_padding(Insets::new_same(10))
+            .with_visible(false)
+            ;
         let themes_list_id = ViewId::new("themes-list");
         let themes = make_list_view(
             &themes_list_id,
@@ -193,21 +199,24 @@ fn make_scene() -> Scene {
             0,
         );
         scene.add_view_to_parent(themes, &panel.name);
-        panel.visible = false;
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     scene.add_view_to_root(tabbed_panel);
 
     {
-        let mut font_buttons = View {
+        let font_buttons = View {
             name: ViewId::new("font_buttons"),
             bounds: Bounds::new(30, 200, 200, 30),
+            state: Some(Box::new(PanelState {
+                border_visible: true,
+                gap: 5,
+            })),
             layout: Some(layout_hbox),
             h_flex: Intrinsic,
             v_flex: Intrinsic,
             draw: Some(draw_std_panel),
             ..Default::default()
-        };
+        }.with_padding(Insets::new_same(5));
         scene.add_view_to_parent(make_button(SMALL_FONT_BUTTON, "Small"), &font_buttons.name);
         scene.add_view_to_parent(
             make_button(MEDIUM_FONT_BUTTON, "Medium"),
@@ -367,7 +376,8 @@ fn main() -> Result<(), std::convert::Infallible> {
                 SimulatorEvent::KeyDown {
                     keycode, keymod, ..
                 } => {
-                    let evt: EventType = keydown_to_char(keycode, keymod);
+                    let act: TextAction = keydown_to_char(keycode, keymod);
+                    let evt = InputEvent::Text(act);
                     if let Some(result) = event_at_focused(&mut scene, &evt) {
                         println!("got input from {:?}", result);
                     }
@@ -390,7 +400,7 @@ fn main() -> Result<(), std::convert::Infallible> {
                     info!("mouse wheel {scroll_delta:?} {direction:?}");
                     if let Some(result) = event_at_focused(
                         &mut scene,
-                        &EventType::Scroll(scroll_delta.x, scroll_delta.y),
+                        &InputEvent::Scroll(GPoint::new(scroll_delta.x, scroll_delta.y)),
                     ) {
                         println!("got input from {:?}", result);
                     }
@@ -402,66 +412,64 @@ fn main() -> Result<(), std::convert::Infallible> {
     Ok(())
 }
 
-fn keydown_to_char(keycode: Keycode, keymod: Mod) -> EventType {
+fn keydown_to_char(keycode: Keycode, keymod: Mod) -> TextAction {
     println!("keycode as number {}", keycode.into_i32());
     let ch = keycode.into_i32();
     if ch <= 0 {
-        return EventType::Unknown;
+        return TextAction::Unknown;
     }
     let shifted = keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD);
     let controlled = keymod.contains(Mod::LCTRLMOD) || keymod.contains(Mod::RCTRLMOD);
 
     if let Some(ch) = char::from_u32(ch as u32) {
         if ch == 'd' && controlled {
-            return EventType::KeyboardAction(KeyboardAction::Delete);
+            return TextAction::ForwardDelete;
         }
         if ch.is_alphabetic() {
             return if shifted {
-                EventType::Keyboard(ch.to_ascii_uppercase() as u8)
+                TextAction::TypedAscii(ch.to_ascii_uppercase() as u8)
             } else {
-                EventType::Keyboard(ch.to_ascii_lowercase() as u8)
+                TextAction::TypedAscii(ch.to_ascii_lowercase() as u8)
             };
         }
         if ch.is_ascii_graphic() {
-            return EventType::Keyboard(ch as u8);
+            return TextAction::TypedAscii(ch as u8);
         }
     }
     match keycode {
-        Keycode::Backspace => EventType::KeyboardAction(KeyboardAction::Backspace),
-        Keycode::LEFT => EventType::KeyboardAction(KeyboardAction::Left),
-        Keycode::RIGHT => EventType::KeyboardAction(KeyboardAction::Right),
-        Keycode::UP => EventType::KeyboardAction(KeyboardAction::Up),
-        Keycode::DOWN => EventType::KeyboardAction(KeyboardAction::Down),
-        Keycode::SPACE => EventType::Keyboard(b' '),
+        Keycode::Backspace => TextAction::BackDelete,
+        Keycode::LEFT => TextAction::Left,
+        Keycode::RIGHT => TextAction::Right,
+        Keycode::UP => TextAction::Up,
+        Keycode::DOWN => TextAction::Down,
+        Keycode::SPACE => TextAction::TypedAscii(b' '),
         _ => {
             println!("not supported: {keycode}");
-            return EventType::Unknown;
+            return TextAction::Unknown;
         }
     }
 }
 
-fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
-    let (name, action) = result;
-    println!("result of event {:?} from {name}", action);
-    if name == *SMALL_FONT_BUTTON {
+fn handle_events(result: InputResult, scene: &mut Scene, theme: &mut Theme) {
+    println!("result of event {:?} from {}", result.input, result.source);
+    if result.source == *SMALL_FONT_BUTTON {
         theme.font = FONT_5X7;
         theme.bold_font = FONT_5X7;
         scene.mark_layout_dirty();
     }
-    if name == *MEDIUM_FONT_BUTTON {
+    if result.source == *MEDIUM_FONT_BUTTON {
         theme.font = FONT_6X10;
         theme.bold_font = FONT_6X10;
         scene.mark_layout_dirty();
     }
-    if name == *LARGE_FONT_BUTTON {
+    if result.source == *LARGE_FONT_BUTTON {
         theme.font = FONT_7X13;
         theme.bold_font = FONT_7X13_BOLD;
         scene.mark_layout_dirty();
     }
-    if name.as_str() == "themes-list" {
-        match &action {
-            Action::Generic => {}
-            Action::Command(cmd) => {
+    if result.source.as_str() == "themes-list" {
+        match &result.action {
+            Some(OutputAction::Command(cmd)) => {
                 match cmd.as_str() {
                     "Dark" => copy_theme_colors(theme, &DARK_THEME),
                     "Light" => copy_theme_colors(theme, &LIGHT_THEME),
@@ -472,15 +480,16 @@ fn handle_events(result: EventResult, scene: &mut Scene, theme: &mut Theme) {
                 }
                 scene.mark_dirty_all();
             }
+            _ => {}
         }
     }
-    if name == *POPUP_BUTTON {
+    if result.source == *POPUP_BUTTON {
         let menu =
             make_list_view(POPUP_MENU, vec!["Item 1", "Item 2", "Item 3"], 0).position_at(50, 50);
         scene.set_focused(&menu.name);
         scene.add_view_to_root(menu);
     }
-    if name == *POPUP_MENU {
+    if result.source == *POPUP_MENU {
         scene.remove_view(POPUP_MENU);
     }
 }

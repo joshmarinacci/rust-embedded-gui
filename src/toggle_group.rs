@@ -1,8 +1,9 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::draw_centered_text;
+use crate::input::{InputEvent, OutputAction};
 use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{View, ViewId};
-use crate::{Action, DrawEvent, EventType, GuiEvent, LayoutEvent};
+use crate::{DrawEvent, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -39,9 +40,9 @@ impl SelectOneOfState {
     }
 }
 
-pub fn input_toggle_group(e: &mut GuiEvent) -> Option<Action> {
+pub fn input_toggle_group(e: &mut GuiEvent) -> Option<OutputAction> {
     match &e.event_type {
-        EventType::Tap(pt) => {
+        InputEvent::Tap(pt) => {
             e.scene.mark_dirty_view(e.target);
             e.scene.set_focused(e.target);
             if let Some(view) = e.scene.get_view_mut(e.target) {
@@ -52,7 +53,7 @@ pub fn input_toggle_group(e: &mut GuiEvent) -> Option<Action> {
                     let n = x / cell_width;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;
-                        return Some(Action::Command(state.items[state.selected].clone()));
+                        return Some(OutputAction::Command(state.items[state.selected].clone()));
                     }
                 }
             }
@@ -136,9 +137,9 @@ pub fn layout_toggle_group(pass: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_group::{SelectOneOfState, make_toggle_group};
+    use crate::toggle_group::{make_toggle_group, SelectOneOfState};
     use crate::view::ViewId;
     use alloc::vec;
 

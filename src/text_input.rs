@@ -1,10 +1,10 @@
 use crate::geom::Bounds;
 use crate::gfx::TextStyle;
+use crate::input::{InputEvent, InputResult, OutputAction, TextAction};
 use crate::view::{Align, View, ViewId};
-use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction};
+use crate::{DrawEvent, GuiEvent};
 use alloc::boxed::Box;
 use alloc::string::String;
-use core::str::Chars;
 use log::info;
 
 pub struct TextInputState {
@@ -71,45 +71,45 @@ fn draw_text_input(e: &mut DrawEvent) {
     }
 }
 
-fn input_text_input(event: &mut GuiEvent) -> Option<Action> {
+fn input_text_input(event: &mut GuiEvent) -> Option<OutputAction> {
     info!("text input got event {:?}", event.event_type);
-    match &event.event_type {
-        EventType::Keyboard(key) => {
-            if let Some(state) = event.scene.get_view_state::<TextInputState>(event.target) {
-                match *key {
-                    8 => {
-                        state.delete_back();
+    event.scene.mark_dirty_view(event.target);
+    if let Some(state) = event.scene.get_view_state::<TextInputState>(event.target) {
+        match &event.event_type {
+            InputEvent::Text(text_action) => {
+                match &text_action {
+                    TextAction::TypedAscii(key) => {
+                        match *key {
+                            8 => {
+                                state.delete_back();
+                            }
+                            13 => {
+                                info!("doing return");
+                                return Some(OutputAction::Command("Completed".into()));
+                            }
+                            _ => {
+                                state.insert_char(*key as char);
+                            }
+                        }
                     }
-                    13 => {
-                        info!("doing return");
-                        return Some(Action::Command("Completed".into()));
+                    TextAction::Left => state.cursor_back(),
+                    TextAction::Right => state.cursor_forward(),
+                    TextAction::Up => {}
+                    TextAction::Down => {}
+                    TextAction::BackDelete => state.delete_back(),
+                    TextAction::ForwardDelete => state.delete_forward(),
+                    TextAction::Enter => {
+                        return Some(OutputAction::Command("Completed".into()));
                     }
-                    _ => {
-                        state.insert_char(*key as char);
-                    }
-                }
-                info!("done");
-            }
-            event.scene.mark_dirty_view(event.target);
-        }
-        EventType::KeyboardAction(act) => {
-            if let Some(state) = event.scene.get_view_state::<TextInputState>(event.target) {
-                match act {
-                    KeyboardAction::Left => state.cursor_back(),
-                    KeyboardAction::Right => state.cursor_forward(),
-                    KeyboardAction::Up => {}
-                    KeyboardAction::Down => {}
-                    KeyboardAction::Backspace => state.delete_back(),
-                    KeyboardAction::Delete => state.delete_forward(),
-                    KeyboardAction::Return => {}
+                    TextAction::Unknown => {}
                 }
                 event.scene.mark_dirty_view(event.target);
             }
+            InputEvent::Tap(_pt) => {
+                event.scene.set_focused(event.target);
+            }
+            _ => {}
         }
-        EventType::Tap(_pt) => {
-            event.scene.set_focused(event.target);
-        }
-        _ => {}
     }
     None
 }

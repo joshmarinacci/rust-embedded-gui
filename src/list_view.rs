@@ -1,7 +1,8 @@
 use crate::geom::Bounds;
 use crate::gfx::draw_centered_text;
+use crate::input::{InputEvent, OutputAction, TextAction};
 use crate::view::{View, ViewId};
-use crate::{Action, DrawEvent, EventType, GuiEvent, KeyboardAction, LayoutEvent};
+use crate::{DrawEvent, GuiEvent, LayoutEvent};
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -48,9 +49,9 @@ impl ListState {
     }
 }
 
-fn input_list(e: &mut GuiEvent) -> Option<Action> {
+fn input_list(e: &mut GuiEvent) -> Option<OutputAction> {
     match &e.event_type {
-        EventType::Tap(pt) => {
+        InputEvent::Tap(pt) => {
             e.scene.mark_dirty_view(e.target);
             e.scene.set_focused(e.target);
             if let Some(view) = e.scene.get_view_mut(e.target) {
@@ -61,31 +62,31 @@ fn input_list(e: &mut GuiEvent) -> Option<Action> {
                     let n = y / cell_height;
                     if n >= 0 && n < state.items.len() as i32 {
                         state.selected = n as usize;
-                        return Some(Action::Command(state.items[state.selected].clone()));
+                        return Some(OutputAction::Command(state.items[state.selected].clone()));
                     }
                 }
             }
         }
-        EventType::Scroll(_x, y) => {
+        InputEvent::Scroll(delta) => {
             e.scene.mark_dirty_view(e.target);
             if let Some(state) = e.scene.get_view_state::<ListState>(e.target) {
-                if *y > 0 {
+                if delta.y > 0 {
                     state.select_next();
                 }
-                if *y < 0 {
+                if delta.y < 0 {
                     state.select_prev();
                 }
             }
         }
-        EventType::KeyboardAction(action) => {
+        InputEvent::Text(action) => {
             e.scene.mark_dirty_view(e.target);
             if let Some(state) = e.scene.get_view_state::<ListState>(e.target) {
                 match action {
-                    KeyboardAction::Up => state.select_prev(),
-                    KeyboardAction::Down => state.select_next(),
-                    KeyboardAction::Return => {
+                    TextAction::Up => state.select_prev(),
+                    TextAction::Down => state.select_next(),
+                    TextAction::Enter => {
                         info!("firmly selecting the item");
-                        return Some(Action::Command(
+                        return Some(OutputAction::Command(
                             state.items[state.selected as usize].clone(),
                         ));
                     }
@@ -144,8 +145,8 @@ fn layout_list(e: &mut LayoutEvent) {
 }
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::list_view::{ListState, make_list_view};
-    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
+    use crate::list_view::{make_list_view, ListState};
+    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::ViewId;
     use alloc::vec;

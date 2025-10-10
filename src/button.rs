@@ -1,7 +1,8 @@
 use crate::gfx::draw_centered_text;
+use crate::input::{InputEvent, OutputAction};
 use crate::view::Flex::Intrinsic;
 use crate::view::{View, ViewId};
-use crate::{Action, DrawEvent, EventType, util};
+use crate::{util, DrawEvent};
 use alloc::string::ToString;
 
 fn draw_button(e: &mut DrawEvent) {
@@ -28,9 +29,9 @@ pub fn make_button(name: &ViewId, title: &str) -> View {
         h_flex: Intrinsic,
         v_flex: Intrinsic,
         input: Some(|e| {
-            if let EventType::Tap(_pt) = &e.event_type {
+            if let InputEvent::Tap(_pt) = &e.event_type {
                 e.scene.set_focused(e.target);
-                return Some(Action::Generic);
+                return Some(OutputAction::Command("performed".into()));
             }
             None
         }),

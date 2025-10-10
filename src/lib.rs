@@ -4,6 +4,7 @@ extern crate alloc;
 extern crate core;
 
 use crate::geom::Size;
+use crate::input::{InputEvent, OutputAction};
 use crate::scene::Scene;
 use crate::view::ViewId;
 use alloc::string::String;
@@ -30,6 +31,7 @@ pub mod toggle_button;
 pub mod toggle_group;
 pub mod util;
 pub mod view;
+pub mod input;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
@@ -39,14 +41,9 @@ pub struct DrawEvent<'a> {
     pub bounds: &'a Bounds,
 }
 
-#[derive(Debug, Clone)]
-pub enum Action {
-    Generic,
-    Command(String),
-}
 pub type DrawFn = fn(event: &mut DrawEvent);
 pub type LayoutFn = fn(layout: &mut LayoutEvent);
-pub type InputFn = fn(event: &mut GuiEvent) -> Option<Action>;
+pub type InputFn = fn(event: &mut GuiEvent) -> Option<OutputAction>;
 
 #[derive(Debug)]
 pub struct Theme {
@@ -61,32 +58,12 @@ pub struct Theme {
 
 pub type Callback = fn(event: &mut GuiEvent);
 
-#[derive(Debug, Clone)]
-pub enum KeyboardAction {
-    Left,
-    Right,
-    Up,
-    Down,
-    Backspace,
-    Return,
-    Delete,
-}
-#[derive(Debug, Clone)]
-pub enum EventType {
-    Generic,
-    Unknown,
-    Tap(Point),
-    Scroll(i32, i32),
-    Keyboard(u8),
-    KeyboardAction(KeyboardAction),
-    Action(),
-}
 #[derive(Debug)]
 pub struct GuiEvent<'a> {
     pub scene: &'a mut Scene,
     pub target: &'a ViewId,
-    pub event_type: EventType,
-    pub action: Option<Action>,
+    pub event_type: InputEvent,
+    pub action: Option<OutputAction>,
 }
 
 #[derive(Debug)]
@@ -124,6 +101,7 @@ mod tests {
     use super::*;
     use crate::button::make_button;
     use crate::gfx::TextStyle;
+    use crate::input::TextAction;
     use crate::scene::{click_at, draw_scene, event_at_focused, pick_at};
     use crate::test::MockDrawingContext;
     use crate::view::Align;
@@ -131,7 +109,7 @@ mod tests {
     use alloc::string::ToString;
     use alloc::vec;
     use alloc::vec::Vec;
-    use log::{LevelFilter, info};
+    use log::{info, LevelFilter};
     use std::sync::Once;
     use test_log::test;
 
@@ -226,10 +204,15 @@ mod tests {
             layout: None,
             input: Some(|e| {
                 match e.event_type {
-                    EventType::Keyboard(key) => {
-                        info!("got a keyboard event {}", key);
-                        if let Some(view) = e.scene.get_view_mut(e.target) {
-                            view.title.push(key as char)
+                    InputEvent::Text(act) => {
+                        match act {
+                            TextAction::TypedAscii(key) => {
+                                info!("got a keyboard event {}", key);
+                                if let Some(view) = e.scene.get_view_mut(e.target) {
+                                    view.title.push(key as char)
+                                }
+                            }
+                            _ => {}
                         }
                     }
                     _ => info!("ignoring other event"),
@@ -372,7 +355,7 @@ mod tests {
         click_at(&mut scene, &handlers, Point::new(5, 5));
         assert_eq!(scene.get_view(&"root".into()).unwrap().visible, false);
     }
-    fn handle_toggle_button_input(event: &mut GuiEvent) -> Option<Action> {
+    fn handle_toggle_button_input(event: &mut GuiEvent) -> Option<OutputAction> {
         // info!("view clicked {:?}", event.event_type);
         if let Some(view) = event.scene.get_view_mut(event.target) {
             view.state.insert(Box::new(String::from("enabled")));
@@ -508,7 +491,7 @@ mod tests {
         scene.focused = Some("textbox1".into());
 
         // send keyboard event
-        event_at_focused(&mut scene, &EventType::Keyboard(b'X'));
+        event_at_focused(&mut scene, &InputEvent::Text(TextAction::TypedAscii(b'X')));
         // confirm text is updated
         assert_eq!(get_view_title(&scene, ViewId::new("textbox1")), "fooX");
     }

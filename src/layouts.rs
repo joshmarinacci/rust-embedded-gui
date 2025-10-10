@@ -1,10 +1,11 @@
-use crate::LayoutEvent;
 use crate::geom::{Insets, Size};
+use crate::panel::PanelState;
 use crate::view::Align::{Center, End, Start};
 use crate::view::Flex::Resize;
 use crate::view::{Flex, ViewId};
-use Flex::Intrinsic;
+use crate::LayoutEvent;
 use log::info;
+use Flex::Intrinsic;
 
 pub fn layout_vbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
@@ -93,6 +94,11 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
         return;
     };
+    let gap = if let Some(state) = parent.get_state::<PanelState>() {
+        state.gap
+    } else {
+        0
+    };
     let h_flex = parent.h_flex.clone();
     let v_flex = parent.v_flex.clone();
     // layout self
@@ -159,6 +165,7 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
         if let Some(kid) = pass.scene.get_view_mut(&kid) {
             kid.bounds.position.x = x;
             x += kid.bounds.size.w;
+            x += gap;
             kid.bounds.position.y = match &kid.v_align {
                 Start => 0,
                 Center => (avail_h - kid.bounds.size.h) / 2,
@@ -191,13 +198,13 @@ pub fn layout_std_panel(pass: &mut LayoutEvent) {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use crate::LayoutEvent;
     use crate::geom::{Bounds, Insets, Point, Size};
     use crate::layouts::{layout_std_panel, layout_vbox};
-    use crate::scene::{Scene, layout_scene};
+    use crate::scene::{layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::Align::Start;
     use crate::view::{Align, Flex, View, ViewId};
+    use crate::LayoutEvent;
     use test_log::test;
     pub(crate) fn layout_button(layout: &mut LayoutEvent) {
         if let Some(view) = layout.scene.get_view_mut(&layout.target) {

@@ -1,7 +1,8 @@
 use crate::geom::{Bounds, Point};
 use crate::gfx::DrawingContext;
+use crate::input::{InputEvent, InputResult};
 use crate::view::{View, ViewId};
-use crate::{Action, Callback, DrawEvent, EventType, GuiEvent, LayoutEvent, LayoutFn, Theme};
+use crate::{Callback, DrawEvent, GuiEvent, LayoutEvent, LayoutFn, Theme};
 use alloc::vec::Vec;
 use alloc::{format, vec};
 use hashbrown::HashMap;
@@ -258,15 +259,13 @@ fn layout_root_panel(pass: &mut LayoutEvent) {
     }
 }
 
-pub type EventResult = (ViewId, Action);
-
-pub fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) -> Option<EventResult> {
+pub fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) -> Option<InputResult> {
     let targets = pick_at(scene, &pt);
     if let Some((target, pt)) = targets.last() {
         let mut event: GuiEvent = GuiEvent {
             scene,
             target,
-            event_type: EventType::Tap(pt.clone()),
+            event_type: InputEvent::Tap(pt.clone()),
             action: None,
         };
         if let Some(view) = event.scene.get_view(target) {
@@ -278,13 +277,17 @@ pub fn click_at(scene: &mut Scene, handlers: &Vec<Callback>, pt: Point) -> Optio
             cb(&mut event);
         }
         if let Some(action) = event.action {
-            return Some((target.clone(), action));
+            return Some(InputResult {
+                source: target.clone(),
+                input: event.event_type,
+                action: Some(action),
+            });
         }
     }
     None
 }
 
-pub fn event_at_focused(scene: &mut Scene, event_type: &EventType) -> Option<EventResult> {
+pub fn event_at_focused(scene: &mut Scene, event_type: &InputEvent) -> Option<InputResult> {
     if scene.focused.is_some() {
         let focused = scene.focused.as_ref().unwrap().clone();
         let mut event: GuiEvent = GuiEvent {
@@ -296,9 +299,11 @@ pub fn event_at_focused(scene: &mut Scene, event_type: &EventType) -> Option<Eve
         if let Some(view) = event.scene.get_view(&focused) {
             if let Some(input) = view.input {
                 event.action = input(&mut event);
-            }
-            if let Some(action) = event.action {
-                return Some((focused, action));
+                return Some(InputResult {
+                    source: focused.clone(),
+                    input: event.event_type,
+                    action: event.action,
+                });
             }
         }
     }

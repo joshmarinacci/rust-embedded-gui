@@ -53,6 +53,13 @@ pub struct View {
 }
 
 impl View {
+    pub fn with_padding(mut self, padding: Insets) -> View {
+        self.padding = padding;
+        self
+    }
+}
+
+impl View {
     pub fn position_at(mut self, x: i32, y: i32) -> View {
         self.bounds.position.x = x;
         self.bounds.position.y = y;
@@ -63,15 +70,23 @@ impl View {
         self.bounds.size.h = h;
         self
     }
-    pub fn hide(mut self) -> View {
-        self.visible = false;
+    pub fn with_visible(mut self, visible: bool) -> View {
+        self.visible = visible;
         self
+    }
+    pub fn hide(&mut self) {
+        self.visible = false;
     }
     pub fn get_state<T: 'static>(&mut self) -> Option<&mut T> {
         if let Some(view) = &mut self.state {
             return view.downcast_mut::<T>();
         }
         None
+    }
+
+    pub fn with_draw_fn(mut self, draw: Option<DrawFn>) -> View {
+        self.draw = draw;
+        self
     }
 }
 

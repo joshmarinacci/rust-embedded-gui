@@ -1,9 +1,10 @@
 use crate::geom::{Bounds, Insets};
+use crate::input::OutputAction;
 use crate::scene::Scene;
 use crate::toggle_group::{input_toggle_group, make_toggle_group};
 use crate::view::Flex::Resize;
 use crate::view::{Flex, View, ViewId};
-use crate::{Action, LayoutEvent};
+use crate::LayoutEvent;
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec;
@@ -56,8 +57,7 @@ pub fn make_tabbed_panel(
 
             // then make the newly selected one visible
             match action {
-                Action::Generic => {}
-                Action::Command(cmd) => {
+                OutputAction::Command(cmd) => {
                     let panel_name = if let Some(state) =
                         e.scene.get_view_state::<LayoutPanelState>(&container)
                     {
@@ -75,6 +75,7 @@ pub fn make_tabbed_panel(
                         e.scene.show_view(&panel);
                     }
                 }
+                _ => {}
             }
         }
         return None;
@@ -113,7 +114,7 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 
         // layout content panels
         if let Some(view) = pass.scene.get_view(&tabs_id) {
-            let insets = Insets::new(view.bounds.size.h, 0, 0, 0);
+            let insets = Insets::new(view.bounds.size.h, 1, 1, 1);
             for kid in &pass.scene.get_children_ids(&pass.target) {
                 if kid == &tabs_id {
                     continue;
@@ -121,6 +122,7 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
                 pass.layout_child(kid, space - insets);
                 if let Some(view) = pass.scene.get_view_mut(kid) {
                     view.bounds.position.y = insets.top;
+                    view.bounds.position.x = insets.left;
                 }
             }
         }
@@ -131,7 +133,7 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 mod tests {
     use crate::geom::{Bounds, Size};
     use crate::layouts::{layout_hbox, layout_std_panel, layout_vbox};
-    use crate::scene::{Scene, layout_scene};
+    use crate::scene::{layout_scene, Scene};
     use crate::tabbed_panel::layout_tabbed_panel;
     use crate::test::MockDrawingContext;
     use crate::toggle_group::layout_toggle_group;
