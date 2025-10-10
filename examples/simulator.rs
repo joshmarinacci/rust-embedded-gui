@@ -407,8 +407,13 @@ fn keydown_to_char(keycode: Keycode, keymod: Mod) -> EventType {
         return EventType::Unknown;
     }
     let shifted = keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD);
+    let controlled = keymod.contains(Mod::LCTRLMOD) || keymod.contains(Mod::RCTRLMOD);
+
 
     if let Some(ch) = char::from_u32(ch as u32) {
+        if ch == 'd' && controlled {
+            return EventType::KeyboardAction(KeyboardAction::Delete);
+        }
         if ch.is_alphabetic() {
             return if shifted {
                 EventType::Keyboard(ch.to_ascii_uppercase() as u8)
