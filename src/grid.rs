@@ -13,6 +13,8 @@ pub struct GridLayoutState {
     col_width: usize,
     row_height: usize,
     pub debug: bool,
+    pub gap: i32,
+    pub border_visible: bool,
 }
 
 impl GridLayoutState {
@@ -29,6 +31,8 @@ impl GridLayoutState {
             col_width,
             row_height,
             debug: false,
+            border_visible: true,
+            gap: 0,
         }
     }
 }
@@ -74,6 +78,8 @@ pub fn make_grid_panel(name: &ViewId) -> View {
             col_width: 100,
             row_height: 30,
             debug: false,
+            gap: 0,
+            border_visible: false,
         })),
         layout: Some(layout_grid),
         draw: Some(draw_grid),
@@ -85,9 +91,11 @@ pub fn make_grid_panel(name: &ViewId) -> View {
 fn draw_grid(evt: &mut DrawEvent) {
     let bounds = evt.view.bounds;
     evt.ctx.fill_rect(&evt.view.bounds, &evt.theme.standard.fill);
-    evt.ctx.stroke_rect(&evt.view.bounds, &evt.theme.standard.text);
     let padding = evt.view.padding;
     if let Some(state) = evt.view.get_state::<GridLayoutState>() {
+        if state.border_visible {
+            evt.ctx.stroke_rect(&bounds, &evt.theme.standard.text);
+        }
         if state.debug {
             for i in 0..state.col_count + 1 {
                 let x = (i * state.col_width) as i32 + bounds.x() + padding.left;

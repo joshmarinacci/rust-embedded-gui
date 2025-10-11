@@ -32,7 +32,7 @@ use iris_ui::input::{InputEvent, InputResult, OutputAction, TextAction};
 use iris_ui::label::{make_header_label, make_label};
 use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_vbox};
 use iris_ui::list_view::make_list_view;
-use iris_ui::panel::{draw_borderless_panel, draw_std_panel, PanelState};
+use iris_ui::panel::{draw_std_panel, PanelState};
 use iris_ui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
 use iris_ui::text_input::make_text_input;
 use iris_ui::util::hex_str_to_rgb565;
@@ -69,12 +69,12 @@ fn make_scene() -> Scene {
 
     {
         let mut grid = make_grid_panel(BUTTONS_PANEL)
-            .with_draw_fn(Some(draw_borderless_panel))
             .with_padding(Insets::new_same(10));
         grid.h_flex = Resize;
         grid.v_flex = Resize;
         let mut grid_layout = GridLayoutState::new_row_column(4, 30, 3, 100);
         grid_layout.debug = false;
+        grid_layout.border_visible = false;
 
         let header1 = make_header_label("header1", "Header");
         grid_layout.place_at_row_column(&header1.name, 0, 0);
@@ -117,7 +117,7 @@ fn make_scene() -> Scene {
     {
         let mut wrapper = View {
             name: LAYOUT_PANEL.clone(),
-            draw: Some(draw_borderless_panel),
+            draw: Some(draw_std_panel),
             padding: Insets::new_same(5),
             h_flex: Resize,
             v_flex: Resize,
@@ -159,7 +159,7 @@ fn make_scene() -> Scene {
         let mut wrapper = View {
             name: LISTS_PANEL.clone(),
             layout: Some(layout_hbox),
-            draw: Some(draw_borderless_panel),
+            draw: Some(draw_std_panel),
             h_flex: Flex::Resize,
             v_flex: Flex::Resize,
             ..Default::default()
@@ -181,7 +181,7 @@ fn make_scene() -> Scene {
     {
         let mut panel = View {
             name: INPUTS_PANEL.clone(),
-            draw: Some(draw_borderless_panel),
+            draw: Some(draw_std_panel),
             h_flex: Resize,
             v_flex: Resize,
             layout: Some(layout_std_panel),
@@ -195,11 +195,13 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
-        let panel = make_column(THEMES_PANEL.as_str())
-            .with_draw_fn(Some(draw_borderless_panel))
+        let mut panel = make_column(THEMES_PANEL.as_str())
             .with_padding(Insets::new_same(10))
             .with_visible(false)
             ;
+        if let Some(state) = panel.get_state::<PanelState>() {
+            state.border_visible = false;
+        }
         let themes_list_id = ViewId::new("themes-list");
         let themes = make_list_view(
             &themes_list_id,
@@ -328,6 +330,10 @@ fn make_vbox_test() -> Scene {
 fn make_column(name: &'static str) -> View {
     View {
         name: ViewId::new(name),
+        state: Some(Box::new(PanelState {
+            gap: 0,
+            border_visible: true,
+        })),
         draw: Some(draw_std_panel),
         h_flex: Resize,
         v_flex: Resize,
@@ -341,6 +347,10 @@ fn make_column(name: &'static str) -> View {
 fn make_row(name: &'static str) -> View {
     View {
         name: ViewId::new(name),
+        state: Some(Box::new(PanelState {
+            gap: 0,
+            border_visible: true,
+        })),
         draw: Some(draw_std_panel),
         h_flex: Resize,
         v_flex: Resize,
