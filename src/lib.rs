@@ -54,6 +54,13 @@ pub struct Theme {
     pub selected_fg: Rgb565,
     pub font: MonoFont<'static>,
     pub bold_font: MonoFont<'static>,
+    pub accented: ViewStyle,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ViewStyle {
+    pub fill: Rgb565,
+    pub text: Rgb565,
 }
 
 pub type Callback = fn(event: &mut GuiEvent);

@@ -11,12 +11,12 @@ use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
 use embedded_graphics::Drawable;
-use iris_ui::button::make_button;
+use iris_ui::button::{make_button, make_full_button};
 use iris_ui::geom::{Bounds, Insets, Point as GPoint};
 use iris_ui::scene::{click_at, draw_scene, event_at_focused, layout_scene, Scene};
 use iris_ui::toggle_button::make_toggle_button;
 use iris_ui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
-use iris_ui::{util, Theme};
+use iris_ui::{util, Theme, ViewStyle};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
@@ -29,7 +29,7 @@ use env_logger::Target;
 use iris_ui::device::EmbeddedDrawingContext;
 use iris_ui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use iris_ui::input::{InputEvent, InputResult, OutputAction, TextAction};
-use iris_ui::label::make_label;
+use iris_ui::label::{make_header_label, make_label};
 use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_vbox};
 use iris_ui::list_view::make_list_view;
 use iris_ui::panel::{draw_borderless_panel, draw_std_panel, PanelState};
@@ -73,20 +73,28 @@ fn make_scene() -> Scene {
             .with_padding(Insets::new_same(10));
         grid.h_flex = Resize;
         grid.v_flex = Resize;
-        let mut grid_layout = GridLayoutState::new_row_column(3, 30, 2, 100);
+        let mut grid_layout = GridLayoutState::new_row_column(4, 30, 3, 100);
         grid_layout.debug = false;
 
+        let header1 = make_header_label("header1", "Header");
+        grid_layout.place_at_row_column(&header1.name, 0, 0);
+        scene.add_view_to_parent(header1, &grid.name);
+
         let label1 = make_label("label1", "A Label");
-        grid_layout.place_at_row_column(&label1.name, 0, 0);
+        grid_layout.place_at_row_column(&label1.name, 0, 1);
         scene.add_view_to_parent(label1, &grid.name);
 
-        let button1 = make_button(&ViewId::new("button1"), "Action Button");
+        let button1 = make_button(&ViewId::new("button1"), "Button");
         grid_layout.place_at_row_column(&button1.name, 1, 0);
         scene.add_view_to_parent(button1, &grid.name);
 
-        let button2 = make_toggle_button(&ViewId::new("toggle1"), "Toggle");
-        grid_layout.place_at_row_column(&button2.name, 1, 1);
-        scene.add_view_to_parent(button2, &grid.name);
+        let button3 = make_full_button(&ViewId::new("button3"), "Primary", "primary".into(), true);
+        grid_layout.place_at_row_column(&button3.name, 2, 0);
+        scene.add_view_to_parent(button3, &grid.name);
+
+        let toggle1 = make_toggle_button(&ViewId::new("toggle1"), "Toggle");
+        grid_layout.place_at_row_column(&toggle1.name, 1, 1);
+        scene.add_view_to_parent(toggle1, &grid.name);
 
         let mut button3 =
             make_toggle_group(&ViewId::new("toggle2"), vec!["Apple", "Ball", "Car"], 1);
@@ -95,7 +103,7 @@ fn make_scene() -> Scene {
         grid_layout.constraints.insert(
             (&button3.name).clone(),
             LayoutConstraint {
-                row: 2,
+                row: 3,
                 col: 0,
                 col_span: 2,
                 row_span: 1,
@@ -359,6 +367,10 @@ fn main() -> Result<(), std::convert::Infallible> {
         panel_bg: Rgb565::CSS_LIGHT_GRAY,
         font: FONT_7X13,
         bold_font: FONT_7X13_BOLD,
+        accented: ViewStyle {
+            fill: Rgb565::RED,
+            text: Rgb565::WHITE,
+        },
     };
     copy_theme_colors(&mut theme, &LIGHT_THEME);
 
@@ -498,10 +510,14 @@ const LIGHT_THEME: Theme = Theme {
     bg: Rgb565::WHITE,
     fg: Rgb565::BLACK,
     panel_bg: Rgb565::CSS_LIGHT_GRAY,
-    selected_bg: hex_str_to_rgb565("#4488ff"),
+    selected_bg: hex_str_to_rgb565("#444444"),
     selected_fg: Rgb565::WHITE,
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    accented: ViewStyle {
+        fill: hex_str_to_rgb565("#6688dd"),
+        text: Rgb565::WHITE,
+    },
 };
 const DARK_THEME: Theme = Theme {
     bg: hex_str_to_rgb565("#222222"),
@@ -511,6 +527,10 @@ const DARK_THEME: Theme = Theme {
     selected_fg: hex_str_to_rgb565("#3366ff"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    accented: ViewStyle {
+        fill: Rgb565::RED,
+        text: Rgb565::WHITE,
+    },
 };
 
 //https://lospec.com/palette-list/ice-cream-gb
@@ -522,6 +542,10 @@ const ICE_CREAM_THEME: Theme = Theme {
     selected_fg: hex_str_to_rgb565("#fff6d3"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    accented: ViewStyle {
+        fill: Rgb565::RED,
+        text: Rgb565::WHITE,
+    },
 };
 //https://lospec.com/palette-list/minty-fresh
 const MINTY_FRESH: Theme = Theme {
@@ -532,6 +556,10 @@ const MINTY_FRESH: Theme = Theme {
     selected_fg: hex_str_to_rgb565("#40332f"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    accented: ViewStyle {
+        fill: Rgb565::RED,
+        text: Rgb565::WHITE,
+    },
 };
 //https://lospec.com/palette-list/amber-crtgb
 const AMBER: Theme = Theme {
@@ -542,6 +570,10 @@ const AMBER: Theme = Theme {
     selected_fg: hex_str_to_rgb565("#5e1210"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    accented: ViewStyle {
+        fill: Rgb565::RED,
+        text: Rgb565::WHITE,
+    },
 };
 
 fn copy_theme_colors(theme: &mut Theme, new: &Theme) {
@@ -550,4 +582,5 @@ fn copy_theme_colors(theme: &mut Theme, new: &Theme) {
     theme.selected_bg = new.selected_bg;
     theme.fg = new.fg;
     theme.selected_fg = new.selected_fg;
+    theme.accented = new.accented.clone();
 }
