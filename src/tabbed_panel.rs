@@ -135,38 +135,24 @@ mod tests {
     use crate::layouts::{layout_hbox, layout_std_panel, layout_vbox};
     use crate::panel::make_panel;
     use crate::scene::{layout_scene, Scene};
-    use crate::tabbed_panel::layout_tabbed_panel;
+    use crate::tabbed_panel::make_tabbed_panel;
     use crate::test::MockDrawingContext;
-    use crate::toggle_group::layout_toggle_group;
     use crate::view::Align::{Center, End, Start};
     use crate::view::Flex::Resize;
-    use crate::view::{Flex, View, ViewId};
+    use crate::view::{Flex, ViewId};
+    use alloc::vec;
 
     #[test]
     fn test_complex_tabbed_panels() {
         let mut scene = Scene::new();
         // tab panel test
         let tabbed_panel: ViewId = "tabbed_panel_id".into();
-        let tabs: ViewId = "tabs".into();
         {
-            let mut tabbed_panel_view: View = View {
-                name: tabbed_panel.clone(),
-                ..Default::default()
-            };
+            let mut tabbed_panel_view = make_tabbed_panel(&tabbed_panel,
+                                                          vec!["tab1", "tab2"], 0, &mut scene);
             tabbed_panel_view.h_flex = Flex::Resize;
             tabbed_panel_view.v_flex = Flex::Resize;
-            tabbed_panel_view.layout = Some(layout_tabbed_panel);
             scene.add_view_to_parent(tabbed_panel_view, &scene.root_id());
-
-            // tab panel tabs has intrisic height but flex width
-            let mut tabbed_panel_tabs: View = View {
-                name: tabs.clone(),
-                ..Default::default()
-            };
-            tabbed_panel_tabs.h_flex = Flex::Resize;
-            tabbed_panel_tabs.v_flex = Flex::Intrinsic;
-            tabbed_panel_tabs.layout = Some(layout_toggle_group);
-            scene.add_view_to_parent(tabbed_panel_tabs, &tabbed_panel);
         }
 
         // has three tabs contents
@@ -240,10 +226,8 @@ mod tests {
         // third tab panel lets children be absolutely positioned and sizes self to the center with a fixed width and height of 100
         let tab3: ViewId = "tab3".into();
         {
-            let mut view = crate::layouts::tests::make_standard_view(&tab3);
-            view.h_flex = Flex::Resize;
-            view.v_flex = Flex::Resize;
-            view.layout = Some(layout_std_panel);
+            let view = make_panel(&tab3)
+                .with_flex(Resize, Resize);
             scene.add_view_to_parent(view, &tabbed_panel);
         }
 
@@ -259,11 +243,7 @@ mod tests {
         );
         assert_eq!(
             scene.get_view_bounds(&tabbed_panel),
-            Some(Bounds::new(0, 0, 200, 200))
-        );
-        assert_eq!(
-            scene.get_view_bounds(&tabs),
-            Some(Bounds::new(0, 0, 200, 20))
+            Some(Bounds::new(10, 10, 200, 200))
         );
         assert_eq!(
             scene.get_view_bounds(&tab1),
@@ -275,7 +255,7 @@ mod tests {
         );
         assert_eq!(
             scene.get_view_bounds(&tab3),
-            Some(Bounds::new(1, 20, 198, 179))
+            Some(Bounds::new(1, 20, 100, 100))
         );
 
         assert_eq!(
@@ -284,11 +264,11 @@ mod tests {
         );
         assert_eq!(
             scene.get_view_bounds(&"tab2_button1".into()),
-            Some(Bounds::new(0, 0, 198, 169))
+            Some(Bounds::new(0, 0, 100, 100))
         );
         assert_eq!(
             scene.get_view_bounds(&"tab2_button2".into()),
-            Some(Bounds::new(168, 169, 30, 10))
+            Some(Bounds::new(168, 100, 30, 10))
         );
     }
 }

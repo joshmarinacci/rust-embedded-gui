@@ -34,7 +34,6 @@ pub fn make_panel(name: &ViewId) -> View {
     View {
         name: name.clone(),
         title: "title".into(),
-        padding: Insets::new_same(0),
         state: Some(Box::new(PanelState {
             gap: 0,
             border_visible: true,

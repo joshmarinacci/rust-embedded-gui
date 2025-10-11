@@ -9,16 +9,15 @@ use Flex::Intrinsic;
 
 pub fn layout_vbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
-        info!("view not found!");
         return;
     };
-    let Some(state) = parent.get_state::<PanelState>() else {
+    let Some(states) = parent.get_state::<PanelState>() else {
         return;
     };
-
-    let padding = state.padding.clone();
+    let gap = states.gap;
+    let padding = states.padding.clone();
     let h_flex = parent.h_flex.clone();
-    let mut available_space: Size = pass.space - parent.padding;
+    let mut available_space: Size = pass.space - padding;
 
     // get the intrinsic children
     let fixed_kids = pass
@@ -76,7 +75,7 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
                 End => (avail_w - kid.bounds.size.w),
             } + padding.left;
             kid.bounds.position.y = y;
-            y += kid.bounds.size.h;
+            y += kid.bounds.size.h + gap;
         }
     }
     // layout self
@@ -106,6 +105,7 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
 
     let h_flex = parent.h_flex.clone();
     let v_flex = parent.v_flex.clone();
+
     // layout self
     if v_flex == Resize {
         parent.bounds.size.h = pass.space.h
@@ -188,16 +188,23 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
 }
 
 pub fn layout_std_panel(pass: &mut LayoutEvent) {
-    if let Some(view) = pass.scene.get_view_mut(&pass.target) {
-        if view.v_flex == Resize {
-            view.bounds.size.h = pass.space.h;
-        }
-        if view.h_flex == Resize {
-            view.bounds.size.w = pass.space.w;
-        }
-        let space = view.bounds.size.clone() - view.padding;
-        pass.layout_all_children(&pass.target.clone(), space);
+    let Some(view) = pass.scene.get_view_mut(&pass.target) else {
+        info!("view not found!");
+        return;
+    };
+    let Some(state) = view.get_state::<PanelState>() else {
+        return;
+    };
+    let padding = state.padding.clone();
+
+    if view.v_flex == Resize {
+        view.bounds.size.h = pass.space.h;
     }
+    if view.h_flex == Resize {
+        view.bounds.size.w = pass.space.w;
+    }
+    let space = view.bounds.size.clone() - padding;
+    pass.layout_all_children(&pass.target.clone(), space);
 }
 
 #[cfg(test)]
@@ -215,7 +222,7 @@ pub(crate) mod tests {
 
     pub(crate) fn layout_button(layout: &mut LayoutEvent) {
         if let Some(view) = layout.scene.get_view_mut(&layout.target) {
-            view.bounds.size = Size::new((view.title.len() * 10) as i32, 10) + view.padding;
+            view.bounds.size = Size::new((view.title.len() * 10) as i32, 10);
         }
     }
     #[test]
@@ -224,7 +231,6 @@ pub(crate) mod tests {
             name: "button1".into(),
             title: "abc".into(),
             layout: Some(layout_button),
-            padding: Insets::new_same(10),
             ..Default::default()
         };
 
@@ -235,7 +241,7 @@ pub(crate) mod tests {
         // size = 3 letters x 10x10 font + 10px padding
         assert_eq!(
             view_bounds(&scene, &"button1".into()).size,
-            Size::new(3 * 10 + 20, 10 + 20),
+            Size::new(3 * 10, 10),
             "button size is wrong"
         );
     }
@@ -255,7 +261,6 @@ pub(crate) mod tests {
         let parent_view = View {
             name: parent_id.clone(),
             title: "parent".into(),
-            padding: Insets::new_same(0),
             state: Some(Box::new(PanelState {
                 border_visible: true,
                 padding: Insets::new_same(10),
@@ -340,19 +345,19 @@ pub(crate) mod tests {
             }
             // center align
             if let Some(view) = scene.get_view(&child2_id) {
-                assert_eq!(view.bounds.position, Point::new(15 + (180 - 20) / 2, 20));
+                assert_eq!(view.bounds.position, Point::new(0 + (180 - 10) / 2, 20));
                 assert_eq!(view.bounds.size, Size::new(30, 10));
             }
             // right align
             if let Some(view) = scene.get_view(&child3_id) {
-                assert_eq!(view.bounds.position, Point::new(30 + (180 - 30), 30));
+                assert_eq!(view.bounds.position, Point::new(10 + (180 - 30), 30));
                 assert_eq!(view.bounds.size, Size::new(30, 10));
             }
             // should fill rest of the space
             assert!(scene.has_view(&child4_id));
             if let Some(view) = scene.get_view(&child4_id) {
-                assert_eq!(view.bounds.position, Point::new(20, 40));
-                assert_eq!(view.bounds.size, Size::new(180, 180 - 30));
+                assert_eq!(view.bounds.position, Point::new(50, 40));
+                assert_eq!(view.bounds.size, Size::new(100, 180 - 80));
             }
         }
     }

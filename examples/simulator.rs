@@ -65,9 +65,7 @@ fn make_scene() -> Scene {
 
     {
         let mut grid = make_grid_panel(BUTTONS_PANEL)
-            .with_padding(Insets::new_same(10));
-        grid.h_flex = Resize;
-        grid.v_flex = Resize;
+            .with_flex(Resize, Resize);
         let mut grid_layout = GridLayoutState::new_row_column(4, 30, 3, 100);
         grid_layout.debug = false;
         grid_layout.border_visible = false;

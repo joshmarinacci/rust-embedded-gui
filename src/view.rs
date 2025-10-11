@@ -1,4 +1,4 @@
-use crate::geom::{Bounds, Insets};
+use crate::geom::Bounds;
 use crate::{DrawFn, InputFn, LayoutFn};
 use alloc::borrow::Cow;
 use alloc::boxed::Box;
@@ -46,7 +46,6 @@ pub struct View {
     pub name: ViewId,
     pub title: String,
     pub bounds: Bounds,
-    pub padding: Insets,
 
     pub v_flex: Flex,
     pub h_flex: Flex,
@@ -61,10 +60,6 @@ pub struct View {
 }
 
 impl View {
-    pub fn with_padding(mut self, padding: Insets) -> View {
-        self.padding = padding;
-        self
-    }
     pub fn with_name(mut self, name: ViewId) -> View {
         self.name = name;
         self
@@ -127,7 +122,6 @@ impl Default for View {
             name: id.clone(),
             title: id.to_string(),
             bounds: Default::default(),
-            padding: Default::default(),
 
             h_flex: Flex::Intrinsic,
             v_flex: Flex::Intrinsic,
