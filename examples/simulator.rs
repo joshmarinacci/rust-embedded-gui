@@ -570,12 +570,12 @@ const ICE_CREAM_THEME: Theme = Theme {
         text: hex_str_to_rgb565("#7c3f58"),
     },
     selected: ViewStyle {
-        fill: hex_str_to_rgb565("#eb6b6f"),
-        text: hex_str_to_rgb565("#fff6d3"),
+        fill: hex_str_to_rgb565("#f9a875"),
+        text: hex_str_to_rgb565("#7c3f58"),
     },
     accented: ViewStyle {
-        fill: Rgb565::RED,
-        text: Rgb565::WHITE,
+        fill: hex_str_to_rgb565("#eb6b6f"),
+        text: hex_str_to_rgb565("#fff6d3"),
     },
 };
 //https://lospec.com/palette-list/minty-fresh
@@ -591,12 +591,12 @@ const MINTY_FRESH: Theme = Theme {
         text: hex_str_to_rgb565("#fbffe0"),
     },
     selected: ViewStyle {
-        fill: hex_str_to_rgb565("#95c798"),
+        fill: hex_str_to_rgb565("#fbffe0"),
         text: hex_str_to_rgb565("#40332f"),
     },
     accented: ViewStyle {
-        fill: Rgb565::RED,
-        text: Rgb565::WHITE,
+        fill: hex_str_to_rgb565("#95c798"),
+        text: hex_str_to_rgb565("#fbffe0"),
     },
 };
 //https://lospec.com/palette-list/amber-crtgb

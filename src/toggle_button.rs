@@ -28,18 +28,15 @@ impl SelectedState {
 }
 
 fn draw_toggle_button(e: &mut DrawEvent) {
-    let style = if let Some(state) = e.view.get_state::<SelectedState>() {
-        if state.selected {
-            e.theme.selected
-        } else {
-            e.theme.selected
-        }
+    let style = if let Some(state) = e.view.get_state::<SelectedState>()
+        && state.selected {
+        e.theme.selected
     } else {
         e.theme.standard
     };
 
     e.ctx.fill_rect(&e.view.bounds, &style.fill);
-    e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
+    e.ctx.stroke_rect(&e.view.bounds, &style.text);
     if let Some(focused) = e.focused {
         let focus_insets = Insets::new_same(2);
         if focused == &e.view.name {

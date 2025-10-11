@@ -61,10 +61,10 @@ fn draw_text_input(e: &mut DrawEvent) {
                     &Bounds::new(
                         e.view.bounds.position.x + n * w + 5,
                         e.view.bounds.position.y + 5,
-                        1,
+                        2,
                         h + 4,
                     ),
-                    &e.theme.selected.fill,
+                    &e.theme.accented.fill,
                 );
             }
         }
