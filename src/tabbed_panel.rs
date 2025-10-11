@@ -88,8 +88,8 @@ pub fn make_tabbed_panel(
         h_flex: Flex::Intrinsic,
         v_flex: Flex::Intrinsic,
         draw: Some(|e| {
-            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+            e.ctx.fill_rect(&e.view.bounds, &e.theme.panel.fill);
+            e.ctx.stroke_rect(&e.view.bounds, &e.theme.panel.text);
         }),
         state: Some(Box::new(state)),
         layout: Some(layout_tabbed_panel),

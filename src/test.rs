@@ -31,13 +31,20 @@ impl MockDrawingContext {
     }
     pub fn make_mock_theme() -> Theme {
         Theme {
-            bg: Rgb565::WHITE,
-            fg: Rgb565::BLACK,
-            selected_bg: Rgb565::WHITE,
-            selected_fg: Rgb565::BLACK,
-            panel_bg: Rgb565::CSS_GRAY,
             font: FONT_6X10,
             bold_font: FONT_7X13_BOLD,
+            standard: ViewStyle {
+                fill: Rgb565::WHITE,
+                text: Rgb565::BLACK,
+            },
+            panel: ViewStyle {
+                fill: Rgb565::CSS_GRAY,
+                text: Rgb565::BLACK,
+            },
+            selected: ViewStyle {
+                fill: Rgb565::WHITE,
+                text: Rgb565::BLACK,
+            },
             accented: ViewStyle {
                 fill: Rgb565::RED,
                 text: Rgb565::WHITE,

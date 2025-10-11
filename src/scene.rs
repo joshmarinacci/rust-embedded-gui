@@ -177,7 +177,7 @@ impl Scene {
             input: None,
             state: None,
             layout: Some(layout_root_panel),
-            draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg)),
+            draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.panel.fill)),
             ..Default::default()
         };
         let mut keys: HashMap<ViewId, View> = HashMap::new();
@@ -333,7 +333,7 @@ fn pick_at_view(scene: &Scene, pt: &Point, name: &ViewId) -> Vec<Pick> {
 
 pub fn draw_scene(scene: &mut Scene, ctx: &mut dyn DrawingContext, theme: &Theme) {
     if scene.dirty {
-        ctx.fill_rect(&scene.bounds, &theme.panel_bg);
+        ctx.fill_rect(&scene.bounds, &theme.standard.fill);
         let name = scene.root_id.clone();
         draw_view(scene, ctx, theme, &name);
         scene.dirty = false;

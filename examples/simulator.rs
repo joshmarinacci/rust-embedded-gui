@@ -360,13 +360,23 @@ fn main() -> Result<(), std::convert::Infallible> {
     let mut scene = make_scene();
     // let mut scene = make_vbox_test();
     let mut theme = Theme {
-        bg: Rgb565::WHITE,
-        fg: Rgb565::BLACK,
-        selected_bg: Rgb565::BLUE,
-        selected_fg: Rgb565::WHITE,
-        panel_bg: Rgb565::CSS_LIGHT_GRAY,
+        standard: ViewStyle {
+            fill: Rgb565::WHITE,
+            text: Rgb565::BLACK,
+        },
+        // selected_bg: Rgb565::BLUE,
+        // selected_fg: Rgb565::WHITE,
+        // panel_bg: Rgb565::CSS_LIGHT_GRAY,
         font: FONT_7X13,
         bold_font: FONT_7X13_BOLD,
+        panel: ViewStyle {
+            fill: Rgb565::CSS_LIGHT_GRAY,
+            text: Rgb565::BLACK,
+        },
+        selected: ViewStyle {
+            fill: Rgb565::BLUE,
+            text: Rgb565::WHITE,
+        },
         accented: ViewStyle {
             fill: Rgb565::RED,
             text: Rgb565::WHITE,
@@ -507,26 +517,40 @@ fn handle_events(result: InputResult, scene: &mut Scene, theme: &mut Theme) {
 }
 
 const LIGHT_THEME: Theme = Theme {
-    bg: Rgb565::WHITE,
-    fg: Rgb565::BLACK,
-    panel_bg: Rgb565::CSS_LIGHT_GRAY,
-    selected_bg: hex_str_to_rgb565("#444444"),
-    selected_fg: Rgb565::WHITE,
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    standard: ViewStyle {
+        fill: Rgb565::WHITE,
+        text: Rgb565::BLACK,
+    },
+    panel: ViewStyle {
+        fill: Rgb565::CSS_LIGHT_GRAY,
+        text: Rgb565::BLACK,
+    },
+    selected: ViewStyle {
+        fill: hex_str_to_rgb565("#444444"),
+        text: Rgb565::WHITE,
+    },
     accented: ViewStyle {
         fill: hex_str_to_rgb565("#6688dd"),
         text: Rgb565::WHITE,
     },
 };
 const DARK_THEME: Theme = Theme {
-    bg: hex_str_to_rgb565("#222222"),
-    fg: hex_str_to_rgb565("#999999"),
-    panel_bg: Rgb565::BLACK,
-    selected_bg: hex_str_to_rgb565("#000088"),
-    selected_fg: hex_str_to_rgb565("#3366ff"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    standard: ViewStyle {
+        fill: hex_str_to_rgb565("#222222"),
+        text: hex_str_to_rgb565("#999999"),
+    },
+    panel: ViewStyle {
+        fill: Rgb565::BLACK,
+        text: Rgb565::WHITE,
+    },
+    selected: ViewStyle {
+        fill: hex_str_to_rgb565("#000088"),
+        text: hex_str_to_rgb565("#3366ff"),
+    },
     accented: ViewStyle {
         fill: Rgb565::RED,
         text: Rgb565::WHITE,
@@ -535,13 +559,20 @@ const DARK_THEME: Theme = Theme {
 
 //https://lospec.com/palette-list/ice-cream-gb
 const ICE_CREAM_THEME: Theme = Theme {
-    bg: hex_str_to_rgb565("fff6d3"),
-    fg: hex_str_to_rgb565("#7c3f58"),
-    panel_bg: hex_str_to_rgb565("fff6d3"),
-    selected_bg: hex_str_to_rgb565("#eb6b6f"),
-    selected_fg: hex_str_to_rgb565("#fff6d3"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    standard: ViewStyle {
+        fill: hex_str_to_rgb565("fff6d3"),
+        text: hex_str_to_rgb565("#7c3f58"),
+    },
+    panel: ViewStyle {
+        fill: hex_str_to_rgb565("fff6d3"),
+        text: hex_str_to_rgb565("#7c3f58"),
+    },
+    selected: ViewStyle {
+        fill: hex_str_to_rgb565("#eb6b6f"),
+        text: hex_str_to_rgb565("#fff6d3"),
+    },
     accented: ViewStyle {
         fill: Rgb565::RED,
         text: Rgb565::WHITE,
@@ -549,13 +580,20 @@ const ICE_CREAM_THEME: Theme = Theme {
 };
 //https://lospec.com/palette-list/minty-fresh
 const MINTY_FRESH: Theme = Theme {
-    bg: hex_str_to_rgb565("#856d52"),
-    fg: hex_str_to_rgb565("#fbffe0"),
-    panel_bg: hex_str_to_rgb565("#40332f"),
-    selected_bg: hex_str_to_rgb565("#95c798"),
-    selected_fg: hex_str_to_rgb565("#40332f"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    standard: ViewStyle {
+        fill: hex_str_to_rgb565("#856d52"),
+        text: hex_str_to_rgb565("#fbffe0"),
+    },
+    panel: ViewStyle {
+        fill: hex_str_to_rgb565("#40332f"),
+        text: hex_str_to_rgb565("#fbffe0"),
+    },
+    selected: ViewStyle {
+        fill: hex_str_to_rgb565("#95c798"),
+        text: hex_str_to_rgb565("#40332f"),
+    },
     accented: ViewStyle {
         fill: Rgb565::RED,
         text: Rgb565::WHITE,
@@ -563,13 +601,20 @@ const MINTY_FRESH: Theme = Theme {
 };
 //https://lospec.com/palette-list/amber-crtgb
 const AMBER: Theme = Theme {
-    bg: hex_str_to_rgb565("#0d0405"),
-    fg: hex_str_to_rgb565("#d35600"),
-    panel_bg: hex_str_to_rgb565("#0d0405"),
-    selected_bg: hex_str_to_rgb565("#fed018"),
-    selected_fg: hex_str_to_rgb565("#5e1210"),
     font: FONT_7X13,
     bold_font: FONT_7X13_BOLD,
+    standard: ViewStyle {
+        fill: hex_str_to_rgb565("#0d0405"),
+        text: hex_str_to_rgb565("#d35600"),
+    },
+    panel: ViewStyle {
+        fill: hex_str_to_rgb565("#0d0405"),
+        text: hex_str_to_rgb565("#d35600"),
+    },
+    selected: ViewStyle {
+        fill: hex_str_to_rgb565("#fed018"),
+        text: hex_str_to_rgb565("#5e1210"),
+    },
     accented: ViewStyle {
         fill: Rgb565::RED,
         text: Rgb565::WHITE,
@@ -577,10 +622,8 @@ const AMBER: Theme = Theme {
 };
 
 fn copy_theme_colors(theme: &mut Theme, new: &Theme) {
-    theme.bg = new.bg;
-    theme.panel_bg = new.panel_bg;
-    theme.selected_bg = new.selected_bg;
-    theme.fg = new.fg;
-    theme.selected_fg = new.selected_fg;
+    theme.standard = new.standard.clone();
+    theme.panel = new.panel.clone();
+    theme.selected = new.selected.clone();
     theme.accented = new.accented.clone();
 }

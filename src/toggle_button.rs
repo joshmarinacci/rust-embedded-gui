@@ -28,26 +28,26 @@ impl SelectedState {
 }
 
 fn draw_toggle_button(e: &mut DrawEvent) {
-    let (bg, fg) = if let Some(state) = e.view.get_state::<SelectedState>() {
+    let style = if let Some(state) = e.view.get_state::<SelectedState>() {
         if state.selected {
-            (&e.theme.selected_bg, &e.theme.selected_fg)
+            e.theme.selected
         } else {
-            (&e.theme.bg, &e.theme.fg)
+            e.theme.selected
         }
     } else {
-        (&e.theme.bg, &e.theme.fg)
+        e.theme.standard
     };
 
-    e.ctx.fill_rect(&e.view.bounds, bg);
-    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+    e.ctx.fill_rect(&e.view.bounds, &style.fill);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
     if let Some(focused) = e.focused {
         let focus_insets = Insets::new_same(2);
         if focused == &e.view.name {
-            e.ctx.stroke_rect(&((*&e.view.bounds) - focus_insets), fg);
+            e.ctx.stroke_rect(&((*&e.view.bounds) - focus_insets), &style.text);
         }
     }
 
-    draw_centered_text(e.ctx, &e.view.title, &e.view.bounds, &e.theme.font, fg);
+    draw_centered_text(e.ctx, &e.view.title, &e.view.bounds, &e.theme.font, &style.text);
 }
 
 fn input_toggle_button(event: &mut GuiEvent) -> Option<OutputAction> {

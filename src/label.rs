@@ -15,7 +15,7 @@ pub fn make_label(name: &'static str, title: &str) -> View {
             }
         }),
         draw: Some(|e| {
-            let style = TextStyle::new(&e.theme.font, &e.theme.fg);
+            let style = TextStyle::new(&e.theme.font, &e.theme.standard.text);
             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
         }),
         ..Default::default()

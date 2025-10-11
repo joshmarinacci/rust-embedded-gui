@@ -84,8 +84,8 @@ pub fn make_grid_panel(name: &ViewId) -> View {
 
 fn draw_grid(evt: &mut DrawEvent) {
     let bounds = evt.view.bounds;
-    evt.ctx.fill_rect(&evt.view.bounds, &evt.theme.bg);
-    evt.ctx.stroke_rect(&evt.view.bounds, &evt.theme.fg);
+    evt.ctx.fill_rect(&evt.view.bounds, &evt.theme.standard.fill);
+    evt.ctx.stroke_rect(&evt.view.bounds, &evt.theme.standard.text);
     let padding = evt.view.padding;
     if let Some(state) = evt.view.get_state::<GridLayoutState>() {
         if state.debug {
@@ -160,9 +160,9 @@ impl Into<ViewId> for &'static str {
 mod tests {
     use crate::button::make_button;
     use crate::geom::Bounds;
-    use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
+    use crate::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
     use crate::label::make_label;
-    use crate::scene::{Scene, draw_scene, layout_scene};
+    use crate::scene::{draw_scene, layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::Align::Start;
     use crate::view::ViewId;

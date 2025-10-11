@@ -101,15 +101,15 @@ fn input_list(e: &mut GuiEvent) -> Option<OutputAction> {
 
 fn draw_list(e: &mut DrawEvent) {
     let bounds = e.view.bounds;
-    e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+    e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.fill);
     let name = e.view.name.clone();
     if let Some(state) = e.view.get_state::<ListState>() {
         let cell_height = bounds.h() / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
-            let (bg, fg) = if i == state.selected {
-                (&e.theme.selected_bg, &e.theme.selected_fg)
+            let style = if i == state.selected {
+                &e.theme.selected
             } else {
-                (&e.theme.bg, &e.theme.fg)
+                &e.theme.standard
             };
             let bds = Bounds::new(
                 bounds.x(),
@@ -119,19 +119,19 @@ fn draw_list(e: &mut DrawEvent) {
             );
             // draw background only if selected
             if i == state.selected {
-                e.ctx.fill_rect(&bds, bg);
+                e.ctx.fill_rect(&bds, &style.fill);
                 if let Some(focused) = e.focused {
                     if focused == &name {
-                        e.ctx.stroke_rect(&bds.contract(2), fg);
+                        e.ctx.stroke_rect(&bds.contract(2), &style.text);
                     }
                 }
             }
 
             // draw text
-            draw_centered_text(e.ctx, item, &bds, &e.theme.font, fg);
+            draw_centered_text(e.ctx, item, &bds, &e.theme.font, &style.text);
         }
     }
-    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
 }
 
 fn layout_list(e: &mut LayoutEvent) {

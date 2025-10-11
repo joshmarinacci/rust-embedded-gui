@@ -65,15 +65,15 @@ pub fn input_toggle_group(e: &mut GuiEvent) -> Option<OutputAction> {
 
 fn draw_toggle_group(e: &mut DrawEvent) {
     let bounds = e.view.bounds;
-    e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
+    e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.fill);
     let name = e.view.name.clone();
     if let Some(state) = e.view.get_state::<SelectOneOfState>() {
         let cell_width = bounds.size.w / (state.items.len() as i32);
         for (i, item) in state.items.iter().enumerate() {
-            let (bg, fg) = if i == state.selected {
-                (&e.theme.selected_bg, &e.theme.selected_fg)
+            let style = if i == state.selected {
+                e.theme.selected
             } else {
-                (&e.theme.bg, &e.theme.fg)
+                e.theme.standard
             };
             let bds = Bounds::new(
                 bounds.position.x + (i as i32) * cell_width + 1,
@@ -83,16 +83,16 @@ fn draw_toggle_group(e: &mut DrawEvent) {
             );
             // draw background only if selected
             if i == state.selected {
-                e.ctx.fill_rect(&bds, bg);
+                e.ctx.fill_rect(&bds, &style.fill);
                 if let Some(focused) = e.focused {
                     if focused == &name {
-                        e.ctx.stroke_rect(&bds.contract(2), fg);
+                        e.ctx.stroke_rect(&bds.contract(2), &style.text);
                     }
                 }
             }
 
             // draw text
-            draw_centered_text(e.ctx, item, &bds, &e.theme.font, fg);
+            draw_centered_text(e.ctx, item, &bds, &e.theme.font, &style.text);
 
             // draw left edge except for the first one
             if i != 0 {
@@ -100,12 +100,12 @@ fn draw_toggle_group(e: &mut DrawEvent) {
                 e.ctx.line(
                     &Point::new(x, bounds.y()),
                     &Point::new(x, bounds.position.y + bounds.size.h - 1),
-                    &e.theme.fg,
+                    &e.theme.standard.text,
                 );
             }
         }
     }
-    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
 }
 
 pub fn layout_toggle_group(pass: &mut LayoutEvent) {

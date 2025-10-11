@@ -47,14 +47,12 @@ pub type InputFn = fn(event: &mut GuiEvent) -> Option<OutputAction>;
 
 #[derive(Debug)]
 pub struct Theme {
-    pub bg: Rgb565,
-    pub fg: Rgb565,
-    pub panel_bg: Rgb565,
-    pub selected_bg: Rgb565,
-    pub selected_fg: Rgb565,
     pub font: MonoFont<'static>,
     pub bold_font: MonoFont<'static>,
+    pub standard: ViewStyle,
     pub accented: ViewStyle,
+    pub selected: ViewStyle,
+    pub panel: ViewStyle,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -128,7 +126,7 @@ mod tests {
             title: name.to_string(),
             bounds: Bounds::new(0, 0, 10, 10),
             visible: true,
-            draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.bg)),
+            draw: Some(|e| e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.fill)),
             input: None,
             state: None,
             layout: None,
@@ -157,7 +155,7 @@ mod tests {
             bounds,
             visible: true,
             draw: Some(|e| {
-                e.ctx.fill_rect(&e.view.bounds, &e.theme.panel_bg);
+                e.ctx.fill_rect(&e.view.bounds, &e.theme.panel.fill);
             }),
             input: None,
             state: None,
@@ -233,7 +231,7 @@ mod tests {
         e.ctx.fill_text(
             &e.view.bounds,
             &e.view.title,
-            &TextStyle::new(&e.theme.font, &e.theme.fg),
+            &TextStyle::new(&e.theme.font, &e.theme.standard.text),
         );
     }
     fn make_label(name: &ViewId) -> View {
@@ -382,15 +380,15 @@ mod tests {
                 if let Some(state) = &e.view.state {
                     if let Some(state) = state.downcast_ref::<String>() {
                         if state == "enabled" {
-                            e.ctx.fill_rect(&e.view.bounds, &e.theme.fg);
-                            e.ctx.stroke_rect(&e.view.bounds, &e.theme.bg);
-                            let style = TextStyle::new(&e.theme.font, &e.theme.bg)
+                            e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.text);
+                            e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.fill);
+                            let style = TextStyle::new(&e.theme.font, &e.theme.standard.fill)
                                 .with_halign(Align::Center);
                             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
                         } else {
-                            e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-                            e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-                            let style = TextStyle::new(&e.theme.font, &e.theme.fg)
+                            e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.fill);
+                            e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
+                            let style = TextStyle::new(&e.theme.font, &e.theme.standard.text)
                                 .with_halign(Align::Center);
                             e.ctx.fill_text(&e.view.bounds, &e.view.title, &style);
                         }
@@ -512,9 +510,9 @@ mod tests {
             bounds: Bounds::new(0, 0, 10, 10),
             visible: true,
             draw: Some(|e| {
-                let mut color = &e.theme.fg;
+                let mut color = &e.theme.standard.text;
                 if e.focused.is_some() && e.view.name.eq(e.focused.as_ref().unwrap()) {
-                    color = &e.theme.bg;
+                    color = &e.theme.standard.fill;
                 }
                 e.ctx.fill_rect(&e.view.bounds, color);
             }),

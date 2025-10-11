@@ -1,8 +1,8 @@
 use crate::gfx::draw_centered_text;
 use crate::input::{InputEvent, OutputAction};
+use crate::util;
 use crate::view::Flex::Intrinsic;
 use crate::view::{View, ViewId};
-use crate::util;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 
@@ -44,7 +44,7 @@ pub fn make_full_button(name: &ViewId, title: &str, command: String, primary: bo
             };
             if state.primary {
                 e.ctx.fill_rect(&e.view.bounds, &e.theme.accented.fill);
-                e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+                e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
                 if e.focused == &Some(e.view.name) {
                     e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.accented.text);
                 }
@@ -56,17 +56,17 @@ pub fn make_full_button(name: &ViewId, title: &str, command: String, primary: bo
                     &e.theme.accented.text,
                 );
             } else {
-                e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-                e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
+                e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.fill);
+                e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
                 if e.focused == &Some(e.view.name) {
-                    e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
+                    e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.standard.text);
                 }
                 draw_centered_text(
                     e.ctx,
                     &e.view.title,
                     &e.view.bounds,
                     &e.theme.bold_font,
-                    &e.theme.fg,
+                    &e.theme.standard.text,
                 );
             }
         }),

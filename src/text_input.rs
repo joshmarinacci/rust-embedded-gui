@@ -41,9 +41,9 @@ impl TextInputState {
 }
 
 fn draw_text_input(e: &mut DrawEvent) {
-    e.ctx.fill_rect(&e.view.bounds, &e.theme.bg);
-    e.ctx.stroke_rect(&e.view.bounds, &e.theme.fg);
-    let style = TextStyle::new(&e.theme.font, &e.theme.fg).with_halign(Align::Start);
+    e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.fill);
+    e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
+    let style = TextStyle::new(&e.theme.font, &e.theme.standard.text).with_halign(Align::Start);
 
     let bounds = e.view.bounds.clone();
     if let Some(state) = e.view.get_state::<TextInputState>() {
@@ -52,7 +52,7 @@ fn draw_text_input(e: &mut DrawEvent) {
 
     if let Some(focused) = e.focused {
         if focused == &e.view.name {
-            e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.fg);
+            e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.standard.text);
             if let Some(state) = e.view.get_state::<TextInputState>() {
                 let n = state.cursor as i32;
                 let w = e.theme.font.character_size.width as i32;
@@ -64,7 +64,7 @@ fn draw_text_input(e: &mut DrawEvent) {
                         1,
                         h + 4,
                     ),
-                    &e.theme.selected_bg,
+                    &e.theme.selected.fill,
                 );
             }
         }
