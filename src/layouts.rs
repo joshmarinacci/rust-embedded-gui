@@ -12,8 +12,12 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
         info!("view not found!");
         return;
     };
+    let Some(state) = parent.get_state::<PanelState>() else {
+        return;
+    };
+
+    let padding = state.padding.clone();
     let h_flex = parent.h_flex.clone();
-    let padding = parent.padding.clone();
     let mut available_space: Size = pass.space - parent.padding;
 
     // get the intrinsic children
@@ -94,11 +98,12 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
         return;
     };
-    let gap = if let Some(state) = parent.get_state::<PanelState>() {
-        state.gap
-    } else {
-        0
+    let Some(state) = parent.get_state::<PanelState>() else {
+        return;
     };
+    let gap = state.gap;
+    let padding = state.padding;
+
     let h_flex = parent.h_flex.clone();
     let v_flex = parent.v_flex.clone();
     // layout self
@@ -109,7 +114,6 @@ pub fn layout_hbox(pass: &mut LayoutEvent) {
         parent.bounds.size.w = pass.space.w
     }
 
-    let padding = parent.padding.clone();
     let mut available_space = pass.space - padding;
 
     // get the fixed children
@@ -200,12 +204,15 @@ pub fn layout_std_panel(pass: &mut LayoutEvent) {
 pub(crate) mod tests {
     use crate::geom::{Bounds, Insets, Point, Size};
     use crate::layouts::{layout_std_panel, layout_vbox};
+    use crate::panel::PanelState;
     use crate::scene::{layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::Align::Start;
     use crate::view::{Align, Flex, View, ViewId};
     use crate::LayoutEvent;
+    use alloc::boxed::Box;
     use test_log::test;
+
     pub(crate) fn layout_button(layout: &mut LayoutEvent) {
         if let Some(view) = layout.scene.get_view_mut(&layout.target) {
             view.bounds.size = Size::new((view.title.len() * 10) as i32, 10) + view.padding;
@@ -248,7 +255,12 @@ pub(crate) mod tests {
         let parent_view = View {
             name: parent_id.clone(),
             title: "parent".into(),
-            padding: Insets::new_same(10),
+            padding: Insets::new_same(0),
+            state: Some(Box::new(PanelState {
+                border_visible: true,
+                padding: Insets::new_same(10),
+                gap: 0,
+            })),
             bounds: Bounds {
                 position: Point::new(-99, -99),
                 size: Size::new(100, 100),
@@ -328,18 +340,18 @@ pub(crate) mod tests {
             }
             // center align
             if let Some(view) = scene.get_view(&child2_id) {
-                assert_eq!(view.bounds.position, Point::new(10 + (180 - 30) / 2, 20));
+                assert_eq!(view.bounds.position, Point::new(15 + (180 - 20) / 2, 20));
                 assert_eq!(view.bounds.size, Size::new(30, 10));
             }
             // right align
             if let Some(view) = scene.get_view(&child3_id) {
-                assert_eq!(view.bounds.position, Point::new(10 + (180 - 30), 30));
+                assert_eq!(view.bounds.position, Point::new(30 + (180 - 30), 30));
                 assert_eq!(view.bounds.size, Size::new(30, 10));
             }
             // should fill rest of the space
             assert!(scene.has_view(&child4_id));
             if let Some(view) = scene.get_view(&child4_id) {
-                assert_eq!(view.bounds.position, Point::new(10, 40));
+                assert_eq!(view.bounds.position, Point::new(20, 40));
                 assert_eq!(view.bounds.size, Size::new(180, 180 - 30));
             }
         }

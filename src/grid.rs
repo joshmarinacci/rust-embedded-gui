@@ -3,6 +3,7 @@ use crate::view::Flex::{Intrinsic, Resize};
 use crate::view::{Align, View, ViewId};
 use crate::{DrawEvent, LayoutEvent};
 use alloc::boxed::Box;
+use alloc::string::ToString;
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use hashbrown::HashMap;
 
@@ -70,7 +71,7 @@ impl LayoutConstraint {
 pub fn make_grid_panel(name: &ViewId) -> View {
     View {
         name: name.clone(),
-        title: name.as_str().into(),
+        title: name.to_string(),
         state: Some(Box::new(GridLayoutState {
             constraints: HashMap::new(),
             col_count: 2,

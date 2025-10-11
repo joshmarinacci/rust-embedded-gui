@@ -7,7 +7,7 @@ use alloc::boxed::Box;
 
 pub fn make_toggle_button(name: &ViewId, title: &str) -> View {
     View {
-        name: *name,
+        name: name.clone(),
         title: title.into(),
         state: Some(Box::new(SelectedState::new())),
         draw: Some(draw_toggle_button),

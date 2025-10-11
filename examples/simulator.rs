@@ -32,7 +32,7 @@ use iris_ui::input::{InputEvent, InputResult, OutputAction, TextAction};
 use iris_ui::label::{make_header_label, make_label};
 use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_vbox};
 use iris_ui::list_view::make_list_view;
-use iris_ui::panel::{draw_std_panel, PanelState};
+use iris_ui::panel::{draw_std_panel, make_panel, PanelState};
 use iris_ui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
 use iris_ui::text_input::make_text_input;
 use iris_ui::util::hex_str_to_rgb565;
@@ -41,24 +41,20 @@ use iris_ui::view::Flex::{Intrinsic, Resize};
 use iris_ui::view::{Align, Flex, View, ViewId};
 use log::{info, LevelFilter};
 
-const SMALL_FONT_BUTTON: &'static ViewId = &ViewId::new("small_font");
-const MEDIUM_FONT_BUTTON: &'static ViewId = &ViewId::new("medium_font");
-const LARGE_FONT_BUTTON: &'static ViewId = &ViewId::new("large_font");
 
-const TABBED_PANEL: &'static ViewId = &ViewId::new("tabbed-panel");
-const BUTTONS_PANEL: &'static ViewId = &ViewId::new("buttons");
-const LAYOUT_PANEL: &'static ViewId = &ViewId::new("layout-panel");
-const LISTS_PANEL: &'static ViewId = &ViewId::new("lists-panel");
-const INPUTS_PANEL: &'static ViewId = &ViewId::new("input-panel");
-const THEMES_PANEL: &'static ViewId = &ViewId::new("themes-panel");
-
-const POPUP_BUTTON: &'static ViewId = &ViewId::new("list-button");
 const POPUP_MENU: &'static ViewId = &ViewId::new("popup-menu");
 fn make_scene() -> Scene {
     let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
+    const TABBED_PANEL: &'static ViewId = &ViewId::new("tabbed-panel");
 
     let tab_names = vec!["buttons", "layouts", "lists", "inputs", "themes"];
     let mut tabbed_panel: View = make_tabbed_panel(&TABBED_PANEL, tab_names, 0, &mut scene);
+    const BUTTONS_PANEL: &'static ViewId = &ViewId::new("buttons");
+    const LAYOUT_PANEL: &'static ViewId = &ViewId::new("layout-panel");
+    const LISTS_PANEL: &'static ViewId = &ViewId::new("lists-panel");
+    const INPUTS_PANEL: &'static ViewId = &ViewId::new("input-panel");
+    const THEMES_PANEL: &'static ViewId = &ViewId::new("themes-panel");
+
     if let Some(state) = tabbed_panel.get_state::<LayoutPanelState>() {
         state.register_panel("buttons", BUTTONS_PANEL);
         state.register_panel("layouts", LAYOUT_PANEL);
@@ -115,15 +111,9 @@ fn make_scene() -> Scene {
         scene.add_view_to_parent(grid, &tabbed_panel.name);
     }
     {
-        let mut wrapper = View {
-            name: LAYOUT_PANEL.clone(),
-            draw: Some(draw_std_panel),
-            padding: Insets::new_same(5),
-            h_flex: Resize,
-            v_flex: Resize,
-            layout: Some(layout_hbox),
-            ..Default::default()
-        };
+        let wrapper = make_panel(LAYOUT_PANEL)
+            .with_layout(Some(layout_hbox))
+            .with_visible(false);
 
         {
             let col1 = make_column("vbox2");
@@ -152,21 +142,22 @@ fn make_scene() -> Scene {
             scene.add_view_to_parent(col2, &wrapper.name);
         }
 
-        wrapper.visible = false;
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
-        let mut wrapper = View {
-            name: LISTS_PANEL.clone(),
-            layout: Some(layout_hbox),
-            draw: Some(draw_std_panel),
-            h_flex: Flex::Resize,
-            v_flex: Flex::Resize,
-            ..Default::default()
-        };
+        let mut wrapper = make_panel(&LISTS_PANEL)
+            .with_visible(false)
+            .with_flex(Resize, Resize)
+            .with_state(Some(Box::new(PanelState {
+                gap: 0,
+                border_visible: false,
+                padding: Insets::new_same(0),
+            })))
+            .with_layout(Some(layout_hbox));
+
         let col1 = make_column("lists-col1");
         scene.add_view_to_parent(make_label("lists-label", "Lists"), &col1.name);
-        let button = make_button(POPUP_BUTTON, "Open Popup");
+        let button = make_full_button(&scene.next_view_id(), "Open Popup", "open-popup", false);
         scene.add_view_to_parent(button, &col1.name);
         scene.add_view_to_parent(col1, &wrapper.name);
         let list = make_list_view(
@@ -175,33 +166,35 @@ fn make_scene() -> Scene {
             1,
         );
         scene.add_view_to_parent(list, &wrapper.name);
-        wrapper.hide();
         scene.add_view_to_parent(wrapper, &tabbed_panel.name);
     }
     {
-        let mut panel = View {
-            name: INPUTS_PANEL.clone(),
-            draw: Some(draw_std_panel),
-            h_flex: Resize,
-            v_flex: Resize,
-            layout: Some(layout_std_panel),
-            ..Default::default()
-        };
+        let panel = make_panel(INPUTS_PANEL)
+            .with_layout(Some(layout_std_panel))
+            .with_state(Some(Box::new(PanelState {
+                gap: 0,
+                border_visible: false,
+                padding: Insets::new_same(0),
+            })))
+            .with_flex(Resize, Resize)
+            .with_visible(false)
+            ;
         scene.add_view_to_parent(
             make_text_input("text input", "input").position_at(10, 10),
             &panel.name,
         );
-        panel.hide();
         scene.add_view_to_parent(panel, &tabbed_panel.name);
     }
     {
-        let mut panel = make_column(THEMES_PANEL.as_str())
-            .with_padding(Insets::new_same(10))
+        let panel = make_column(THEMES_PANEL.as_str())
             .with_visible(false)
+            .with_state(Some(Box::new(PanelState {
+                border_visible: false,
+                gap: 0,
+                padding: Insets::new_same(10),
+            })))
+            .with_flex(Resize, Resize)
             ;
-        if let Some(state) = panel.get_state::<PanelState>() {
-            state.border_visible = false;
-        }
         let themes_list_id = ViewId::new("themes-list");
         let themes = make_list_view(
             &themes_list_id,
@@ -214,25 +207,21 @@ fn make_scene() -> Scene {
     scene.add_view_to_root(tabbed_panel);
 
     {
-        let font_buttons = View {
-            name: ViewId::new("font_buttons"),
-            bounds: Bounds::new(30, 200, 200, 30),
-            state: Some(Box::new(PanelState {
+        let font_buttons_name = scene.next_view_id();
+        let font_buttons = make_panel(&font_buttons_name)
+            .with_bounds(Bounds::new(30, 200, 200, 30))
+            .with_layout(Some(layout_hbox))
+            .with_state(Some(Box::new(PanelState {
                 border_visible: true,
                 gap: 5,
-            })),
-            layout: Some(layout_hbox),
-            h_flex: Intrinsic,
-            v_flex: Intrinsic,
-            draw: Some(draw_std_panel),
-            ..Default::default()
-        }.with_padding(Insets::new_same(5));
-        scene.add_view_to_parent(make_button(SMALL_FONT_BUTTON, "Small"), &font_buttons.name);
-        scene.add_view_to_parent(
-            make_button(MEDIUM_FONT_BUTTON, "Medium"),
-            &font_buttons.name,
-        );
-        scene.add_view_to_parent(make_button(LARGE_FONT_BUTTON, "Large"), &font_buttons.name);
+                padding: Insets::new_same(5),
+            })));
+        let small_button = make_full_button(&scene.next_view_id(), "Small", "font-small", false);
+        scene.add_view_to_parent(small_button, &font_buttons_name);
+        let med_button = make_full_button(&scene.next_view_id(), "Medium", "font-medium", false);
+        scene.add_view_to_parent(med_button, &font_buttons_name);
+        let large_button = make_full_button(&scene.next_view_id(), "Large", "font-large", false);
+        scene.add_view_to_parent(large_button, &font_buttons_name);
         scene.add_view_to_root(font_buttons);
     }
 
@@ -242,121 +231,16 @@ fn make_scene() -> Scene {
 
     scene
 }
-fn make_vbox_test() -> Scene {
-    let mut scene = Scene::new_with_bounds(Bounds::new(0, 0, 320, 240));
-    let parent_id: ViewId = "parent".into();
-    let parent_view = View {
-        name: parent_id.clone(),
-        title: "parent".into(),
-        padding: Insets::new_same(10),
-        bounds: Bounds::new(0, 0, 100, 100),
-        h_flex: Resize,
-        v_flex: Resize,
-        h_align: Start,
-        v_align: Start,
-        layout: Some(layout_hbox),
-        draw: Some(draw_std_panel),
-        ..Default::default()
-    };
-    {
-        let child1_id: ViewId = "child1".into();
-        let mut child = make_button(&child1_id, "ch1");
-        child.h_align = Align::Start;
-        child.v_align = Start;
-        scene.add_view_to_parent(child, &parent_id);
-
-        let child2_id: ViewId = "child2".into();
-        let mut child = make_button(&child2_id, "ch2");
-        child.h_align = Align::Center;
-        child.v_align = Center;
-        scene.add_view_to_parent(child, &parent_id);
-
-        let child3_id: ViewId = "child3".into();
-        let mut child = make_button(&child3_id, "ch3");
-        child.h_align = Align::End;
-        child.v_align = Align::End;
-        scene.add_view_to_parent(child, &parent_id);
-    }
-
-    let child_box = View {
-        name: ViewId::new("foo"),
-        padding: Insets::new_same(5),
-        layout: Some(layout_vbox),
-        draw: Some(draw_std_panel),
-        bounds: Bounds::new(0, 0, 100, 100),
-        h_flex: Intrinsic,
-        v_flex: Resize,
-        h_align: Center,
-        ..Default::default()
-    };
-    {
-        let child1_id: ViewId = "child1a".into();
-        let mut child = make_button(&child1_id, "ch1");
-        child.h_align = Align::Start;
-        child.v_align = Start;
-        scene.add_view_to_parent(child, &child_box.name);
-
-        let child2_id: ViewId = "child2a".into();
-        let mut child = make_button(&child2_id, "ch2");
-        child.h_align = Align::Center;
-        child.v_align = Center;
-        scene.add_view_to_parent(child, &child_box.name);
-
-        let child3_id: ViewId = "child3a".into();
-        let mut child = make_button(&child3_id, "ch3");
-        child.h_align = Align::End;
-        child.v_align = Align::End;
-        scene.add_view_to_parent(child, &child_box.name);
-    }
-    scene.add_view_to_parent(child_box, &parent_id);
-
-    // let child4_id: ViewId = "child4".into();
-    // scene.add_view_to_parent(
-    //     View {
-    //         name: child4_id.clone(),
-    //         title: "ch4".into(),
-    //         h_flex: Flex::Resize,
-    //         v_flex: Flex::Resize,
-    //         layout: Some(layout_std_panel),
-    //         ..Default::default()
-    //     },
-    //     &parent_id,
-    // );
-
-    scene.add_view_to_parent(parent_view, &scene.root_id());
-    scene
-}
-
 fn make_column(name: &'static str) -> View {
-    View {
-        name: ViewId::new(name),
-        state: Some(Box::new(PanelState {
-            gap: 0,
-            border_visible: true,
-        })),
-        draw: Some(draw_std_panel),
-        h_flex: Resize,
-        v_flex: Resize,
-        h_align: Center,
-        v_align: Start,
-        layout: Some(layout_vbox),
-        ..Default::default()
-    }
+    make_panel(&ViewId::new(name))
+        .with_state(Some(Box::new(PanelState::new())))
+        .with_layout(Some(layout_vbox))
 }
 
 fn make_row(name: &'static str) -> View {
-    View {
-        name: ViewId::new(name),
-        state: Some(Box::new(PanelState {
-            gap: 0,
-            border_visible: true,
-        })),
-        draw: Some(draw_std_panel),
-        h_flex: Resize,
-        v_flex: Resize,
-        layout: Some(layout_hbox),
-        ..Default::default()
-    }
+    make_panel(&ViewId::new(name))
+        .with_layout(Some(layout_hbox))
+        .with_state(Some(Box::new(PanelState::new())))
 }
 
 fn main() -> Result<(), std::convert::Infallible> {
@@ -484,20 +368,35 @@ fn keydown_to_char(keycode: Keycode, keymod: Mod) -> TextAction {
 
 fn handle_events(result: InputResult, scene: &mut Scene, theme: &mut Theme) {
     println!("result of event {:?} from {}", result.input, result.source);
-    if result.source == *SMALL_FONT_BUTTON {
-        theme.font = FONT_5X7;
-        theme.bold_font = FONT_5X7;
-        scene.mark_layout_dirty();
-    }
-    if result.source == *MEDIUM_FONT_BUTTON {
-        theme.font = FONT_6X10;
-        theme.bold_font = FONT_6X10;
-        scene.mark_layout_dirty();
-    }
-    if result.source == *LARGE_FONT_BUTTON {
-        theme.font = FONT_7X13;
-        theme.bold_font = FONT_7X13_BOLD;
-        scene.mark_layout_dirty();
+    match &result.action {
+        Some(OutputAction::Command(cmd)) => {
+            info!("got a command {cmd}");
+            match cmd.as_str() {
+                "font-small" => {
+                    theme.font = FONT_5X7;
+                    theme.bold_font = FONT_5X7;
+                    scene.mark_layout_dirty();
+                }
+                "font-medium" => {
+                    theme.font = FONT_6X10;
+                    theme.bold_font = FONT_6X10;
+                    scene.mark_layout_dirty();
+                }
+                "font-large" => {
+                    theme.font = FONT_7X13;
+                    theme.bold_font = FONT_7X13_BOLD;
+                    scene.mark_layout_dirty();
+                }
+                "open-popup" => {
+                    let menu =
+                        make_list_view(POPUP_MENU, vec!["Item 1", "Item 2", "Item 3"], 0).position_at(50, 50);
+                    scene.set_focused(&menu.name);
+                    scene.add_view_to_root(menu);
+                }
+                _ => {}
+            }
+        }
+        _ => {}
     }
     if result.source.as_str() == "themes-list" {
         match &result.action {
@@ -514,12 +413,6 @@ fn handle_events(result: InputResult, scene: &mut Scene, theme: &mut Theme) {
             }
             _ => {}
         }
-    }
-    if result.source == *POPUP_BUTTON {
-        let menu =
-            make_list_view(POPUP_MENU, vec!["Item 1", "Item 2", "Item 3"], 0).position_at(50, 50);
-        scene.set_focused(&menu.name);
-        scene.add_view_to_root(menu);
     }
     if result.source == *POPUP_MENU {
         scene.remove_view(POPUP_MENU);

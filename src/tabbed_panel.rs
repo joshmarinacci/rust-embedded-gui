@@ -6,7 +6,7 @@ use crate::view::Flex::Resize;
 use crate::view::{Flex, View, ViewId};
 use crate::LayoutEvent;
 use alloc::boxed::Box;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use hashbrown::HashMap;
@@ -21,7 +21,7 @@ impl LayoutPanelState {
     pub fn register_panel(&mut self, tab_name: &str, content_id: &ViewId) {
         info!("registering panel {tab_name} with content {content_id}");
         self.data.push(tab_name.into());
-        self.contents.insert(tab_name.into(), *content_id);
+        self.contents.insert(tab_name.into(), content_id.clone());
     }
 }
 
@@ -50,7 +50,7 @@ pub fn make_tabbed_panel(
 
             // hide all the children
             for kid in e.scene.get_children_ids(&container) {
-                if kid.as_str() != "tabs" {
+                if kid.to_string() != "tabs" {
                     e.scene.hide_view(&kid);
                 }
             }
@@ -83,7 +83,7 @@ pub fn make_tabbed_panel(
     scene.add_view_to_parent(tabs, name);
 
     View {
-        name: *name,
+        name: name.clone(),
         bounds: Bounds::new(10, 10, 320 - 20, 180),
         h_flex: Flex::Intrinsic,
         v_flex: Flex::Intrinsic,
@@ -133,11 +133,13 @@ pub fn layout_tabbed_panel(pass: &mut LayoutEvent) {
 mod tests {
     use crate::geom::{Bounds, Size};
     use crate::layouts::{layout_hbox, layout_std_panel, layout_vbox};
+    use crate::panel::make_panel;
     use crate::scene::{layout_scene, Scene};
     use crate::tabbed_panel::layout_tabbed_panel;
     use crate::test::MockDrawingContext;
     use crate::toggle_group::layout_toggle_group;
     use crate::view::Align::{Center, End, Start};
+    use crate::view::Flex::Resize;
     use crate::view::{Flex, View, ViewId};
 
     #[test]
@@ -172,10 +174,9 @@ mod tests {
         // first tab panel is an hbox with three buttons vertically centered and left aligned
         let tab1: ViewId = "tab1".into();
         {
-            let mut view = crate::layouts::tests::make_standard_view(&tab1);
-            view.h_flex = Flex::Resize;
-            view.v_flex = Flex::Resize;
-            view.layout = Some(layout_hbox);
+            let view = make_panel(&tab1)
+                .with_layout(Some(layout_hbox))
+                .with_flex(Resize, Resize);
             scene.add_view_to_parent(view, &tabbed_panel);
 
             let b1: ViewId = "tab1_button1".into();
@@ -208,10 +209,9 @@ mod tests {
         // and the first one takes all vertical space and horizontal space
         let tab2: ViewId = "tab2".into();
         {
-            let mut view = crate::layouts::tests::make_standard_view(&tab2);
-            view.h_flex = Flex::Resize;
-            view.v_flex = Flex::Resize;
-            view.layout = Some(layout_vbox);
+            let view = make_panel(&tab2)
+                .with_layout(Some(layout_vbox))
+                .with_flex(Resize, Resize);
             scene.add_view_to_parent(view, &tabbed_panel);
 
             let b1: ViewId = "tab2_button1".into();
@@ -267,15 +267,15 @@ mod tests {
         );
         assert_eq!(
             scene.get_view_bounds(&tab1),
-            Some(Bounds::new(0, 20, 200, 180))
+            Some(Bounds::new(1, 20, 198, 179))
         );
         assert_eq!(
             scene.get_view_bounds(&tab2),
-            Some(Bounds::new(0, 20, 200, 180))
+            Some(Bounds::new(1, 20, 198, 179))
         );
         assert_eq!(
             scene.get_view_bounds(&tab3),
-            Some(Bounds::new(0, 20, 200, 180))
+            Some(Bounds::new(1, 20, 198, 179))
         );
 
         assert_eq!(
@@ -284,11 +284,11 @@ mod tests {
         );
         assert_eq!(
             scene.get_view_bounds(&"tab2_button1".into()),
-            Some(Bounds::new(0, 0, 200, 170))
+            Some(Bounds::new(0, 0, 198, 169))
         );
         assert_eq!(
             scene.get_view_bounds(&"tab2_button2".into()),
-            Some(Bounds::new(170, 170, 30, 10))
+            Some(Bounds::new(168, 169, 30, 10))
         );
     }
 }

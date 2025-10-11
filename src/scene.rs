@@ -3,6 +3,7 @@ use crate::gfx::DrawingContext;
 use crate::input::{InputEvent, InputResult};
 use crate::view::{View, ViewId};
 use crate::{Callback, DrawEvent, GuiEvent, LayoutEvent, LayoutFn, Theme};
+use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::{format, vec};
 use hashbrown::HashMap;
@@ -10,6 +11,7 @@ use log::{info, warn};
 
 #[derive(Debug)]
 pub struct Scene {
+    count: u32,
     pub(crate) keys: HashMap<ViewId, View>,
     children: HashMap<ViewId, Vec<ViewId>>,
     parents: HashMap<ViewId, ViewId>,
@@ -47,7 +49,11 @@ impl Scene {
 
 impl Scene {
     pub fn root_id(&self) -> ViewId {
-        self.root_id
+        self.root_id.clone()
+    }
+    pub fn next_view_id(&mut self) -> ViewId {
+        self.count += 1;
+        ViewId::make(format!("view_{}", self.count))
     }
     pub fn set_focused(&mut self, name: &ViewId) {
         if self.focused.is_some() {
@@ -171,7 +177,7 @@ impl Scene {
         let root_id = ViewId::new("root");
         let root = View {
             name: root_id.clone(),
-            title: root_id.as_str().into(),
+            title: root_id.to_string(),
             bounds,
             visible: true,
             input: None,
@@ -192,6 +198,7 @@ impl Scene {
             dirty_rect: bounds,
             children: HashMap::new(),
             parents: HashMap::new(),
+            count: 0,
         }
     }
     pub fn new() -> Scene {

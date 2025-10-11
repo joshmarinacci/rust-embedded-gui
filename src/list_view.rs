@@ -13,7 +13,7 @@ use log::info;
 pub fn make_list_view(name: &ViewId, data: Vec<&str>, selected: usize) -> View {
     View {
         name: name.clone(),
-        title: name.as_str().into(),
+        title: name.to_string(),
         state: Some(ListState::new_with(data, selected)),
         input: Some(input_list),
         layout: Some(layout_list),

@@ -12,8 +12,8 @@ use core::option::Option::Some;
 
 pub fn make_toggle_group(name: &ViewId, data: Vec<&str>, selected: usize) -> View {
     View {
-        name: *name,
-        title: name.as_str().into(),
+        name: name.clone(),
+        title: name.to_string(),
         bounds: Bounds::new(0, 0, (data.len() * 60) as i32, 30),
         state: Some(SelectOneOfState::new_with(data, selected)),
         input: Some(input_toggle_group),

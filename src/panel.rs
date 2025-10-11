@@ -1,8 +1,22 @@
+use crate::geom::Insets;
+use crate::view::{View, ViewId};
 use crate::DrawEvent;
+use alloc::boxed::Box;
 
 pub struct PanelState {
     pub gap: i32,
     pub border_visible: bool,
+    pub padding: Insets,
+}
+
+impl PanelState {
+    pub fn new() -> PanelState {
+        PanelState {
+            gap: 0,
+            border_visible: true,
+            padding: Insets::new_same(0),
+        }
+    }
 }
 
 pub fn draw_std_panel(e: &mut DrawEvent) {
@@ -12,5 +26,21 @@ pub fn draw_std_panel(e: &mut DrawEvent) {
         if state.border_visible {
             e.ctx.stroke_rect(&bounds, &e.theme.panel.text);
         }
+    }
+}
+
+
+pub fn make_panel(name: &ViewId) -> View {
+    View {
+        name: name.clone(),
+        title: "title".into(),
+        padding: Insets::new_same(0),
+        state: Some(Box::new(PanelState {
+            gap: 0,
+            border_visible: true,
+            padding: Insets::new_same(0),
+        })),
+        draw: Some(draw_std_panel),
+        ..Default::default()
     }
 }

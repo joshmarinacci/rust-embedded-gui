@@ -14,7 +14,7 @@ pub struct ButtonState {
 pub fn make_button(name: &ViewId, title: &str) -> View {
     make_full_button(name, title, title.into(), false)
 }
-pub fn make_full_button(name: &ViewId, title: &str, command: String, primary: bool) -> View {
+pub fn make_full_button(name: &ViewId, title: &str, command: &str, primary: bool) -> View {
     View {
         name: name.clone(),
         title: title.to_string(),
@@ -22,7 +22,7 @@ pub fn make_full_button(name: &ViewId, title: &str, command: String, primary: bo
         v_flex: Intrinsic,
         state: Some(Box::new(ButtonState {
             primary,
-            command,
+            command: command.into(),
         })),
         input: Some(|e| {
             if let InputEvent::Tap(_pt) = &e.event_type {
@@ -45,7 +45,7 @@ pub fn make_full_button(name: &ViewId, title: &str, command: String, primary: bo
             if state.primary {
                 e.ctx.fill_rect(&e.view.bounds, &e.theme.accented.fill);
                 e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
-                if e.focused == &Some(e.view.name) {
+                if e.focused == &Some(e.view.name.clone()) {
                     e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.accented.text);
                 }
                 draw_centered_text(
@@ -58,7 +58,7 @@ pub fn make_full_button(name: &ViewId, title: &str, command: String, primary: bo
             } else {
                 e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.fill);
                 e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
-                if e.focused == &Some(e.view.name) {
+                if e.focused == &Some(e.view.name.clone()) {
                     e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.standard.text);
                 }
                 draw_centered_text(

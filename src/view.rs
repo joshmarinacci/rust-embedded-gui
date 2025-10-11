@@ -1,18 +1,26 @@
 use crate::geom::{Bounds, Insets};
 use crate::{DrawFn, InputFn, LayoutFn};
+use alloc::borrow::Cow;
 use alloc::boxed::Box;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use core::any::Any;
 use core::fmt::{Display, Formatter};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ViewId(&'static str);
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ViewId(Cow<'static, str>);
+
+impl ViewId {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 impl ViewId {
     pub const fn new(id: &'static str) -> Self {
-        ViewId(id)
+        ViewId(Cow::Borrowed(id))
     }
-    pub const fn as_str(&self) -> &'static str {
-        self.0
+    pub fn make(id: String) -> Self {
+        ViewId(Cow::Owned(id))
     }
 }
 impl Display for ViewId {
@@ -57,6 +65,28 @@ impl View {
         self.padding = padding;
         self
     }
+    pub fn with_name(mut self, name: ViewId) -> View {
+        self.name = name;
+        self
+    }
+    pub fn with_bounds(mut self, bounds: Bounds) -> View {
+        self.bounds = bounds;
+        self
+    }
+    pub fn with_layout(mut self, layout: Option<LayoutFn>) -> View {
+        self.layout = layout;
+        self
+    }
+    pub fn with_state(mut self, state: Option<Box<dyn Any>>) -> View {
+        self.state = state;
+        self
+    }
+
+    pub fn with_flex(mut self, h_flex: Flex, v_flex: Flex) -> View {
+        self.h_flex = h_flex;
+        self.v_flex = v_flex;
+        self
+    }
 }
 
 impl View {
@@ -94,8 +124,8 @@ impl Default for View {
     fn default() -> Self {
         let id: ViewId = ViewId::new("noname");
         View {
-            name: id,
-            title: id.as_str().into(),
+            name: id.clone(),
+            title: id.to_string(),
             bounds: Default::default(),
             padding: Default::default(),
 
