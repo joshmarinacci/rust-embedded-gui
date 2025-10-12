@@ -40,13 +40,14 @@ pub fn make_full_button(name: &ViewId, title: &str, command: &str, primary: bool
         }),
         draw: Some(|e| {
             let Some(state) = e.view.get_state::<ButtonState>() else {
-                return
+                return;
             };
             if state.primary {
                 e.ctx.fill_rect(&e.view.bounds, &e.theme.accented.fill);
                 e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
                 if e.focused == &Some(e.view.name.clone()) {
-                    e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.accented.text);
+                    e.ctx
+                        .stroke_rect(&e.view.bounds.contract(2), &e.theme.accented.text);
                 }
                 draw_centered_text(
                     e.ctx,
@@ -59,7 +60,8 @@ pub fn make_full_button(name: &ViewId, title: &str, command: &str, primary: bool
                 e.ctx.fill_rect(&e.view.bounds, &e.theme.standard.fill);
                 e.ctx.stroke_rect(&e.view.bounds, &e.theme.standard.text);
                 if e.focused == &Some(e.view.name.clone()) {
-                    e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.standard.text);
+                    e.ctx
+                        .stroke_rect(&e.view.bounds.contract(2), &e.theme.standard.text);
                 }
                 draw_centered_text(
                     e.ctx,

@@ -1,10 +1,10 @@
+use crate::LayoutEvent;
 use crate::geom::{Bounds, Insets};
 use crate::input::OutputAction;
 use crate::scene::Scene;
 use crate::toggle_group::{input_toggle_group, make_toggle_group};
 use crate::view::Flex::Resize;
 use crate::view::{Flex, View, ViewId};
-use crate::LayoutEvent;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec;
@@ -134,7 +134,7 @@ mod tests {
     use crate::geom::{Bounds, Size};
     use crate::layouts::{layout_hbox, layout_std_panel, layout_vbox};
     use crate::panel::make_panel;
-    use crate::scene::{layout_scene, Scene};
+    use crate::scene::{Scene, layout_scene};
     use crate::tabbed_panel::make_tabbed_panel;
     use crate::test::MockDrawingContext;
     use crate::view::Align::{Center, End, Start};
@@ -148,8 +148,8 @@ mod tests {
         // tab panel test
         let tabbed_panel: ViewId = "tabbed_panel_id".into();
         {
-            let mut tabbed_panel_view = make_tabbed_panel(&tabbed_panel,
-                                                          vec!["tab1", "tab2"], 0, &mut scene);
+            let mut tabbed_panel_view =
+                make_tabbed_panel(&tabbed_panel, vec!["tab1", "tab2"], 0, &mut scene);
             tabbed_panel_view.h_flex = Flex::Resize;
             tabbed_panel_view.v_flex = Flex::Resize;
             scene.add_view_to_parent(tabbed_panel_view, &scene.root_id());
@@ -226,8 +226,7 @@ mod tests {
         // third tab panel lets children be absolutely positioned and sizes self to the center with a fixed width and height of 100
         let tab3: ViewId = "tab3".into();
         {
-            let view = make_panel(&tab3)
-                .with_flex(Resize, Resize);
+            let view = make_panel(&tab3).with_flex(Resize, Resize);
             scene.add_view_to_parent(view, &tabbed_panel);
         }
 

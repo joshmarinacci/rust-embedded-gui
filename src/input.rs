@@ -30,7 +30,6 @@ pub enum TextAction {
     Unknown,
 }
 
-
 #[derive(Debug, Clone)]
 pub struct InputResult {
     pub source: ViewId,

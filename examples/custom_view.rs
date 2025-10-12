@@ -3,13 +3,11 @@ use embedded_graphics::mono_font::ascii::FONT_7X13_BOLD;
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
 use embedded_graphics::pixelcolor::{Rgb565, WebColors};
 use embedded_graphics::prelude::RgbColor;
-use embedded_graphics_simulator::{
-    OutputSettingsBuilder, SimulatorDisplay, Window,
-};
+use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay, Window};
 use env_logger::Target;
 use iris_ui::device::EmbeddedDrawingContext;
 use iris_ui::geom::{Bounds, Size};
-use iris_ui::scene::{draw_scene, layout_scene, Scene};
+use iris_ui::scene::{Scene, draw_scene, layout_scene};
 use iris_ui::view::{View, ViewId};
 use iris_ui::{Theme, ViewStyle};
 use log::LevelFilter;

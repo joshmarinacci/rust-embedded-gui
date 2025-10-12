@@ -2,7 +2,7 @@ use crate::geom::Insets;
 use crate::gfx::draw_centered_text;
 use crate::input::OutputAction;
 use crate::view::{View, ViewId};
-use crate::{util, DrawEvent, GuiEvent, LayoutEvent};
+use crate::{DrawEvent, GuiEvent, LayoutEvent, util};
 use alloc::boxed::Box;
 
 pub fn make_toggle_button(name: &ViewId, title: &str) -> View {
@@ -29,7 +29,8 @@ impl SelectedState {
 
 fn draw_toggle_button(e: &mut DrawEvent) {
     let style = if let Some(state) = e.view.get_state::<SelectedState>()
-        && state.selected {
+        && state.selected
+    {
         e.theme.selected
     } else {
         e.theme.standard
@@ -40,11 +41,18 @@ fn draw_toggle_button(e: &mut DrawEvent) {
     if let Some(focused) = e.focused {
         let focus_insets = Insets::new_same(2);
         if focused == &e.view.name {
-            e.ctx.stroke_rect(&((*&e.view.bounds) - focus_insets), &style.text);
+            e.ctx
+                .stroke_rect(&((*&e.view.bounds) - focus_insets), &style.text);
         }
     }
 
-    draw_centered_text(e.ctx, &e.view.title, &e.view.bounds, &e.theme.font, &style.text);
+    draw_centered_text(
+        e.ctx,
+        &e.view.title,
+        &e.view.bounds,
+        &e.theme.font,
+        &style.text,
+    );
 }
 
 fn input_toggle_button(event: &mut GuiEvent) -> Option<OutputAction> {
@@ -65,9 +73,9 @@ fn layout_toggle_button(event: &mut LayoutEvent) {
 
 mod tests {
     use crate::geom::{Bounds, Point};
-    use crate::scene::{click_at, draw_scene, layout_scene, Scene};
+    use crate::scene::{Scene, click_at, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
-    use crate::toggle_button::{make_toggle_button, SelectedState};
+    use crate::toggle_button::{SelectedState, make_toggle_button};
     use crate::view::ViewId;
     use alloc::vec;
 

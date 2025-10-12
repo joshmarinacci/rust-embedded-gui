@@ -8,8 +8,8 @@ use crate::input::{InputEvent, OutputAction};
 use crate::scene::Scene;
 use crate::view::ViewId;
 use alloc::string::String;
-use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
 use embedded_graphics::mono_font::MonoFont;
+use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
 use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use geom::{Bounds, Point};
 use gfx::DrawingContext;
@@ -20,6 +20,7 @@ pub mod device;
 pub mod geom;
 pub mod gfx;
 pub mod grid;
+pub mod input;
 pub mod label;
 pub mod layouts;
 pub mod list_view;
@@ -32,7 +33,6 @@ pub mod toggle_button;
 pub mod toggle_group;
 pub mod util;
 pub mod view;
-pub mod input;
 
 pub struct DrawEvent<'a> {
     pub ctx: &'a mut dyn DrawingContext,
@@ -136,7 +136,7 @@ mod tests {
     use alloc::string::ToString;
     use alloc::vec;
     use alloc::vec::Vec;
-    use log::{info, LevelFilter};
+    use log::{LevelFilter, info};
     use std::sync::Once;
     use test_log::test;
 
@@ -231,17 +231,15 @@ mod tests {
             layout: None,
             input: Some(|e| {
                 match e.event_type {
-                    InputEvent::Text(act) => {
-                        match act {
-                            TextAction::TypedAscii(key) => {
-                                info!("got a keyboard event {}", key);
-                                if let Some(view) = e.scene.get_view_mut(e.target) {
-                                    view.title.push(key as char)
-                                }
+                    InputEvent::Text(act) => match act {
+                        TextAction::TypedAscii(key) => {
+                            info!("got a keyboard event {}", key);
+                            if let Some(view) = e.scene.get_view_mut(e.target) {
+                                view.title.push(key as char)
                             }
-                            _ => {}
                         }
-                    }
+                        _ => {}
+                    },
                     _ => info!("ignoring other event"),
                 };
                 None

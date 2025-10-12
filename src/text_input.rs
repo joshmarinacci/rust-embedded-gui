@@ -52,7 +52,8 @@ fn draw_text_input(e: &mut DrawEvent) {
 
     if let Some(focused) = e.focused {
         if focused == &e.view.name {
-            e.ctx.stroke_rect(&e.view.bounds.contract(2), &e.theme.standard.text);
+            e.ctx
+                .stroke_rect(&e.view.bounds.contract(2), &e.theme.standard.text);
             if let Some(state) = e.view.get_state::<TextInputState>() {
                 let n = state.cursor as i32;
                 let w = e.theme.font.character_size.width as i32;
@@ -78,20 +79,18 @@ fn input_text_input(event: &mut GuiEvent) -> Option<OutputAction> {
         match &event.event_type {
             InputEvent::Text(text_action) => {
                 match &text_action {
-                    TextAction::TypedAscii(key) => {
-                        match *key {
-                            8 => {
-                                state.delete_back();
-                            }
-                            13 => {
-                                info!("doing return");
-                                return Some(OutputAction::Command("Completed".into()));
-                            }
-                            _ => {
-                                state.insert_char(*key as char);
-                            }
+                    TextAction::TypedAscii(key) => match *key {
+                        8 => {
+                            state.delete_back();
                         }
-                    }
+                        13 => {
+                            info!("doing return");
+                            return Some(OutputAction::Command("Completed".into()));
+                        }
+                        _ => {
+                            state.insert_char(*key as char);
+                        }
+                    },
                     TextAction::Left => state.cursor_back(),
                     TextAction::Right => state.cursor_forward(),
                     TextAction::Up => {}

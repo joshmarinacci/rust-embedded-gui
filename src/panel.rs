@@ -1,6 +1,6 @@
+use crate::DrawEvent;
 use crate::geom::Insets;
 use crate::view::{View, ViewId};
-use crate::DrawEvent;
 use alloc::boxed::Box;
 
 pub struct PanelState {
@@ -28,7 +28,6 @@ pub fn draw_std_panel(e: &mut DrawEvent) {
         }
     }
 }
-
 
 pub fn make_panel(name: &ViewId) -> View {
     View {

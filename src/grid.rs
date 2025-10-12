@@ -94,7 +94,8 @@ pub fn make_grid_panel(name: &ViewId) -> View {
 
 fn draw_grid(evt: &mut DrawEvent) {
     let bounds = evt.view.bounds;
-    evt.ctx.fill_rect(&evt.view.bounds, &evt.theme.standard.fill);
+    evt.ctx
+        .fill_rect(&evt.view.bounds, &evt.theme.standard.fill);
     if let Some(state) = evt.view.get_state::<GridLayoutState>() {
         let padding = state.padding;
         if state.border_visible {
@@ -125,7 +126,9 @@ fn layout_grid(pass: &mut LayoutEvent) {
     } else {
         Insets::new_same(0)
     };
-    let Some(view) = pass.scene.get_view_mut(pass.target) else { return; };
+    let Some(view) = pass.scene.get_view_mut(pass.target) else {
+        return;
+    };
     // let padding = state.padding.clone();
     if view.h_flex == Resize {
         view.bounds.size.w = pass.space.w;
@@ -176,9 +179,9 @@ impl Into<ViewId> for &'static str {
 mod tests {
     use crate::button::make_button;
     use crate::geom::Bounds;
-    use crate::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
+    use crate::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
     use crate::label::make_label;
-    use crate::scene::{draw_scene, layout_scene, Scene};
+    use crate::scene::{Scene, draw_scene, layout_scene};
     use crate::test::MockDrawingContext;
     use crate::view::Align::Start;
     use crate::view::ViewId;

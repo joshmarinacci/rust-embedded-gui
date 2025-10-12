@@ -1,22 +1,22 @@
+use embedded_graphics::Drawable;
 #[cfg(feature = "std")]
 use embedded_graphics::geometry::{Point as EPoint, Size};
+use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::mono_font::ascii::{
     FONT_5X7, FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
-use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
 use embedded_graphics::prelude::Primitive;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
 use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
-use embedded_graphics::Drawable;
 use iris_ui::button::{make_button, make_full_button};
 use iris_ui::geom::{Bounds, Insets, Point as GPoint};
-use iris_ui::scene::{click_at, draw_scene, event_at_focused, layout_scene, Scene};
+use iris_ui::scene::{Scene, click_at, draw_scene, event_at_focused, layout_scene};
 use iris_ui::toggle_button::make_toggle_button;
-use iris_ui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
-use iris_ui::{util, Theme, ViewStyle, BW_THEME};
+use iris_ui::toggle_group::{SelectOneOfState, layout_toggle_group, make_toggle_group};
+use iris_ui::{BW_THEME, Theme, ViewStyle, util};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
@@ -24,23 +24,22 @@ use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
-use env_logger::fmt::style::Color::Rgb;
 use env_logger::Target;
+use env_logger::fmt::style::Color::Rgb;
 use iris_ui::device::EmbeddedDrawingContext;
-use iris_ui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
+use iris_ui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
 use iris_ui::input::{InputEvent, InputResult, OutputAction, TextAction};
 use iris_ui::label::{make_header_label, make_label};
 use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_vbox};
 use iris_ui::list_view::make_list_view;
-use iris_ui::panel::{draw_std_panel, make_panel, PanelState};
-use iris_ui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
+use iris_ui::panel::{PanelState, draw_std_panel, make_panel};
+use iris_ui::tabbed_panel::{LayoutPanelState, make_tabbed_panel};
 use iris_ui::text_input::make_text_input;
 use iris_ui::util::hex_str_to_rgb565;
 use iris_ui::view::Align::{Center, Start};
 use iris_ui::view::Flex::{Intrinsic, Resize};
 use iris_ui::view::{Align, Flex, View, ViewId};
-use log::{info, LevelFilter};
-
+use log::{LevelFilter, info};
 
 const POPUP_MENU: &'static ViewId = &ViewId::new("popup-menu");
 fn make_scene() -> Scene {
@@ -64,8 +63,7 @@ fn make_scene() -> Scene {
     }
 
     {
-        let mut grid = make_grid_panel(BUTTONS_PANEL)
-            .with_flex(Resize, Resize);
+        let mut grid = make_grid_panel(BUTTONS_PANEL).with_flex(Resize, Resize);
         let mut grid_layout = GridLayoutState::new_row_column(4, 30, 3, 100);
         grid_layout.debug = false;
         grid_layout.border_visible = false;
@@ -175,8 +173,7 @@ fn make_scene() -> Scene {
                 padding: Insets::new_same(0),
             })))
             .with_flex(Resize, Resize)
-            .with_visible(false)
-            ;
+            .with_visible(false);
         scene.add_view_to_parent(
             make_text_input("text input", "input").position_at(10, 10),
             &panel.name,
@@ -191,8 +188,7 @@ fn make_scene() -> Scene {
                 gap: 0,
                 padding: Insets::new_same(10),
             })))
-            .with_flex(Resize, Resize)
-            ;
+            .with_flex(Resize, Resize);
         let themes_list_id = ViewId::new("themes-list");
         let themes = make_list_view(
             &themes_list_id,
@@ -364,8 +360,8 @@ fn handle_events(result: InputResult, scene: &mut Scene, theme: &mut Theme) {
                     scene.mark_layout_dirty();
                 }
                 "open-popup" => {
-                    let menu =
-                        make_list_view(POPUP_MENU, vec!["Item 1", "Item 2", "Item 3"], 0).position_at(50, 50);
+                    let menu = make_list_view(POPUP_MENU, vec!["Item 1", "Item 2", "Item 3"], 0)
+                        .position_at(50, 50);
                     scene.set_focused(&menu.name);
                     scene.add_view_to_root(menu);
                 }
