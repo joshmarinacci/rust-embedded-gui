@@ -8,8 +8,9 @@ use crate::input::{InputEvent, OutputAction};
 use crate::scene::Scene;
 use crate::view::ViewId;
 use alloc::string::String;
+use embedded_graphics::mono_font::ascii::{FONT_7X13, FONT_7X13_BOLD};
 use embedded_graphics::mono_font::MonoFont;
-use embedded_graphics::pixelcolor::Rgb565;
+use embedded_graphics::pixelcolor::{Rgb565, RgbColor};
 use geom::{Bounds, Point};
 use gfx::DrawingContext;
 use view::View;
@@ -100,6 +101,27 @@ impl<'a> LayoutEvent<'a> {
         }
     }
 }
+
+pub const BW_THEME: Theme = Theme {
+    standard: ViewStyle {
+        fill: Rgb565::WHITE,
+        text: Rgb565::BLACK,
+    },
+    panel: ViewStyle {
+        fill: Rgb565::WHITE,
+        text: Rgb565::BLACK,
+    },
+    selected: ViewStyle {
+        fill: Rgb565::BLACK,
+        text: Rgb565::WHITE,
+    },
+    accented: ViewStyle {
+        fill: Rgb565::BLACK,
+        text: Rgb565::WHITE,
+    },
+    font: FONT_7X13,
+    bold_font: FONT_7X13_BOLD,
+};
 
 #[cfg(test)]
 mod tests {

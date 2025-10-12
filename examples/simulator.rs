@@ -16,7 +16,7 @@ use iris_ui::geom::{Bounds, Insets, Point as GPoint};
 use iris_ui::scene::{click_at, draw_scene, event_at_focused, layout_scene, Scene};
 use iris_ui::toggle_button::make_toggle_button;
 use iris_ui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
-use iris_ui::{util, Theme, ViewStyle};
+use iris_ui::{util, Theme, ViewStyle, BW_THEME};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
@@ -251,29 +251,7 @@ fn main() -> Result<(), std::convert::Infallible> {
 
     let mut scene = make_scene();
     // let mut scene = make_vbox_test();
-    let mut theme = Theme {
-        standard: ViewStyle {
-            fill: Rgb565::WHITE,
-            text: Rgb565::BLACK,
-        },
-        // selected_bg: Rgb565::BLUE,
-        // selected_fg: Rgb565::WHITE,
-        // panel_bg: Rgb565::CSS_LIGHT_GRAY,
-        font: FONT_7X13,
-        bold_font: FONT_7X13_BOLD,
-        panel: ViewStyle {
-            fill: Rgb565::CSS_LIGHT_GRAY,
-            text: Rgb565::BLACK,
-        },
-        selected: ViewStyle {
-            fill: Rgb565::BLUE,
-            text: Rgb565::WHITE,
-        },
-        accented: ViewStyle {
-            fill: Rgb565::RED,
-            text: Rgb565::WHITE,
-        },
-    };
+    let mut theme = BW_THEME;
     copy_theme_colors(&mut theme, &LIGHT_THEME);
 
     let output_settings = OutputSettingsBuilder::new().scale(2).build();

@@ -211,6 +211,7 @@ impl Scene {
             warn!("might be adding duplicate view key {name}");
         }
         self.keys.insert(name.clone(), view);
+        self.mark_layout_dirty();
         self.mark_dirty_view(&name);
     }
     pub fn add_view_to_root(&mut self, view: View) {
