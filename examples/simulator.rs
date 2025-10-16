@@ -16,6 +16,7 @@ use iris_ui::{util, Theme, ViewStyle, BW_THEME};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
+use embedded_graphics::text::Text;
 use embedded_graphics_simulator::sdl2::{Keycode, Mod};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
@@ -34,6 +35,8 @@ use iris_ui::util::hex_str_to_rgb565;
 use iris_ui::view::Flex::{Fixed, Intrinsic, Resize};
 use iris_ui::view::{Align, View, ViewId};
 use log::{info, LevelFilter};
+
+use embedded_mogeefont::MogeeTextStyle;
 
 const POPUP_MENU: &'static ViewId = &ViewId::new("popup-menu");
 fn make_scene() -> Scene {
@@ -250,6 +253,11 @@ fn main() -> Result<(), std::convert::Infallible> {
         ctx.clip = scene.dirty_rect.clone();
         layout_scene(&mut scene, &theme);
         draw_scene(&mut scene, &mut ctx, &theme);
+
+        let character_style = MogeeTextStyle::new(Rgb565::BLACK);
+        Text::new("some text", EPoint::new(40, 70), character_style).draw(&mut display);
+
+
         window.update(&display);
         for event in window.events() {
             match event {

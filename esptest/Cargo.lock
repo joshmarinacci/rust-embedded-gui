@@ -464,6 +464,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "embedded-mogeefont"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be35c74f8aef6e39e191e9296de12e3fb4ab210d95011ce1aeb56556690fb632"
+dependencies = [
+ "embedded-graphics",
+]
+
+[[package]]
 name = "embedded-storage"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -992,6 +1001,7 @@ name = "iris-ui"
 version = "0.1.0"
 dependencies = [
  "embedded-graphics",
+ "embedded-mogeefont",
  "hashbrown 0.16.0",
  "log",
 ]
