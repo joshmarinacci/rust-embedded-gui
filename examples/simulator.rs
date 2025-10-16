@@ -1,22 +1,18 @@
-use embedded_graphics::Drawable;
 #[cfg(feature = "std")]
 use embedded_graphics::geometry::{Point as EPoint, Size};
-use embedded_graphics::mono_font::MonoTextStyleBuilder;
 use embedded_graphics::mono_font::ascii::{
     FONT_5X7, FONT_6X10, FONT_7X13_BOLD, FONT_9X15, FONT_9X15_BOLD,
 };
 use embedded_graphics::mono_font::iso_8859_9::FONT_7X13;
-use embedded_graphics::pixelcolor::{Rgb565, Rgb888};
-use embedded_graphics::prelude::Primitive;
+use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::RgbColor;
 use embedded_graphics::prelude::WebColors;
-use embedded_graphics::primitives::{Line, PrimitiveStyle, Rectangle};
 use iris_ui::button::{make_button, make_full_button};
 use iris_ui::geom::{Bounds, Insets, Point as GPoint};
-use iris_ui::scene::{Scene, click_at, draw_scene, event_at_focused, layout_scene};
+use iris_ui::scene::{click_at, draw_scene, event_at_focused, layout_scene, Scene};
 use iris_ui::toggle_button::make_toggle_button;
-use iris_ui::toggle_group::{SelectOneOfState, layout_toggle_group, make_toggle_group};
-use iris_ui::{BW_THEME, Theme, ViewStyle, util};
+use iris_ui::toggle_group::{layout_toggle_group, make_toggle_group, SelectOneOfState};
+use iris_ui::{util, Theme, ViewStyle, BW_THEME};
 use std::convert::Into;
 
 use embedded_graphics::prelude::*;
@@ -25,21 +21,19 @@ use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
 use env_logger::Target;
-use env_logger::fmt::style::Color::Rgb;
 use iris_ui::device::EmbeddedDrawingContext;
-use iris_ui::grid::{GridLayoutState, LayoutConstraint, make_grid_panel};
+use iris_ui::grid::{make_grid_panel, GridLayoutState, LayoutConstraint};
 use iris_ui::input::{InputEvent, InputResult, OutputAction, TextAction};
 use iris_ui::label::{make_header_label, make_label};
 use iris_ui::layouts::{layout_hbox, layout_std_panel, layout_vbox};
 use iris_ui::list_view::make_list_view;
-use iris_ui::panel::{PanelState, draw_std_panel, make_panel};
-use iris_ui::tabbed_panel::{LayoutPanelState, make_tabbed_panel};
+use iris_ui::panel::{draw_std_panel, make_panel, PanelState};
+use iris_ui::tabbed_panel::{make_tabbed_panel, LayoutPanelState};
 use iris_ui::text_input::make_text_input;
 use iris_ui::util::hex_str_to_rgb565;
-use iris_ui::view::Align::{Center, Start};
-use iris_ui::view::Flex::{Intrinsic, Resize};
-use iris_ui::view::{Align, Flex, View, ViewId};
-use log::{LevelFilter, info};
+use iris_ui::view::Flex::{Fixed, Intrinsic, Resize};
+use iris_ui::view::{Align, View, ViewId};
+use log::{info, LevelFilter};
 
 const POPUP_MENU: &'static ViewId = &ViewId::new("popup-menu");
 fn make_scene() -> Scene {
@@ -246,7 +240,6 @@ fn main() -> Result<(), std::convert::Infallible> {
     let mut display: SimulatorDisplay<Rgb565> = SimulatorDisplay::new(Size::new(320, 240));
 
     let mut scene = make_scene();
-    // let mut scene = make_vbox_test();
     let mut theme = BW_THEME;
     copy_theme_colors(&mut theme, &LIGHT_THEME);
 

@@ -33,6 +33,7 @@ impl Display for ViewId {
 pub enum Flex {
     Intrinsic,
     Resize,
+    Fixed,
 }
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Align {

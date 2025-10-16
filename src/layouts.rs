@@ -1,23 +1,26 @@
-use crate::LayoutEvent;
 use crate::geom::{Insets, Size};
 use crate::panel::PanelState;
 use crate::view::Align::{Center, End, Start};
 use crate::view::Flex::Resize;
 use crate::view::{Flex, ViewId};
-use Flex::Intrinsic;
+use crate::LayoutEvent;
 use log::info;
+use Flex::{Fixed, Intrinsic};
 
 pub fn layout_vbox(pass: &mut LayoutEvent) {
     let Some(parent) = pass.scene.get_view_mut(&pass.target) else {
         return;
     };
-    let Some(states) = parent.get_state::<PanelState>() else {
+    let Some(panel_state) = parent.get_state::<PanelState>() else {
         return;
     };
-    let gap = states.gap;
-    let padding = states.padding.clone();
+    let gap = panel_state.gap;
+    let padding = panel_state.padding.clone();
     let h_flex = parent.h_flex.clone();
     let mut available_space: Size = pass.space - padding;
+    if h_flex == Fixed {
+        available_space.w = parent.bounds.size.w;
+    }
 
     // get the intrinsic children
     let fixed_kids = pass
@@ -80,16 +83,16 @@ pub fn layout_vbox(pass: &mut LayoutEvent) {
     }
     // layout self
     if let Some(view) = pass.scene.get_view_mut(&pass.target) {
-        if view.h_flex == Resize {
-            view.bounds.size.w = pass.space.w
-        }
-        if view.h_flex == Intrinsic {
-            view.bounds.size.w = max_width + padding.left + padding.right
-        }
-        if view.v_flex == Resize {
-            view.bounds.size.h = pass.space.h
-        }
-        if view.v_flex == Intrinsic {}
+        view.bounds.size.w = match &view.h_flex {
+            Fixed => view.bounds.size.w,
+            Intrinsic => max_width + padding.left + padding.right,
+            Resize => pass.space.w,
+        };
+        view.bounds.size.h = match &view.v_flex {
+            Fixed => view.bounds.size.h,
+            Intrinsic => view.bounds.size.h,
+            Resize => pass.space.h,
+        };
     }
 }
 
@@ -209,14 +212,14 @@ pub fn layout_std_panel(pass: &mut LayoutEvent) {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use crate::LayoutEvent;
     use crate::geom::{Bounds, Insets, Point, Size};
     use crate::layouts::{layout_std_panel, layout_vbox};
     use crate::panel::PanelState;
-    use crate::scene::{Scene, layout_scene};
+    use crate::scene::{layout_scene, Scene};
     use crate::test::MockDrawingContext;
     use crate::view::Align::Start;
     use crate::view::{Align, Flex, View, ViewId};
+    use crate::LayoutEvent;
     use alloc::boxed::Box;
     use test_log::test;
 
